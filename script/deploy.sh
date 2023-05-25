@@ -46,32 +46,33 @@ echo "PoolLogic=$PoolLogic" >> ".env"
 
 # 1.5.1 deploy testnet token 
 forge script script/1.5-testnet/1.5.1-MockToken.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
-TESTNET_BUSD=($(jq -r '.transactions[1].contractAddress' broadcast/1.5.1-MockToken.s.sol/${chainId}/run-latest.json))
-TESTNET_USDC=($(jq -r '.transactions[2].contractAddress' broadcast/1.5.1-MockToken.s.sol/${chainId}/run-latest.json))
-TESTNET_USDT=($(jq -r '.transactions[3].contractAddress' broadcast/1.5.1-MockToken.s.sol/${chainId}/run-latest.json))
-TESTNET_WBTC=($(jq -r '.transactions[4].contractAddress' broadcast/1.5.1-MockToken.s.sol/${chainId}/run-latest.json))
-TESTNET_WETH=($(jq -r '.transactions[5].contractAddress' broadcast/1.5.1-MockToken.s.sol/${chainId}/run-latest.json))
-TESTNET_WBNB=($(jq -r '.transactions[6].contractAddress' broadcast/1.5.1-MockToken.s.sol/${chainId}/run-latest.json))
-echo "TESTNET_BUSD=$TESTNET_BUSD" >> ".env"
-echo "TESTNET_USDC=$TESTNET_USDC" >> ".env"
-echo "TESTNET_USDT=$TESTNET_USDT" >> ".env"
-echo "TESTNET_WBTC=$TESTNET_WBTC" >> ".env"
-echo "TESTNET_WETH=$TESTNET_WETH" >> ".env"
-echo "TESTNET_WBNB=$TESTNET_WBNB" >> ".env"
+BUSD_TESTNET=($(jq -r '.transactions[1].contractAddress' broadcast/1.5.1-MockToken.s.sol/${chainId}/run-latest.json))
+USDC_TESTNET=($(jq -r '.transactions[2].contractAddress' broadcast/1.5.1-MockToken.s.sol/${chainId}/run-latest.json))
+USDT_TESTNET=($(jq -r '.transactions[3].contractAddress' broadcast/1.5.1-MockToken.s.sol/${chainId}/run-latest.json))
+WBTC_TESTNET=($(jq -r '.transactions[4].contractAddress' broadcast/1.5.1-MockToken.s.sol/${chainId}/run-latest.json))
+WETH_TESTNET=($(jq -r '.transactions[5].contractAddress' broadcast/1.5.1-MockToken.s.sol/${chainId}/run-latest.json))
+WBNB_TESTNET=($(jq -r '.transactions[6].contractAddress' broadcast/1.5.1-MockToken.s.sol/${chainId}/run-latest.json))
+echo "BUSD_TESTNET=$BUSD_TESTNET" >> ".env"
+echo "USDC_TESTNET=$USDC_TESTNET" >> ".env"
+echo "USDT_TESTNET=$USDT_TESTNET" >> ".env"
+echo "WBTC_TESTNET=$WBTC_TESTNET" >> ".env"
+echo "WETH_TESTNET=$WETH_TESTNET" >> ".env"
+echo "WBNB_TESTNET=$WBNB_TESTNET" >> ".env"
 # 1.5.2 deploy testnet aggregatorProxy
 forge script script/1.5-testnet/1.5.2-MockAggregatorProxy.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
-TESTNET_BUSD_AGG=($(jq -r '.transactions[0].contractAddress' broadcast/1.5.2-MockAggregatorProxy.s.sol/${chainId}/run-latest.json))
-TESTNET_USDC_AGG=($(jq -r '.transactions[1].contractAddress' broadcast/1.5.2-MockAggregatorProxy.s.sol/${chainId}/run-latest.json))
-TESTNET_USDT_AGG=($(jq -r '.transactions[2].contractAddress' broadcast/1.5.2-MockAggregatorProxy.s.sol/${chainId}/run-latest.json))
-TESTNET_WBTC_AGG=($(jq -r '.transactions[3].contractAddress' broadcast/1.5.2-MockAggregatorProxy.s.sol/${chainId}/run-latest.json))
-TESTNET_WETH_AGG=($(jq -r '.transactions[4].contractAddress' broadcast/1.5.2-MockAggregatorProxy.s.sol/${chainId}/run-latest.json))
-TESTNET_WBNB_AGG=($(jq -r '.transactions[5].contractAddress' broadcast/1.5.2-MockAggregatorProxy.s.sol/${chainId}/run-latest.json))
-echo "TESTNET_BUSD_AGG=$TESTNET_BUSD_AGG" >> ".env"
-echo "TESTNET_USDC_AGG=$TESTNET_USDC_AGG" >> ".env"
-echo "TESTNET_USDT_AGG=$TESTNET_USDT_AGG" >> ".env"
-echo "TESTNET_WBTC_AGG=$TESTNET_WBTC_AGG" >> ".env"
-echo "TESTNET_WETH_AGG=$TESTNET_WETH_AGG" >> ".env"
-echo "TESTNET_WBNB_AGG=$TESTNET_WBNB_AGG" >> ".env"
+BUSD_AGGREGATOR_TESTNET=($(jq -r '.transactions[0].contractAddress' broadcast/1.5.2-MockAggregatorProxy.s.sol/${chainId}/run-latest.json))
+USDC_AGGREGATOR_TESTNET=($(jq -r '.transactions[1].contractAddress' broadcast/1.5.2-MockAggregatorProxy.s.sol/${chainId}/run-latest.json))
+USDT_AGGREGATOR_TESTNET=($(jq -r '.transactions[2].contractAddress' broadcast/1.5.2-MockAggregatorProxy.s.sol/${chainId}/run-latest.json))
+WBTC_AGGREGATOR_TESTNET=($(jq -r '.transactions[3].contractAddress' broadcast/1.5.2-MockAggregatorProxy.s.sol/${chainId}/run-latest.json))
+WETH_AGGREGATOR_TESTNET=($(jq -r '.transactions[4].contractAddress' broadcast/1.5.2-MockAggregatorProxy.s.sol/${chainId}/run-latest.json))
+WBNB_AGGREGATOR_TESTNET=($(jq -r '.transactions[5].contractAddress' broadcast/1.5.2-MockAggregatorProxy.s.sol/${chainId}/run-latest.json))
+echo "BUSD_AGGREGATOR_TESTNET=$BUSD_AGGREGATOR_TESTNET" >> ".env"
+echo "USDC_AGGREGATOR_TESTNET=$USDC_AGGREGATOR_TESTNET" >> ".env"
+echo "USDT_AGGREGATOR_TESTNET=$USDT_AGGREGATOR_TESTNET" >> ".env"
+echo "WBTC_AGGREGATOR_TESTNET=$WBTC_AGGREGATOR_TESTNET" >> ".env"
+echo "WETH_AGGREGATOR_TESTNET=$WETH_AGGREGATOR_TESTNET" >> ".env"
+echo "WBNB_AGGREGATOR_TESTNET=$WBNB_AGGREGATOR_TESTNET" >> ".env"
+
 #source address of PoolAddressesProviderRegistry into env variable
 PoolAddressesProviderRegistry=($(jq -r '.transactions[0].contractAddress' broadcast/0-PoolAddressesProviderRegistry.s.sol/${chainId}/run-latest.json))
 echo "\n#deployment variables\nPoolAddressesProviderRegistry=$PoolAddressesProviderRegistry" >> ".env"
