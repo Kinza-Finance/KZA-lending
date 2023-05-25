@@ -1,12 +1,12 @@
 [profile.default]
 src = "src"
 out = "artifacts"
-libs = ["node_modules"]
+libs = ["node_modules", "lib"]
 remappings = [
     "@aave/=node_modules/@aave/",
     "eth-gas-reporter/=node_modules/eth-gas-reporter/",
     "hardhat-deploy/=node_modules/hardhat-deploy/",
     "hardhat/=node_modules/hardhat/",
 ]
-
+solc-version = "0.8.10"
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config
