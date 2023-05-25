@@ -3,6 +3,7 @@ pragma solidity 0.8.10;
 
 import "forge-std/Script.sol";
 import "../../src/core/protocol/pool/PoolConfigurator.sol";
+import "../../src/core/interfaces/IPoolAddressesProvider.sol";
 
 contract DeployPoolConfiguratorImpl is Script {
     function run() external {
@@ -11,7 +12,7 @@ contract DeployPoolConfiguratorImpl is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         PoolConfigurator configurator = new PoolConfigurator();
-        configurator.initialize(provider);
+        configurator.initialize(IPoolAddressesProvider(provider));
 
         vm.stopBroadcast();
     }

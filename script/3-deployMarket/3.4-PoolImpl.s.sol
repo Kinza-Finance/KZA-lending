@@ -12,7 +12,7 @@ contract DeployPoolImpl is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         Pool pool = new Pool(IPoolAddressesProvider(provider));
-        pool.initialize(provider);
+        pool.initialize(IPoolAddressesProvider(provider));
 
 
         vm.stopBroadcast();
