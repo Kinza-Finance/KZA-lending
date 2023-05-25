@@ -3,7 +3,6 @@ export chainId=$MUMBAI_CHAINID
 export RPC_URL=$MUMBAI_RPC_URL
 export VERIFIER_URL=$MUMBAI_VERIFIER_URL
 export ETHERSCAN_API_KEY=$MUMBAI_ETHERSCAN_API_KEY
-export PRIVATE_KEY=$MUMBAI_PRIVATE_KEY
 # 0 - PoolAddressesProviderRegistry
 forge script script/0-PoolAddressesProviderRegistry.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 #source address of PoolAddressesProviderRegistry into env variable
@@ -12,35 +11,35 @@ echo "\n#deployment variables\nPoolAddressesProviderRegistry=$PoolAddressesProvi
 
 # 1 - Logics
 # 1.1 Supply Logic
-forge create src/contracts/protocol/libraries/logic/SupplyLogic.sol:SupplyLogic --private-key $PRIVATE_KEY --rpc-url $RPC_URL --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY  > log/SupplyLogic.txt
+forge create src/core/protocol/libraries/logic/SupplyLogic.sol:SupplyLogic --private-key $PRIVATE_KEY --rpc-url $RPC_URL --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY  > log/SupplyLogic.txt
 SupplyLogic=$(grep 'Deployed to: ' log/SupplyLogic.txt | awk '{print $3}')
 echo "SupplyLogic=$SupplyLogic" >> ".env"
 # 1.2 Borrow Logic
-forge create src/contracts/protocol/libraries/logic/BorrowLogic.sol:BorrowLogic --private-key $PRIVATE_KEY --rpc-url $RPC_URL --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY  > log/BorrowLogic.txt
+forge create src/core/protocol/libraries/logic/BorrowLogic.sol:BorrowLogic --private-key $PRIVATE_KEY --rpc-url $RPC_URL --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY  > log/BorrowLogic.txt
 BorrowLogic=$(grep 'Deployed to: ' log/BorrowLogic.txt | awk '{print $3}')
 echo "BorrowLogic=$BorrowLogic" >> ".env"
 # 1.3 LiquidationLogic
-forge create src/contracts/protocol/libraries/logic/LiquidationLogic.sol:LiquidationLogic --private-key $PRIVATE_KEY --rpc-url $RPC_URL --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY  > log/LiquidationLogic.txt
+forge create src/core/protocol/libraries/logic/LiquidationLogic.sol:LiquidationLogic --private-key $PRIVATE_KEY --rpc-url $RPC_URL --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY  > log/LiquidationLogic.txt
 LiquidationLogic=$(grep 'Deployed to: ' log/LiquidationLogic.txt | awk '{print $3}')
 echo "LiquidationLogic=$LiquidationLogic" >> ".env"
 # 1.4 EmodeLogic
-forge create src/contracts/protocol/libraries/logic/EModeLogic.sol:EModeLogic --private-key $PRIVATE_KEY --rpc-url $RPC_URL --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY  > log/EModeLogic.txt
+forge create src/core/protocol/libraries/logic/EModeLogic.sol:EModeLogic --private-key $PRIVATE_KEY --rpc-url $RPC_URL --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY  > log/EModeLogic.txt
 EModeLogic=$(grep 'Deployed to: ' log/EModeLogic.txt | awk '{print $3}')
 echo "EModeLogic=$EModeLogic" >> ".env"
 # 1.5 BridgeLogic
-forge create src/contracts/protocol/libraries/logic/BridgeLogic.sol:BridgeLogic --private-key $PRIVATE_KEY --rpc-url $RPC_URL --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY  > log/BridgeLogic.txt
+forge create src/core/protocol/libraries/logic/BridgeLogic.sol:BridgeLogic --private-key $PRIVATE_KEY --rpc-url $RPC_URL --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY  > log/BridgeLogic.txt
 BridgeLogic=$(grep 'Deployed to: ' log/BridgeLogic.txt | awk '{print $3}')
 echo "BridgeLogic=$BridgeLogic" >> ".env"
 # 1.6 ConfiguratorLogic
-forge create src/contracts/protocol/libraries/logic/ConfiguratorLogic.sol:ConfiguratorLogic --private-key $PRIVATE_KEY --rpc-url $RPC_URL --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY  > log/ConfiguratorLogic.txt
+forge create src/core/protocol/libraries/logic/ConfiguratorLogic.sol:ConfiguratorLogic --private-key $PRIVATE_KEY --rpc-url $RPC_URL --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY  > log/ConfiguratorLogic.txt
 ConfiguratorLogic=$(grep 'Deployed to: ' log/ConfiguratorLogic.txt | awk '{print $3}')
 echo "ConfiguratorLogic=$ConfiguratorLogic" >> ".env"
 # 1.7 FlashLoanLogic
-forge create src/contracts/protocol/libraries/logic/FlashLoanLogic.sol:FlashLoanLogic --libraries src/contracts/protocol/libraries/logic/BorrowLogic.sol:BorrowLogic:$BorrowLogic  --private-key $PRIVATE_KEY --rpc-url $RPC_URL --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY > log/FlashLoanLogic.txt
+forge create src/core/protocol/libraries/logic/FlashLoanLogic.sol:FlashLoanLogic --libraries src/contracts/protocol/libraries/logic/BorrowLogic.sol:BorrowLogic:$BorrowLogic  --private-key $PRIVATE_KEY --rpc-url $RPC_URL --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY > log/FlashLoanLogic.txt
 FlashLoanLogic=$(grep 'Deployed to: ' log/FlashLoanLogic.txt | awk '{print $3}')
 echo "FlashLoanLogic=$FlashLoanLogic" >> ".env"
 # 1.8 PoolLogic
-forge create src/contracts/protocol/libraries/logic/PoolLogic.sol:PoolLogic --private-key $PRIVATE_KEY --rpc-url $RPC_URL --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY  > log/PoolLogic.txt
+forge create src/core/protocol/libraries/logic/PoolLogic.sol:PoolLogic --private-key $PRIVATE_KEY --rpc-url $RPC_URL --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY  > log/PoolLogic.txt
 PoolLogic=$(grep 'Deployed to: ' log/PoolLogic.txt | awk '{print $3}')
 echo "PoolLogic=$PoolLogic" >> ".env"
 
@@ -87,4 +86,26 @@ echo "PoolAddressesProvider=$PoolAddressesProvider" >> ".env"
 forge script script/3-deployMarket/3.2-RegisterAddressProvider.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 #3.3 - deploy PoolDataProvider
 forge script script/3-deployMarket/3.3-PoolDataProvider.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+PoolDataProvider=($(jq -r '.transactions[0].contractAddress' broadcast/3.3-PoolDataProvider.s.sol/${chainId}/run-latest.json))
 echo "PoolDataProvider=$PoolDataProvider" >> ".env"
+#3.4 - deploy PoolImpl
+forge script script/3-deployMarket/3.4-PoolImpl.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+PoolImpl=($(jq -r '.transactions[0].contractAddress' broadcast/3.4-PoolImpl.s.sol/${chainId}/run-latest.json))
+echo "PoolImpl=$PoolImpl" >> ".env"
+# 3.5 - deploy configuratorImpl
+forge script script/3-deployMarket/3.5-PoolConfiguratorImpl.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+PoolConfiguratorImpl=($(jq -r '.transactions[0].contractAddress' broadcast/3.5-PoolConfiguratorImpl.s.sol/${chainId}/run-latest.json))
+echo "PoolConfiguratorImpl=$PoolConfiguratorImpl" >> ".env"
+# 3.6 - deploy ACL Manager
+forge script script/3-deployMarket/3.6-ACLManager.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+ACLManager=($(jq -r '.transactions[1].contractAddress' broadcast/3.6-ACLManager.s.sol/${chainId}/run-latest.json))
+echo "ACLManager=$ACLManager" >> ".env"
+# 3.7 - deploy Oracle
+forge script script/3-deployMarket/3.7-Oracle.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+Oracle=($(jq -r '.transactions[0].contractAddress' broadcast/3.7-Oracle.s.sol/${chainId}/run-latest.json))
+echo "Oracle=$Oracle" >> ".env"
+# 3.8 init oracle
+forge script script/3-deployMarket/3.8-InitOracle.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+# 3.9 init pool
+forge script script/3-deployMarket/3.9-InitPool.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+
