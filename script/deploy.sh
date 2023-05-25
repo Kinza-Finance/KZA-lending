@@ -108,4 +108,17 @@ echo "Oracle=$Oracle" >> ".env"
 forge script script/3-deployMarket/3.8-InitOracle.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 # 3.9 init pool
 forge script script/3-deployMarket/3.9-InitPool.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
-
+# 3.10 init EmissionManager, RewardsController
+forge script script/3-deployMarket/3.10-Incentive.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+EmissionManager=($(jq -r '.transactions[0].contractAddress' broadcast/3.10-Incentive.s.sol/${chainId}/run-latest.json))
+echo "EmissionManager=$EmissionManager" >> ".env"
+# 3.11 init a, sd, vdToken
+forge script script/3-deployMarket/3.11-tokensImpl.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+ATokenImpl=($(jq -r '.transactions[0].contractAddress' broadcast/3.11-tokensImpl.s.sol/${chainId}/run-latest.json))
+echo "ATokenImpl=$ATokenImpl" >> ".env"
+sdTokenImpl=($(jq -r '.transactions[1].contractAddress' broadcast/3.11-tokensImpl.s.sol/${chainId}/run-latest.json))
+echo "sdTokenImpl=$sdTokenImpl" >> ".env"
+vdTokenImpl=($(jq -r '.transactions[2].contractAddress' broadcast/3.11-tokensImpl.s.sol/${chainId}/run-latest.json))
+echo "vdTokenImpl=$vdTokenImpl" >> ".env"
+# 3.12 init rateStrat, add all 6 tokens to reserve
+forge script script/3-deployMarket/3.11-tokensImpl.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
