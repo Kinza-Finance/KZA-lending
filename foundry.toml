@@ -7,6 +7,10 @@ remappings = [
     "eth-gas-reporter/=node_modules/eth-gas-reporter/",
     "hardhat-deploy/=node_modules/hardhat-deploy/",
     "hardhat/=node_modules/hardhat/",
+    'src/=src/',
 ]
 solc-version = "0.8.10"
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config
+libraries = [
+    "src/core/protocol/libraries/logic/ConfiguratorLogic.sol:ConfiguratorLogic:0xe5093244fAbdAb7BBecabe7c35e192E4D8D4691A"
+    ]
