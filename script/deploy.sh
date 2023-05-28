@@ -124,10 +124,10 @@ forge script script/3-deployMarket/3.12-initReserve.s.sol --rpc-url $RPC_URL --b
 # 4.1 deploy mock flashloanreceiver
 forge script script/4-testnet/4.1-MockFlashloanReceiver.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 
-# 5.1 set stableborrow to false
-forge script script/5-setUp/5.1-setupRiskParameter.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
-# 5.2 set stableborrow to false
-forge script script/5-setUp/5.3-reviewStableBorrowing.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+# 5.1 set risk parameter, some gas estimation was wrong so we bump up the limit
+forge script script/5-setUp/5.1-setupRiskParameter.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv --gas-estimate-multiplier 200
+# 5.2 set stableborrow to false (neligible since 5.1 set it aldy)
+# forge script script/5-setUp/5.2-reviewStableBorrowing.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 # 5.3 set isolation
 forge script script/5-setUp/5.3-setIsolation.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 # 5.4 set debt ceiling
@@ -137,3 +137,13 @@ forge script script/5-setUp/5.4-setDebtCeiling.s.sol --rpc-url $RPC_URL --broadc
 forge script script/5-setUp/5.5-setEmode.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 # 5.6 deploy mock flashloanreceiver
 forge script script/5-setUp/5.6-unpausePool.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+
+# 6.1 update GOV on emissionManager
+forge script script/6-transferOwnership/6.1-setGovOnEManager.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+# 6.2 update GOV on Address Provider
+forge script script/6-transferOwnership/6.2-setGovOnAddressProvider.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+# 6.3 remove from ACL
+forge script script/6-transferOwnership/6.3-removeDeployerFromACL.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+# 6.4 update GOV on Registry
+forge script script/6-transferOwnership/6.4-setGovOnRegistry.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+
