@@ -1,8 +1,8 @@
 # !/bin/bash
-export chainId=$MUMBAI_CHAINID
-export RPC_URL=$MUMBAI_RPC_URL
-export VERIFIER_URL=$MUMBAI_VERIFIER_URL
-export ETHERSCAN_API_KEY=$MUMBAI_ETHERSCAN_API_KEY
+export chainId=$BSCTEST_CHAINID
+export RPC_URL=$BSCTEST_RPC_URL
+export VERIFIER_URL=$BSCTEST_VERIFIER_URL
+export ETHERSCAN_API_KEY=$BSCTEST_ETHERSCAN_API_KEY
 # 0 - PoolAddressesProviderRegistry
 forge script script/0-PoolAddressesProviderRegistry.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 #source address of PoolAddressesProviderRegistry into env variable
@@ -35,7 +35,7 @@ forge create src/core/protocol/libraries/logic/ConfiguratorLogic.sol:Configurato
 ConfiguratorLogic=$(grep 'Deployed to: ' log/ConfiguratorLogic.txt | awk '{print $3}')
 echo "ConfiguratorLogic=$ConfiguratorLogic" >> ".env"
 # 1.7 FlashLoanLogic
-forge create src/core/protocol/libraries/logic/FlashLoanLogic.sol:FlashLoanLogic --libraries src/contracts/protocol/libraries/logic/BorrowLogic.sol:BorrowLogic:$BorrowLogic  --private-key $PRIVATE_KEY --rpc-url $RPC_URL --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY > log/FlashLoanLogic.txt
+forge create src/core/protocol/libraries/logic/FlashLoanLogic.sol:FlashLoanLogic --private-key $PRIVATE_KEY --rpc-url $RPC_URL --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY > log/FlashLoanLogic.txt
 FlashLoanLogic=$(grep 'Deployed to: ' log/FlashLoanLogic.txt | awk '{print $3}')
 echo "FlashLoanLogic=$FlashLoanLogic" >> ".env"
 # 1.8 PoolLogic
@@ -72,9 +72,6 @@ echo "WBTC_AGGREGATOR_TESTNET=$WBTC_AGGREGATOR_TESTNET" >> ".env"
 echo "WETH_AGGREGATOR_TESTNET=$WETH_AGGREGATOR_TESTNET" >> ".env"
 echo "WBNB_AGGREGATOR_TESTNET=$WBNB_AGGREGATOR_TESTNET" >> ".env"
 
-#source address of PoolAddressesProviderRegistry into env variable
-PoolAddressesProviderRegistry=($(jq -r '.transactions[0].contractAddress' broadcast/0-PoolAddressesProviderRegistry.s.sol/${chainId}/run-latest.json))
-echo "\n#deployment variables\nPoolAddressesProviderRegistry=$PoolAddressesProviderRegistry" >> ".env"
 # 2 Treasury Proxy
 
 # 3.1 - PoolAddressesProvider
@@ -109,6 +106,7 @@ forge script script/3-deployMarket/3.8-InitOracle.s.sol --rpc-url $RPC_URL --bro
 # 3.9 init pool
 forge script script/3-deployMarket/3.9-InitPool.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 # 3.10 init EmissionManager, RewardsController
+# address of RewardsController need to be fetched on-chain since it's a proxy
 forge script script/3-deployMarket/3.10-Incentive.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 EmissionManager=($(jq -r '.transactions[0].contractAddress' broadcast/3.10-Incentive.s.sol/${chainId}/run-latest.json))
 echo "EmissionManager=$EmissionManager" >> ".env"

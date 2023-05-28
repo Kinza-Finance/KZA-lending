@@ -12,5 +12,13 @@ remappings = [
 solc-version = "0.8.10"
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config
 libraries = [
-    "src/core/protocol/libraries/logic/ConfiguratorLogic.sol:ConfiguratorLogic:0xe5093244fAbdAb7BBecabe7c35e192E4D8D4691A"
+    "src/core/protocol/libraries/logic/ConfiguratorLogic.sol:ConfiguratorLogic:0xe5093244fAbdAb7BBecabe7c35e192E4D8D4691A",
+    "src/core/protocol/libraries/logic/SupplyLogic.sol:SupplyLogic:0x6a5840EBCd333231FFfa5823c551518D0E51af12",
+    "src/core/protocol/libraries/logic/BorrowLogic.sol:BorrowLogic:0x0C7e9B1af7FF1650Ce2Eb928d7030225E6F3690d",
+    "src/core/protocol/libraries/logic/LiquidationLogic.sol:LiquidationLogic:0x545694B6431445dc8F6D2c936A327B633B0383Eb",
+    "src/core/protocol/libraries/logic/EModeLogic.sol:EModeLogic:0x80E38713D23b42d7Ff194b31D079477FD4b631FD",
+    "src/core/protocol/libraries/logic/BridgeLogic.sol:BridgeLogic:0x58da15A838672ab4900C11B1202ca6a2905eb3bA",
+    "src/core/protocol/libraries/logic/ConfiguratorLogic.sol:ConfiguratorLogic:0x061105764d8AA7d40E8d64d08d664961ff3A9330",
+    "src/core/protocol/libraries/logic/FlashLoanLogic.sol:FlashLoanLogic:0x25f82D34746A9718257C784130152Fb060B55775",
+    "src/core/protocol/libraries/logic/PoolLogic.sol:PoolLogic:0x771bD3591c90B945e47c46FD9EfC994fe2048E12"
     ]
