@@ -21,7 +21,6 @@ coverage
 .coverage_cache
 .coverage_contracts
 coverage.json
-deployments/
 
 **.last_conf*
 certora_debug_log.txt
