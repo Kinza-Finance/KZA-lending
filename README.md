@@ -10,3 +10,8 @@ npm install --save-dev typescript
 ```
 npm run test
 ```
+
+# Script
+```
+forge i
+```
