@@ -147,3 +147,4 @@ forge script script/6-transferOwnership/6.3-removeDeployerFromACL.s.sol --rpc-ur
 # 6.4 update GOV on Registry
 forge script script/6-transferOwnership/6.4-setGovOnRegistry.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 
+# forge script script/1.5-testnet/updateAggregator.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
