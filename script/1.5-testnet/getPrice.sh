@@ -1,5 +1,6 @@
-# !/bin/bash
+#!/bin/bash
 # this is for price in the testnet so we casually peg everything to USDT
+export KEEPER_PRIVATE_KEY=
 WBTC_PRICE=$(curl "https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT" | jq -r '.price')
 WETH_PRICE=$(curl "https://api.binance.com/api/v3/ticker/price?symbol=ETHUSDT" | jq -r '.price')
 WBNB_PRICE=$(curl "https://api.binance.com/api/v3/ticker/price?symbol=BNBUSDT" | jq -r '.price')
@@ -28,4 +29,4 @@ LATEST_USDT_PRICE=$(echo "$USDT_PRICE*$MULTIPLIER" | bc)
 export LATEST_USDT_PRICE=${LATEST_USDT_PRICE%.*}
 # replace the one in .env
 
-forge script script/1.5-testnet/updateAggregator.s.sol --rpc-url https://data-seed-prebsc-1-s1.binance.org:8545/ --broadcast
+~/.foundry/bin/forge script script/1.5-testnet/updateAggregator.s.sol --rpc-url https://data-seed-prebsc-1-s1.binance.org:8545/ --broadcast
