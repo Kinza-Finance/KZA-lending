@@ -121,4 +121,21 @@ echo "sdTokenImpl=$sdTokenImpl" >> ".env"
 vdTokenImpl=($(jq -r '.transactions[2].contractAddress' broadcast/3.11-tokensImpl.s.sol/${chainId}/run-latest.json))
 echo "vdTokenImpl=$vdTokenImpl" >> ".env"
 # 3.12 init rateStrat, add all 6 tokens to reserve
-forge script script/3-deployMarket/3.11-tokensImpl.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+forge script script/3-deployMarket/3.12-initReserve.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+
+# 4.1 deploy mock flashloanreceiver
+forge script script/4-testnet/4.1-MockFlashloanReceiver.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+
+# 5.1 set stableborrow to false
+forge script script/5-setUp/5.1-setupRiskParameter.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+# 5.2 set stableborrow to false
+forge script script/5-setUp/5.3-reviewStableBorrowing.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+# 5.3 set isolation
+forge script script/5-setUp/5.3-setIsolation.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+# 5.4 set debt ceiling
+forge script script/5-setUp/5.4-setDebtCeiling.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+
+# 5.5 set emode
+forge script script/5-setUp/5.5-setEmode.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+# 5.6 deploy mock flashloanreceiver
+forge script script/5-setUp/5.6-unpausePool.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv

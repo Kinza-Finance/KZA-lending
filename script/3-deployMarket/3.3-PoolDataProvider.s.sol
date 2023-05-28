@@ -11,8 +11,10 @@ contract DeployPoolAddressesProvider is Script {
         address addressprovider = vm.envAddress("PoolAddressesProvider");
         vm.startBroadcast(deployerPrivateKey);
 
-        new AaveProtocolDataProvider(IPoolAddressesProvider(addressprovider));
-
+        AaveProtocolDataProvider dataProvider = new AaveProtocolDataProvider(IPoolAddressesProvider(addressprovider));
+        // set the data provider address into addressprovider
+        IPoolAddressesProvider(addressprovider).setPoolDataProvider(address(dataProvider));
+        
         vm.stopBroadcast();
     }
 }
