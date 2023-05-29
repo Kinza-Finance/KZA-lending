@@ -8,6 +8,7 @@ import "../../src/core/interfaces/IPoolAddressesProvider.sol";
 contract InitOracle is Script {
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+        address provider = vm.envAddress("PoolAddressesProvider");
         address oracle = vm.envAddress("Oracle");
         bool isProd = vm.envBool("isProd");
         address[] memory assets = new address[](6);
@@ -44,6 +45,7 @@ contract InitOracle is Script {
         
         vm.startBroadcast(deployerPrivateKey);
         AaveOracle(oracle).setAssetSources(assets, sources);
+        IPoolAddressesProvider(provider).setPriceOracle(oracle);
         vm.stopBroadcast();
         
     }
