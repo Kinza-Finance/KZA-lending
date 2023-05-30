@@ -17,8 +17,10 @@ contract setIsolation is Script {
         IPoolConfigurator configurator = IPoolConfigurator(IPoolAddressesProvider(provider).getPoolConfigurator());
         IPoolDataProvider.TokenData[] memory reserves = IPoolDataProvider(dataprovider).getAllReservesTokens();
 
-        string[] memory addressToAdd = new string[](1);
+        string[] memory addressToAdd = new string[](3);
         addressToAdd[0] = "USDT";
+        addressToAdd[1] = "USDC";
+        addressToAdd[2] = "BUSD";
         for (uint256 i; i < reserves.length; i++) {
             address tokenAddress = reserves[i].tokenAddress;
             for (uint256 j; j < addressToAdd.length; j++) {
