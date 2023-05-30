@@ -1,6 +1,6 @@
 #!/bin/bash
 # this is for price in the testnet so we casually peg everything to USDT
-export KEEPER_PRIVATE_KEY=
+#export KEEPER_PRIVATE_KEY=
 WBTC_PRICE=$(curl "https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT" | jq -r '.price')
 WETH_PRICE=$(curl "https://api.binance.com/api/v3/ticker/price?symbol=ETHUSDT" | jq -r '.price')
 WBNB_PRICE=$(curl "https://api.binance.com/api/v3/ticker/price?symbol=BNBUSDT" | jq -r '.price')

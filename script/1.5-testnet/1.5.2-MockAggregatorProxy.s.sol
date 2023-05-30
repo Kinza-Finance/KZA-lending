@@ -11,17 +11,28 @@ contract DeployMockAggregatorProxy is Script {
         vm.startBroadcast(deployerPrivateKey);
         // the first one is a test aggregator deployed on mumbai
         // BUSD
-        new MockEACAggregatorProxy("BUSD", address(0), 1e8);
-        // USDC
-        new MockEACAggregatorProxy("USDC", address(0), 1e8);
-        // USDT
-        new MockEACAggregatorProxy("USDT", address(0), 1e8);
-        // WBTC
-        new MockEACAggregatorProxy("WBTC", address(0), 27000 * 1e8);
-        // WETH
-        new MockEACAggregatorProxy("WETH", address(0), 1800 * 1e8);
-        // WBNB
-        new MockEACAggregatorProxy("WBNB", address(0), 304 * 1e8);
+        string[] memory tokens = new string[](6);
+        tokens[0] = "BUSD";
+        tokens[1] = "USDC";
+        tokens[2] = "USDT";
+        tokens[3] = "WBTC";
+        tokens[4] = "WETH";
+        tokens[5] = "WBNB";
+
+        uint256[] memory tokensPrice = new uint256[](6);
+        tokensPrice[0] = 1e8;
+        tokensPrice[1] = 1e8;
+        tokensPrice[2] = 1e8;
+        tokensPrice[3] = 28000 * 1e8;
+        tokensPrice[4] = 1900 * 1e8;
+        tokensPrice[5] = 311 * 1e8;
+        address token;
+        uint256 price;
+        for (uint256 i; i < tokens.length; i++) {
+                token = vm.envAddress(string(abi.encodePacked(tokens[i], "_TESTNET")));
+                price = tokensPrice[i];
+                new MockEACAggregatorProxy(tokens[0], token, int256(price));
+            }
 
         vm.stopBroadcast();
     }

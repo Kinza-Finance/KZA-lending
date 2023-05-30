@@ -2,6 +2,7 @@ pragma solidity 0.8.10;
 
 contract MockEACAggregatorProxy {
     address public aggregator;
+    address public asset;
     uint256 timestamp;
     uint80 roundId;
     int256 answer;
@@ -10,10 +11,12 @@ contract MockEACAggregatorProxy {
     mapping(uint80 => uint256) public historyTimtstamp;
     event AnswerUpdated(int256 indexed current, uint256 indexed roundId, uint256 timestamp);
     event NewRound(uint256 indexed roundId, address indexed startedBy);
+    event AssetPriceUpdated(address asset, uint256 price, uint256 timestamp);
 
-    constructor(string memory _name, address _aggregator, int256 _answer) public {
+    constructor(string memory _name, address _asset, int256 _answer) public {
         name = _name;
-        aggregator = _aggregator;
+        aggregator = address(this);
+        asset = _asset;
         timestamp = block.timestamp;
         roundId = 1;
         answer = _answer;
@@ -46,7 +49,7 @@ contract MockEACAggregatorProxy {
     return historyTimtstamp[roundId];
   }
 
-  function latestRoundData(uint80 roundId) external view returns(uint80, int256, uint256, uint256, uint80) {
+  function latestRoundData() external view returns(uint80, int256, uint256, uint256, uint80) {
     return (roundId, answer, timestamp, timestamp, roundId);
   }
 
@@ -57,8 +60,8 @@ contract MockEACAggregatorProxy {
     historyTimtstamp[roundId] = block.timestamp;
     emit NewRound(roundId, address(this));
     emit AnswerUpdated(_answer, roundId, block.timestamp);
+    emit AssetPriceUpdated(asset, uint256(_answer), block.timestamp);
   }
-
 
   function updateAggregator(address _newAggregator) external {
     aggregator = _newAggregator;
