@@ -154,3 +154,7 @@ forge script script/6-transferOwnership/6.5-setUpAToken.s.sol --rpc-url $RPC_URL
 forge script script/7-deployRead/7.1-walletBalanceProvider.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 WalletBalanceProvider=($(jq -r '.transactions[0].contractAddress' broadcast/7.1-walletBalanceProvider.s.sol/${chainId}/run-latest.json))
 echo "WalletBalanceProvider=$WalletBalanceProvider" >> ".env"
+
+forge script script/7-deployRead/7.2-borrowableProvider.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+BorrowableDataProvider=($(jq -r '.transactions[0].contractAddress' broadcast/7.2-borrowableProvider.s.sol/${chainId}/run-latest.json))
+echo "BorrowableDataProvider=$BorrowableDataProvider" >> ".env"
