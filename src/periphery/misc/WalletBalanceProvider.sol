@@ -3,6 +3,7 @@ pragma solidity ^0.8.10;
 
 import {Address} from '@aave/core-v3/contracts/dependencies/openzeppelin/contracts/Address.sol';
 import {IERC20} from '@aave/core-v3/contracts/dependencies/openzeppelin/contracts/IERC20.sol';
+import {IERC20Detailed} from '@aave/core-v3/contracts/dependencies/openzeppelin/contracts/IERC20Detailed.sol';
 
 import {IPoolAddressesProvider} from '@aave/core-v3/contracts/interfaces/IPoolAddressesProvider.sol';
 import {IPool} from '@aave/core-v3/contracts/interfaces/IPool.sol';
@@ -22,9 +23,12 @@ contract WalletBalanceProvider {
   using Address for address;
   using GPv2SafeERC20 for IERC20;
   using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
-
+  address immutable public provider;
   address constant MOCK_ETH_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 
+  constructor(address _provider) {
+    provider = _provider;
+  }
   /**
     @dev Fallback function, don't accept any ETH
     **/
@@ -40,11 +44,15 @@ contract WalletBalanceProvider {
       - return 0 on non-contract address
     **/
   function balanceOf(address user, address token) public view returns (uint256) {
-    if (token == MOCK_ETH_ADDRESS) {
-      return user.balance; // ETH balance
-      // check if token is actually a contract
-    } else if (token.isContract()) {
+    if (token.isContract()) {
       return IERC20(token).balanceOf(user);
+    }
+    revert('INVALID_TOKEN');
+  }
+
+  function decimal(address token) public view returns (uint8) {
+    if (token.isContract()) {
+      return IERC20Detailed(token).decimals();
     }
     revert('INVALID_TOKEN');
   }
@@ -74,25 +82,20 @@ contract WalletBalanceProvider {
   /**
     @dev provides balances of user wallet for all reserves available on the pool
     */
-  function getUserWalletBalances(address provider, address user)
+  function getUserWalletBalances(address user)
     external
     view
-    returns (address[] memory, uint256[] memory)
+    returns (address[] memory, uint256[] memory, uint8[] memory)
   {
     IPool pool = IPool(IPoolAddressesProvider(provider).getPool());
 
     address[] memory reserves = pool.getReservesList();
-    address[] memory reservesWithEth = new address[](reserves.length + 1);
-    for (uint256 i = 0; i < reserves.length; i++) {
-      reservesWithEth[i] = reserves[i];
-    }
-    reservesWithEth[reserves.length] = MOCK_ETH_ADDRESS;
-
-    uint256[] memory balances = new uint256[](reservesWithEth.length);
+    uint256[] memory balances = new uint256[](reserves.length);
+    uint8[] memory decimals = new uint8[](reserves.length);
 
     for (uint256 j = 0; j < reserves.length; j++) {
       DataTypes.ReserveConfigurationMap memory configuration = pool.getConfiguration(
-        reservesWithEth[j]
+        reserves[j]
       );
 
       (bool isActive, , , , ) = configuration.getFlags();
@@ -101,10 +104,10 @@ contract WalletBalanceProvider {
         balances[j] = 0;
         continue;
       }
-      balances[j] = balanceOf(user, reservesWithEth[j]);
+      balances[j] = balanceOf(user, reserves[j]);
+      decimals[j] = decimal(reserves[j]);
     }
-    balances[reserves.length] = balanceOf(user, MOCK_ETH_ADDRESS);
 
-    return (reservesWithEth, balances);
+    return (reserves, balances, decimals);
   }
 }
