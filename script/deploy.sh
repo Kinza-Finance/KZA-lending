@@ -146,5 +146,11 @@ forge script script/6-transferOwnership/6.2-setGovOnAddressProvider.s.sol --rpc-
 forge script script/6-transferOwnership/6.3-removeDeployerFromACL.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 # 6.4 update GOV on Registry
 forge script script/6-transferOwnership/6.4-setGovOnRegistry.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+# 6.5 update AToken
+forge script script/6-transferOwnership/6.5-setUpAToken.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 
 # forge script script/1.5-testnet/updateAggregator.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+# 7.1 WalletBalanceProvider
+forge script script/7-deployRead/7.1-walletBalanceProvider.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+WalletBalanceProvider=($(jq -r '.transactions[0].contractAddress' broadcast/7.1-walletBalanceProvider.s.sol/${chainId}/run-latest.json))
+echo "WalletBalanceProvider=$WalletBalanceProvider" >> ".env"
