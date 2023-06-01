@@ -19,6 +19,9 @@ import '../../core/protocol/libraries/types/DataTypes.sol';
 contract BorrowableDataProvider {
   uint256 internal constant BORROWABLE_IN_ISOLATION_MASK =   0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFDFFFFFFFFFFFFFFF; // prettier-ignore
   uint256 internal constant MAX_LTV = 10000;
+  // some borrow needs bigger precision, for example borrowing bitcoin
+  // we add 10 ** 8 for precision
+  uint256 internal constant BORROWABLE_PRECISION = 10**8;
   IPoolAddressesProvider immutable public provider;
 
   constructor(address _provider) {
@@ -27,36 +30,51 @@ contract BorrowableDataProvider {
   
 
   // main function to call when fetching the max borrowable for a user for a particular asset
-  function getUserMaxBorrowable(address user, address asset) public view returns(uint256 borrowable){
+  function getUserMaxBorrowable(address user, address asset) public view returns(uint256){
         // if user is in isolation, but asset is not borrowable for isolatedMode
-        if (isUserInIsolationMode(user) && !isAssetBorrowableForIsolation(asset)) {
+        (bool isInIsolation, address collateral) = isUserInIsolationMode(user);
+        if (isInIsolation && !isAssetBorrowableForIsolation(asset)) {
             return 0;
         }
         // eMode is considered inside
-        uint256 borrowable = calculateBorrowable(user, asset);
-
+        uint256 borrowable = calculateLTVBorrowable(user, asset);
+        // all three variable are in nominal terms
         uint256 available = getBorrowableAvailable(asset);
         uint256 borrowableToCap = getBorrowableUnderBorrowCap(asset);
-        uint256 borrowableToDebtCeiling = getBorrowableUnderDebtCeiling(asset);
         // min function applied to borrowable with reference to 3 caps above
-        borrowable = borrowable < available ? borrowable : available;
-        borrowable = borrowable < borrowableToCap ? borrowable : borrowableToCap;
-        borrowable = borrowable < borrowableToDebtCeiling ? borrowable : borrowableToDebtCeiling;
+        if(borrowable > available) {
+            borrowable = available;
+        }
+        if(borrowable > borrowableToCap) {
+            borrowable = borrowableToCap;
+        }
+        if (isInIsolation) {
+            // debt ceiling counts the collateral of the user (if in isolation ,there is only 1 collateral for the user)
+            uint256 borrowableToDebtCeiling = getBorrowableUnderDebtCeiling(collateral);
+            if(borrowable > borrowableToDebtCeiling) {
+                borrowable = borrowableToDebtCeiling;
+            }    
+        }
         
-
+        return borrowable;
   }
 
-  function isUserInIsolationMode(address user) public view returns(bool inIsolation) {
+  function isUserInIsolationMode(address user) public view returns(bool, address) {
         IPoolDataProvider dataProvider = IPoolDataProvider(provider.getPoolDataProvider());
         IPoolDataProvider.TokenData[] memory tokens = dataProvider.getAllReservesTokens();
+        bool inIsolation;
+        address collateral;
         for (uint256 i; i < tokens.length;i++) {
             address token = tokens[i].tokenAddress;
             (,,,,,,,,bool usageAsCollateralEnabled) = dataProvider.getUserReserveData(token, user);
             // if user enable a a token with debt ceiling as collateral
+            // there would be only 1 positive instance only
             if (isCollateralIsolated(token) && usageAsCollateralEnabled) {
                 inIsolation = true;
+                collateral = token;
             }
         }
+        return (inIsolation, collateral);
   }
   function isCollateralIsolated(address asset) public view returns(bool) {
         IPoolDataProvider dataProvider = IPoolDataProvider(provider.getPoolDataProvider());
@@ -65,16 +83,18 @@ contract BorrowableDataProvider {
 
   function getBorrowableUnderBorrowCap(address asset) public view returns(uint256) {
     IPoolDataProvider dataProvider = IPoolDataProvider(provider.getPoolDataProvider());
+    // cap is in nominal unit
     (uint256 cap,) = dataProvider.getReserveCaps(asset);
-    uint256 debt = dataProvider.getTotalDebt(asset);
-    return cap > debt ? cap - debt : 0;
+    // debt is in 10 ** 18 for precision
+    uint256 debt = dataProvider.getTotalDebt(asset) / 10 ** 18;
+    return cap > debt ? BORROWABLE_PRECISION * (cap - debt) : 0;
   }
 
   function getBorrowableAvailable(address asset) public view returns(uint256) {
     IPoolDataProvider dataProvider = IPoolDataProvider(provider.getPoolDataProvider());
     uint256 supply = dataProvider.getATokenTotalSupply(asset);
     uint256 debt = dataProvider.getTotalDebt(asset);
-    return supply > debt ? supply - debt / 10**18 : 0;
+    return supply > debt ? BORROWABLE_PRECISION * (supply - debt) / 10**18 : 0;
   }
 
   function getBorrowableUnderDebtCeiling(address asset) public view returns(uint256) {
@@ -82,7 +102,7 @@ contract BorrowableDataProvider {
     IPoolDataProvider dataProvider = IPoolDataProvider(provider.getPoolDataProvider());
     DataTypes.ReserveData memory reserveData = pool.getReserveData(asset);
     // debt ceiling has a decimal of 2
-    return (dataProvider.getDebtCeiling(asset) - reserveData.isolationModeTotalDebt) / (10 ** dataProvider.getDebtCeilingDecimals());
+    return BORROWABLE_PRECISION * (dataProvider.getDebtCeiling(asset) - reserveData.isolationModeTotalDebt) / (10 ** dataProvider.getDebtCeilingDecimals());
   }
 
   function isAssetBorrowableForIsolation(address asset) public view returns(bool) {
@@ -92,7 +112,7 @@ contract BorrowableDataProvider {
     
   }
 
-  function calculateBorrowable(address user, address asset) public view returns(uint256) {
+  function calculateLTVBorrowable(address user, address asset) public view returns(uint256) {
         IPool pool = IPool(provider.getPool());
         IPoolDataProvider dataProvider = IPoolDataProvider(provider.getPoolDataProvider());
         IAaveOracle oracle = IAaveOracle(provider.getPriceOracle());
@@ -107,16 +127,19 @@ contract BorrowableDataProvider {
             }
 
         (,,uint256 availableBorrowsBase,,,) = pool.getUserAccountData(user);
+
+        
         if (userEModeCategory == 0) {
-            // 10 ** 8 / 10 ** 8, the result would be nominal in unit.(to nominal);
-            return availableBorrowsBase / price;
+            // the result would be in 10 ** 8 of the nominal unit
+            return BORROWABLE_PRECISION * availableBorrowsBase / price;
             }
         // use eMode LTV
         else {
-            // the borrowableBase needs to multiplt
+            // the borrowableBase needs to multiply for an increased LTV
             uint256 emodeLTV = uint256(pool.getEModeCategoryData(uint8(userEModeCategory)).ltv);
             uint256 multiplier = MAX_LTV / emodeLTV;
-            return multiplier * availableBorrowsBase / price;
+            // the result would be in 10 ** 8 of the nominal unit
+            return BORROWABLE_PRECISION * multiplier * availableBorrowsBase / price;
 
         }
     }
