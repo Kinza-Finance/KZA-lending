@@ -22,6 +22,8 @@ contract BorrowableDataProvider {
   // some borrow needs bigger precision, for example borrowing bitcoin
   // we add 10 ** 8 for precision
   uint256 internal constant BORROWABLE_PRECISION = 10**8;
+  // price from oracle is in 10 ** 8
+  uint256 internal constant PRICE_PRECISION = 10**8;
   IPoolAddressesProvider immutable public provider;
 
   constructor(address _provider) {
@@ -29,6 +31,15 @@ contract BorrowableDataProvider {
   }
   
 
+  function getUserMaxBorrowables(address user, address[] memory assets) public view returns(uint256[] memory borrowables){
+        if (assets.length > 0) {
+            borrowables = new uint256[](assets.length);
+            for (uint i;i < assets.length; i++) {
+                borrowables[i] = getUserMaxBorrowable(user, assets[i]);
+            }
+        } 
+        
+  }
   // main function to call when fetching the max borrowable for a user for a particular asset
   function getUserMaxBorrowable(address user, address asset) public view returns(uint256){
         // if user is in isolation, but asset is not borrowable for isolatedMode
@@ -38,7 +49,7 @@ contract BorrowableDataProvider {
         }
         // eMode is considered inside
         uint256 borrowable = calculateLTVBorrowable(user, asset);
-        // all three variable are in nominal terms
+        // all three variable are in nominal terms * 10 ** 8
         uint256 available = getBorrowableAvailable(asset);
         uint256 borrowableToCap = getBorrowableUnderBorrowCap(asset);
         // min function applied to borrowable with reference to 3 caps above
@@ -51,6 +62,9 @@ contract BorrowableDataProvider {
         if (isInIsolation) {
             // debt ceiling counts the collateral of the user (if in isolation ,there is only 1 collateral for the user)
             uint256 borrowableToDebtCeiling = getBorrowableUnderDebtCeiling(collateral);
+            // since debt ceiling is in USD, we need to find the unit in asset to borrow
+            uint256 price = getAssetPrice(asset);
+            borrowableToDebtCeiling = PRICE_PRECISION * borrowableToDebtCeiling / price;
             if(borrowable > borrowableToDebtCeiling) {
                 borrowable = borrowableToDebtCeiling;
             }    
@@ -112,14 +126,20 @@ contract BorrowableDataProvider {
     
   }
 
-  function calculateLTVBorrowable(address user, address asset) public view returns(uint256) {
-        IPool pool = IPool(provider.getPool());
+  function getAssetPrice(address asset) public view returns(uint256) {
         IPoolDataProvider dataProvider = IPoolDataProvider(provider.getPoolDataProvider());
         IAaveOracle oracle = IAaveOracle(provider.getPriceOracle());
         address[] memory assets = new address[](1);
         assets[0] = asset;
         uint256[] memory prices = oracle.getAssetsPrices(assets);
         uint256 price = prices[0];
+        return price;
+  }
+
+  function calculateLTVBorrowable(address user, address asset) public view returns(uint256) {
+        IPool pool = IPool(provider.getPool());
+        IPoolDataProvider dataProvider = IPoolDataProvider(provider.getPoolDataProvider());
+        uint256 price = getAssetPrice(asset);
         uint256 userEModeCategory = pool.getUserEMode(user);
         // if user Emode does not equal to the asset eMode and userEmode is non-zero
         if (dataProvider.getReserveEModeCategory(asset) != userEModeCategory && userEModeCategory != 0) {
