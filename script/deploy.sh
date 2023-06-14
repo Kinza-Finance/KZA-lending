@@ -138,6 +138,10 @@ forge script script/5-setUp/5.5-setEmode.s.sol --rpc-url $RPC_URL --broadcast --
 # 5.6 deploy mock flashloanreceiver
 forge script script/5-setUp/5.6-unpausePool.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 
+forge script script/6-transferOwnership/6.0-deployTimeLock.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+TimeLock=($(jq -r '.transactions[0].contractAddress' broadcast/6.0-deployTimeLock.s.sol/${chainId}/run-latest.json))
+echo "TimeLock=$TimeLock" >> ".env"
+
 # 6.1 update GOV on emissionManager
 forge script script/6-transferOwnership/6.1-setGovOnEManager.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 # 6.2 update GOV on Address Provider
@@ -158,3 +162,23 @@ echo "WalletBalanceProvider=$WalletBalanceProvider" >> ".env"
 forge script script/7-deployRead/7.2-borrowableProvider.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 BorrowableDataProvider=($(jq -r '.transactions[0].contractAddress' broadcast/7.2-borrowableProvider.s.sol/${chainId}/run-latest.json))
 echo "BorrowableDataProvider=$BorrowableDataProvider" >> ".env"
+
+forge script script/7-deployRead/7.3-liquidationDataProvider.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+LiquidationDataProvider=($(jq -r '.transactions[0].contractAddress' broadcast/7.3-liquidationDataProvider.s.sol/${chainId}/run-latest.json))
+echo "LiquidationDataProvider=$LiquidationDataProvider" >> ".env"
+
+forge script script/8-deployGateway/8.0.1-WBNB.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+WBNB_TESTNET_REAL=($(jq -r '.transactions[0].contractAddress' broadcast/8.0.1-WBNB.s.sol/${chainId}/run-latest.json))
+echo "WBNB_TESTNET_REAL=$WBNB_TESTNET_REAL" >> ".env"
+
+forge script script/8-deployGateway/8.0.2-addWBNBToReserve.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+
+forge script script/8-deployGateway/8.0.3-configureWBNBRiskParam.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv --gas-estimate-multiplier 200
+
+forge script script/8-deployGateway/8.1-gateway.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+GATEWAY=($(jq -r '.transactions[0].contractAddress' broadcast/8.1-gateway.s.sol/${chainId}/run-latest.json))
+echo "GATEWAY=$GATEWAY" >> ".env"
+
+
+# gov action
+forge script script/9-govAction/TimeLockQueueExecuteFaucet.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv

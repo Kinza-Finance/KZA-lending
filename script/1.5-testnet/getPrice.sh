@@ -30,3 +30,4 @@ export LATEST_USDT_PRICE=${LATEST_USDT_PRICE%.*}
 # replace the one in .env
 
 ~/.foundry/bin/forge script script/1.5-testnet/updateAggregator.s.sol --rpc-url https://data-seed-prebsc-1-s1.binance.org:8545/ --broadcast
+~/.foundry/bin/forge script script/1.5-testnet/updateAggregatorSingle.s.sol --rpc-url https://data-seed-prebsc-1-s1.binance.org:8545/ --broadcast
