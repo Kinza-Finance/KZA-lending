@@ -3,7 +3,7 @@ pragma solidity 0.8.10;
 
 import "forge-std/Script.sol";
 import "../../src/core/interfaces/IPoolConfigurator.sol";
-import "../../src/periphery/misc/BorrowableDataProvider.sol";
+import "../../src/periphery/misc/EmodeBorrowableDataProvider.sol";
 
 contract deployBorrowableDataProvider is Script {
     function run() external {
@@ -11,7 +11,7 @@ contract deployBorrowableDataProvider is Script {
         address provider = vm.envAddress("PoolAddressesProvider");
         vm.startBroadcast(deployerPrivateKey);
 
-        new BorrowableDataProvider(provider);
+        new EmodeBorrowableDataProvider(provider);
         
         vm.stopBroadcast();
     }

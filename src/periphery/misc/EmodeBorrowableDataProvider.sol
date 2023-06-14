@@ -10,13 +10,13 @@ import '../../core/interfaces/IAaveOracle.sol';
 import '../../core/protocol/libraries/types/DataTypes.sol';
 
 /**
- * @title BorrowableData contract
+ * @title EmodeBorrowableData contract
  * @author Kinza
  * @notice Implements a logic of getting max borrowable for a particular account
  * @dev NOTE: THIS CONTRACT IS NOT USED WITHIN THE LENDING PROTOCOL. It's an accessory contract used to reduce the number of calls
  * towards the blockchain from the backend.
  **/
-contract BorrowableDataProvider {
+contract EmodeBorrowableDataProvider {
   uint256 internal constant BORROWABLE_IN_ISOLATION_MASK =   0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFDFFFFFFFFFFFFFFF; // prettier-ignore
   uint256 internal constant MAX_LTV = 10000;
   // some borrow needs bigger precision, for example borrowing bitcoin
@@ -162,6 +162,24 @@ contract BorrowableDataProvider {
             return BORROWABLE_PRECISION * multiplier * availableBorrowsBase / price;
 
         }
+    }
+
+    function canUserToggleEmode(address user, uint256 eModeToToggle) public view returns(bool) {
+        IPoolDataProvider dataProvider = IPoolDataProvider(provider.getPoolDataProvider());
+        IPoolDataProvider.TokenData[] memory tokens = dataProvider.getAllReservesTokens();
+        //if a user is not borrowing, then he can toggle to any eMode
+        for (uint256 i; i < tokens.length;i++) {
+            address token = tokens[i].tokenAddress;
+            (,uint256 currentStableDebt, uint256 currentVariableDebt,,,,,,) = dataProvider.getUserReserveData(token, user);
+            // if user has debt on this token
+            if (currentStableDebt + currentVariableDebt > 0) {
+                // check if the debt has the same eMode Category as the emode to enable
+                if (dataProvider.getReserveEModeCategory(token) != eModeToToggle) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }
 
