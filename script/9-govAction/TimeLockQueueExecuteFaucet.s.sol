@@ -12,7 +12,8 @@ contract deployTimeLock is Script {
         address faucet = vm.envAddress("Faucet");
         address testnetBNB = vm.envAddress("WBNB_TESTNET");
         vm.startBroadcast(govPrivateKey);
-        TimeLockController tl = TimelockController(payable(timelock));
+        
+        TimelockController tl = TimelockController(payable(timelock));
         uint256 value = 0;
         // here we would like to mint some testnet BUSD to ourselves
         uint256 amountToMint = 1e18;        
