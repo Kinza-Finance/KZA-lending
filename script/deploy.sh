@@ -175,6 +175,8 @@ forge script script/8-deployGateway/8.0.2-addWBNBToReserve.s.sol --rpc-url $RPC_
 
 forge script script/8-deployGateway/8.0.3-configureWBNBRiskParam.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv --gas-estimate-multiplier 200
 
+forge script script/8-deployGateway/8.0.4-approveAToken.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv --gas-estimate-multiplier 200
+
 forge script script/8-deployGateway/8.1-gateway.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 GATEWAY=($(jq -r '.transactions[0].contractAddress' broadcast/8.1-gateway.s.sol/${chainId}/run-latest.json))
 echo "GATEWAY=$GATEWAY" >> ".env"
