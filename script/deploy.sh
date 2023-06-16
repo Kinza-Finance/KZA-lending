@@ -129,7 +129,7 @@ forge script script/5-setUp/5.1-setupRiskParameter.s.sol --rpc-url $RPC_URL --br
 # 5.2 set stableborrow to false (neligible since 5.1 set it aldy)
 # forge script script/5-setUp/5.2-reviewStableBorrowing.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 # 5.3 set isolation
-forge script script/5-setUp/5.3-setIsolation.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+forge script script/5-setUp/5.3-setBorrowableIsolation.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 # 5.4 set debt ceiling
 forge script script/5-setUp/5.4-setDebtCeiling.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 
@@ -163,9 +163,9 @@ forge script script/7-deployRead/7.2-borrowableProvider.s.sol --rpc-url $RPC_URL
 BorrowableDataProvider=($(jq -r '.transactions[0].contractAddress' broadcast/7.2-borrowableProvider.s.sol/${chainId}/run-latest.json))
 echo "BorrowableDataProvider=$BorrowableDataProvider" >> ".env"
 
-forge script script/7-deployRead/7.3-liquidationDataProvider.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
-LiquidationDataProvider=($(jq -r '.transactions[0].contractAddress' broadcast/7.3-liquidationDataProvider.s.sol/${chainId}/run-latest.json))
-echo "LiquidationDataProvider=$LiquidationDataProvider" >> ".env"
+forge script script/7-deployRead/7.3-liquidationAdaptor.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+LiquidationAdaptor=($(jq -r '.transactions[0].contractAddress' broadcast/7.3-liquidationAdaptor.s.sol/${chainId}/run-latest.json))
+echo "LiquidationAdaptor=$LiquidationAdaptor" >> ".env"
 
 forge script script/8-deployGateway/8.0.1-WBNB.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 WBNB_TESTNET_REAL=($(jq -r '.transactions[0].contractAddress' broadcast/8.0.1-WBNB.s.sol/${chainId}/run-latest.json))
@@ -175,7 +175,7 @@ forge script script/8-deployGateway/8.0.2-addWBNBToReserve.s.sol --rpc-url $RPC_
 
 forge script script/8-deployGateway/8.0.3-configureWBNBRiskParam.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv --gas-estimate-multiplier 200
 
-forge script script/8-deployGateway/8.0.4-approveAToken.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv --gas-estimate-multiplier 200
+forge script script/8-deployGateway/8.0.4-approveAToken.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 
 forge script script/8-deployGateway/8.1-gateway.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 GATEWAY=($(jq -r '.transactions[0].contractAddress' broadcast/8.1-gateway.s.sol/${chainId}/run-latest.json))
@@ -184,3 +184,5 @@ echo "GATEWAY=$GATEWAY" >> ".env"
 
 # gov action
 forge script script/9-govAction/TimeLockQueueExecuteFaucet.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+
+forge script script/10-deployPairForLiquidation/CreatePairs.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
