@@ -6,11 +6,11 @@ import "../../src/periphery/misc/TimelockController.sol";
 import "../../src/periphery/mocks/testnet-helpers/Faucet.sol";
 contract deployTimeLock is Script {
     function run() external {
-        uint256 govPrivateKey = vm.envUint("PRIVATE_KEY");
+        uint256 govPrivateKey = vm.envUint("GOV_PRIVATE_KEY");
         address timelock = vm.envAddress("TimeLock");
         address gov = vm.envAddress("GOV");
         address faucet = vm.envAddress("Faucet");
-        address testnetBNB = vm.envAddress("WBNB_TESTNET");
+        address testnetBNB = vm.envAddress("WBNB_TESTNET_FAKE");
         vm.startBroadcast(govPrivateKey);
         
         TimelockController tl = TimelockController(payable(timelock));
