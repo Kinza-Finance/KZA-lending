@@ -17,6 +17,7 @@ npm run test
 forge i
 ```
 ### Script
+```
 forge script script/1.5-testnet/1.5.1-MockToken.s.sol 
 ```
 
