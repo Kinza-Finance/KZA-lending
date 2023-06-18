@@ -186,3 +186,7 @@ echo "GATEWAY=$GATEWAY" >> ".env"
 forge script script/9-govAction/TimeLockQueueExecuteFaucet.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 
 forge script script/10-deployPairForLiquidation/CreatePairs.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+
+# remember which number of wallet is it; first is on "m/44'/60'/0'/0/0", second is on "m/44'/60'/1'/0/0"
+# enable Debug, contract data, nonce in the ledger setting; choose Ethereum network
+forge script script/10-deployPairForLiquidation/ExecuteLiquidationWithLedger.s.sol --sender $LEDGER --ledger --hd-paths "m/44'/60'/$LEDGER_NUMBER'/0/0" --rpc-url $RPC_URL --broadcast --verify -vvvv
