@@ -3,11 +3,16 @@ export chainId=$BSC_CHAINID
 export RPC_URL=$BSC_RPC_URL
 export VERIFIER_URL=$BSC_VERIFIER_URL
 export ETHERSCAN_API_KEY=$BSC_ETHERSCAN_API_KEY
-# 0 - PoolAddressesProviderRegistry
-forge script script/0-PoolAddressesProviderRegistry.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
-#source address of PoolAddressesProviderRegistry into env variable
-PoolAddressesProviderRegistry=($(jq -r '.transactions[0].contractAddress' broadcast/0-PoolAddressesProviderRegistry.s.sol/${chainId}/run-latest.json))
-echo "\n#deployment variables\nPoolAddressesProviderRegistry=$PoolAddressesProviderRegistry" >> ".env"
+# # forge verify-contract \
+#     --chain-id  $chainId \
+#     --num-of-optimizations 200 \
+#     --watch \
+#     --constructor-args $(cast abi-encode "constructor(address)" $deployer) \
+#     --etherscan-api-key $ETHERSCAN_API_KEY \
+#     --compiler-version v0.8.10+commit.fc410830 \
+#     0xb62afd0f911af3ae28fb69a3eee3292b67fa8345 \
+#     src/core/protocol/configuration/PoolAddressesProviderRegistry.sol:PoolAddressesProviderRegistry
+
 
 # 1 - Logics
 # 1.1 Supply Logic
@@ -42,6 +47,13 @@ echo "FlashLoanLogic=$FlashLoanLogic" >> ".env"
 forge create src/core/protocol/libraries/logic/PoolLogic.sol:PoolLogic --private-key $PRIVATE_KEY --rpc-url $RPC_URL --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY  > log/PoolLogic.txt
 PoolLogic=$(grep 'Deployed to: ' log/PoolLogic.txt | awk '{print $3}')
 echo "PoolLogic=$PoolLogic" >> ".env"
+
+# 1.1.1 - PoolAddressesProviderRegistry -- POST LOGIC
+forge script script/1.1.1-PoolAddressesProviderRegistry.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+#source address of PoolAddressesProviderRegistry into env variable
+PoolAddressesProviderRegistry=($(jq -r '.transactions[0].contractAddress' broadcast/1.1.1-PoolAddressesProviderRegistry.s.sol/${chainId}/run-latest.json))
+echo "\n#deployment variables\nPoolAddressesProviderRegistry=$PoolAddressesProviderRegistry" >> ".env"
+
 
 # 1.5.1 deploy testnet token 
 forge script script/1.5-testnet/1.5.1-MockToken.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
