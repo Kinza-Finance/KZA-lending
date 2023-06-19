@@ -18,7 +18,7 @@ contract setDebtCeiling is Script {
         IPoolDataProvider.TokenData[] memory reserves = IPoolDataProvider(dataprovider).getAllReservesTokens();
 
         string[] memory addressToAdd = new string[](1);
-        addressToAdd[0] = "USDT";
+        addressToAdd[0] = "Tether USD";
         uint256 newDebtCeiling = 2.5 * 1e7 * 1e2; // nominal, 2 decimals
         for (uint256 i; i < reserves.length; i++) {
             address tokenAddress = reserves[i].tokenAddress;
