@@ -1,8 +1,8 @@
 # !/bin/bash
-export chainId=$BSCTEST_CHAINID
-export RPC_URL=$BSCTEST_RPC_URL
-export VERIFIER_URL=$BSCTEST_VERIFIER_URL
-export ETHERSCAN_API_KEY=$BSCTEST_ETHERSCAN_API_KEY
+export chainId=$BSC_CHAINID
+export RPC_URL=$BSC_RPC_URL
+export VERIFIER_URL=$BSC_VERIFIER_URL
+export ETHERSCAN_API_KEY=$BSC_ETHERSCAN_API_KEY
 # 0 - PoolAddressesProviderRegistry
 forge script script/0-PoolAddressesProviderRegistry.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 #source address of PoolAddressesProviderRegistry into env variable
