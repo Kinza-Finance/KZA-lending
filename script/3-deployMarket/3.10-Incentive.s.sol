@@ -9,11 +9,11 @@ import "../../src/periphery/rewards/RewardsController.sol";
 contract DeployIncentive is Script {
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-        address deployer = vm.envAddress("deployer");
+        address EmissionManagerOwner = vm.envAddress("EmissionManagerOwner");
         address provider = vm.envAddress("PoolAddressesProvider");
         vm.startBroadcast(deployerPrivateKey);
 
-        EmissionManager manager = new EmissionManager(deployer);
+        EmissionManager manager = new EmissionManager(EmissionManagerOwner);
         RewardsController controller = new RewardsController(address(manager));
         controller.initialize(address(0));
         // id of incentiveController at addressProvider
