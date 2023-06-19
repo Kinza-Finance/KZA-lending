@@ -135,6 +135,7 @@ forge script script/5-setUp/5.4-setDebtCeiling.s.sol --rpc-url $RPC_URL --broadc
 
 # 5.5 set emode
 forge script script/5-setUp/5.5-setEmode.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+forge script script/5-setUp/5.5.5-disableEmode.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 # 5.6 deploy mock flashloanreceiver
 forge script script/5-setUp/5.6-unpausePool.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 
