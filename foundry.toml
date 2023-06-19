@@ -12,13 +12,12 @@ remappings = [
 solc-version = "0.8.10"
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config
 libraries = [
-    "src/core/protocol/libraries/logic/ConfiguratorLogic.sol:ConfiguratorLogic:0xe5093244fAbdAb7BBecabe7c35e192E4D8D4691A",
-    "src/core/protocol/libraries/logic/SupplyLogic.sol:SupplyLogic:0x6a5840EBCd333231FFfa5823c551518D0E51af12",
-    "src/core/protocol/libraries/logic/BorrowLogic.sol:BorrowLogic:0x0C7e9B1af7FF1650Ce2Eb928d7030225E6F3690d",
-    "src/core/protocol/libraries/logic/LiquidationLogic.sol:LiquidationLogic:0x545694B6431445dc8F6D2c936A327B633B0383Eb",
-    "src/core/protocol/libraries/logic/EModeLogic.sol:EModeLogic:0x80E38713D23b42d7Ff194b31D079477FD4b631FD",
-    "src/core/protocol/libraries/logic/BridgeLogic.sol:BridgeLogic:0x58da15A838672ab4900C11B1202ca6a2905eb3bA",
-    "src/core/protocol/libraries/logic/ConfiguratorLogic.sol:ConfiguratorLogic:0x061105764d8AA7d40E8d64d08d664961ff3A9330",
-    "src/core/protocol/libraries/logic/FlashLoanLogic.sol:FlashLoanLogic:0x25f82D34746A9718257C784130152Fb060B55775",
-    "src/core/protocol/libraries/logic/PoolLogic.sol:PoolLogic:0x771bD3591c90B945e47c46FD9EfC994fe2048E12"
+    "src/core/protocol/libraries/logic/SupplyLogic.sol:SupplyLogic:0x763B2a4EbA91c3667a74Ba87A7142be3282FC1C2",
+    "src/core/protocol/libraries/logic/BorrowLogic.sol:BorrowLogic:0xa6265a8cE6F89610d3f97851abcf7F8203B006FB",
+    "src/core/protocol/libraries/logic/LiquidationLogic.sol:LiquidationLogic:0x54C33c8669D52Bb0cd6682dB419483a1e86D8e67",
+    "src/core/protocol/libraries/logic/EModeLogic.sol:EModeLogic:0xC8CB15Bc73B7f5f95Af33AEce738bC9B62Cb28D9",
+    "src/core/protocol/libraries/logic/BridgeLogic.sol:BridgeLogic:0x342019c99EA2869E1233bB461420078C149a00f1",
+    "src/core/protocol/libraries/logic/ConfiguratorLogic.sol:ConfiguratorLogic:0x306ca8E36c1DcC1E160f94d1Eb5Fd97CEa889871",
+    "src/core/protocol/libraries/logic/FlashLoanLogic.sol:FlashLoanLogic:0x7954F3efe905D4f2690a05a594886706F424327f",
+    "src/core/protocol/libraries/logic/PoolLogic.sol:PoolLogic:0x30777a478886eCFcA0DC8B023e4Fd19b133D616F",
     ]
