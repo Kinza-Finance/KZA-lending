@@ -12,7 +12,7 @@ contract UnpausePool is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         IPoolConfigurator configurator = IPoolConfigurator(IPoolAddressesProvider(provider).getPoolConfigurator());
-        configurator.setPoolPause(false);
+        configurator.setPoolPause(true);
         vm.stopBroadcast();
     }
 }
