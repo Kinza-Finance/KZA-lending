@@ -7,7 +7,6 @@ import "../../src/periphery/misc/TimelockController.sol";
 contract deployTimeLock is Script {
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-        address deployer = vm.envAddress("deployer");
         address gov = vm.envAddress("GOV");
         vm.startBroadcast(deployerPrivateKey);
         uint256 minDelay = 4 hours;
@@ -16,7 +15,7 @@ contract deployTimeLock is Script {
         address[] memory executors = new address[](1);
         // this mean anyone can execute;
         executors[0] = address(0);
-        address admin = deployer;
+        address admin = address(0);
         new TimelockController(minDelay, proposers, executors, admin);
         
         vm.stopBroadcast();

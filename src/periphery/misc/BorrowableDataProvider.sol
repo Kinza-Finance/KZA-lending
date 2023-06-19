@@ -10,13 +10,13 @@ import '../../core/interfaces/IAaveOracle.sol';
 import '../../core/protocol/libraries/types/DataTypes.sol';
 
 /**
- * @title EmodeBorrowableData contract
+ * @title BorrowableDataProvider contract
  * @author Kinza
  * @notice Implements a logic of getting max borrowable for a particular account
  * @dev NOTE: THIS CONTRACT IS NOT USED WITHIN THE LENDING PROTOCOL. It's an accessory contract used to reduce the number of calls
  * towards the blockchain from the backend.
  **/
-contract EmodeBorrowableDataProvider {
+contract BorrowableDataProvider {
   uint256 internal constant BORROWABLE_IN_ISOLATION_MASK =   0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFDFFFFFFFFFFFFFFF; // prettier-ignore
   uint256 internal constant MAX_LTV = 10000;
   // some borrow needs bigger precision, for example borrowing bitcoin
