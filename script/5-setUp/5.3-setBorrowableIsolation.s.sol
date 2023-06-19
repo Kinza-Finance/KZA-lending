@@ -18,9 +18,9 @@ contract setIsolation is Script {
         IPoolDataProvider.TokenData[] memory reserves = IPoolDataProvider(dataprovider).getAllReservesTokens();
 
         string[] memory addressToAdd = new string[](3);
-        addressToAdd[0] = "USDT";
-        addressToAdd[1] = "USDC";
-        addressToAdd[2] = "BUSD";
+        addressToAdd[0] = "Tether USD";
+        addressToAdd[1] = "USD Coin";
+        addressToAdd[2] = "BUSD Token";
         for (uint256 i; i < reserves.length; i++) {
             address tokenAddress = reserves[i].tokenAddress;
             for (uint256 j; j < addressToAdd.length; j++) {
