@@ -62,11 +62,11 @@ contract InitReserve is Script {
                 token,
                 treasury,
                 incentivesController,
-                string(abi.encodePacked("asset", tokens[i])),
-                string(abi.encodePacked("a", tokens[i])),
-                string(abi.encodePacked("variableDebt", tokens[i])),
+                string(abi.encodePacked("Kinza", tokens[i])),
+                string(abi.encodePacked("k", tokens[i])),
+                string(abi.encodePacked("Kinza Variable Debt", tokens[i])),
                 string(abi.encodePacked("vDebt", tokens[i])),
-                string(abi.encodePacked("stableDebt", tokens[i])),
+                string(abi.encodePacked("Kinza Stable Debt", tokens[i])),
                 string(abi.encodePacked("sDebt", tokens[i])),
                 abi.encodePacked("0x10")
                 );
