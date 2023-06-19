@@ -9,7 +9,6 @@ contract DeployPoolConfiguratorImpl is Script {
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address provider = vm.envAddress("PoolAddressesProvider");
-        address deployer = vm.envAddress("deployer");
         address aclAdmin = vm.envAddress("aclAdmin");
         address poolAdmin = vm.envAddress("poolAdmin");
         address emergencyAdmin = vm.envAddress("emergencyAdmin");
@@ -21,7 +20,6 @@ contract DeployPoolConfiguratorImpl is Script {
 
         IPoolAddressesProvider(provider).setACLManager(address(acl));
         acl.addPoolAdmin(poolAdmin);
-        acl.addPoolAdmin(deployer);
         acl.addEmergencyAdmin(emergencyAdmin);
         vm.stopBroadcast();
     }
