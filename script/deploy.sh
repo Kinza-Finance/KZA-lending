@@ -93,6 +93,7 @@ echo "WBTC_AGGREGATOR_TESTNET=$WBTC_AGGREGATOR_TESTNET" >> ".env"
 echo "WETH_AGGREGATOR_TESTNET=$WETH_AGGREGATOR_TESTNET" >> ".env"
 echo "WBNB_AGGREGATOR_TESTNET=$WBNB_AGGREGATOR_TESTNET" >> ".env"
 
+forge script script/1.5-testnet/updateAggregatorSingle.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 # 2 Treasury Proxy
 
 # 3.1 - PoolAddressesProvider
@@ -174,6 +175,8 @@ forge script script/6-transferOwnership/6.3-removeDeployerFromACL.s.sol --rpc-ur
 forge script script/6-transferOwnership/6.4-setGovOnRegistry.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 # 6.5 update AToken
 forge script script/6-transferOwnership/6.5-setUpAToken.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+# 6.6 update ATokenTreausry using Helper
+forge script script/6-transferOwnership/6.6-setUpAToken-Helper.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 
 # forge script script/1.5-testnet/updateAggregator.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 # 7.1 WalletBalanceProvider

@@ -1,33 +1,40 @@
-// SPDX-License-Identifier: AGPL-3.0
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.10;
 
-import "forge-std/Script.sol";
-import "../../src/core/protocol/tokenization/AToken.sol";
-import "../../src/core/interfaces/IPoolAddressesProvider.sol";
-import "../../src/core/interfaces/IPool.sol";
-import "../../src/core/interfaces/IPoolConfigurator.sol";
-import "../../src/core/interfaces/IPoolDataProvider.sol";
-import "../../src/core/interfaces/IAaveIncentivesController.sol";
-import "../../src/core/dependencies/openzeppelin/contracts/IERC20Detailed.sol";
+import "../protocol/tokenization/AToken.sol";
+import "../interfaces/IPool.sol";
+import "../interfaces/IPoolAddressesProvider.sol";
+import "../interfaces/IPoolConfigurator.sol";
+import "../interfaces/IPoolDataProvider.sol";
+import "../dependencies/openzeppelin/contracts/IERC20Detailed.sol";
+import {Ownable} from '../dependencies/openzeppelin/contracts/Ownable.sol';
 
-// !!!! remember to bump up the AToken Version at the AToken contract, otherwise configurator would fail to initialize
-contract setTreasury is Script {
-    function run() external {
-        // Treasury can only be updated by updateATokenImpl / per asset 
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-        address provider = vm.envAddress("PoolAddressesProvider");
-        address treasury = vm.envAddress("Treasury");
-        vm.startBroadcast(deployerPrivateKey);
+/**
+ * @title ReservesSetupHelper
+ * @author Aave
+ * @notice Deployment helper to setup the assets risk parameters at PoolConfigurator in batch.
+ * @dev The ReservesSetupHelper is an Ownable contract, so only the deployer or future owners can call this contract.
+ */
+contract ATokenSetupHelper is Ownable {
 
+  /**
+   * @notice External function called by the owner account to setup the assets risk parameters in batch.
+   * @dev The Pool or Risk admin must transfer the ownership to ReservesSetupHelper before calling this function
+   * @param provider The address of Addressprovider contract
+   * @param treasury The address of the new treasury
+   */
+  function updateATokensTreasury(
+    address provider, 
+    address treasury
+  ) external onlyOwner {
         IPool pool = IPool(IPoolAddressesProvider(provider).getPool());
         IPoolConfigurator configurator = IPoolConfigurator(IPoolAddressesProvider(provider).getPoolConfigurator());
         IPoolDataProvider dataProvider = IPoolDataProvider(IPoolAddressesProvider(provider).getPoolDataProvider());
 
         bytes32 incentivesControllerId = 0x703c2c8634bed68d98c029c18f310e7f7ec0e5d6342c590190b3cb8b3ba54532;
         address controllerProxy = IPoolAddressesProvider(provider).getAddress(incentivesControllerId);
-
         IPoolDataProvider.TokenData[] memory reserves = dataProvider.getAllReservesTokens();
-        // deploy new aToken first, then initialize it with new parameter
+            // deploy new aToken first, then initialize it with new parameter
         AToken atoken = new AToken(pool);
         ConfiguratorInputTypes.UpdateATokenInput memory input;
         for (uint i;i< reserves.length;i++) {
@@ -40,7 +47,7 @@ contract setTreasury is Script {
             input.implementation = address(atoken);
             input.params = abi.encodePacked("0x10");
             configurator.updateAToken(input);
-            }
+                }
         // initialize the impl itself @TODO verify if this is needed
         atoken.initialize(
             pool,
@@ -52,6 +59,5 @@ contract setTreasury is Script {
             "ATOKEN_IMPL", // aTokenSymbol
             "0x00" // param
         );
-        vm.stopBroadcast();
     }
 }
