@@ -36,7 +36,7 @@ contract setTreasury is Script {
             input.treasury = treasury;
             input.incentivesController = controllerProxy;
             input.name = string(abi.encodePacked("asset", IERC20Detailed(tokenAddress).name()));
-            input.symbol = string(abi.encodePacked("a", IERC20Detailed(tokenAddress).symbol()));
+            input.symbol = string(abi.encodePacked("k", IERC20Detailed(tokenAddress).symbol()));
             input.implementation = address(atoken);
             input.params = abi.encodePacked("0x10");
             configurator.updateAToken(input);
