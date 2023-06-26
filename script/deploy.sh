@@ -1,8 +1,16 @@
 # !/bin/bash
+if $isProd
+then
 export chainId=$BSC_CHAINID
 export RPC_URL=$BSC_RPC_URL
 export VERIFIER_URL=$BSC_VERIFIER_URL
 export ETHERSCAN_API_KEY=$BSC_ETHERSCAN_API_KEY
+else
+export chainId=$BSCTEST_CHAINID
+export RPC_URL=$BSCTEST_RPC_URL
+export VERIFIER_URL=$BSCTEST_VERIFIER_URL
+export ETHERSCAN_API_KEY=$BSCTEST_ETHERSCAN_API_KEY
+fi
 # # forge verify-contract \
 #     --chain-id  $chainId \
 #     --num-of-optimizations 200 \
