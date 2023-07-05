@@ -9,9 +9,16 @@ contract deployWalletBalances is Script {
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address provider = vm.envAddress("PoolAddressesProvider");
+        bool isProd = vm.envBool("isProd");
+        address wbnb;
+        if (isProd) {
+            wbnb = vm.envAddress("WBNB_PROD");
+        } else {
+            wbnb = vm.envAddress("WBNB_TESTNET");
+        }
         vm.startBroadcast(deployerPrivateKey);
 
-        new WalletBalanceProvider(provider);
+        new WalletBalanceProvider(provider, wbnb);
         
         vm.stopBroadcast();
     }
