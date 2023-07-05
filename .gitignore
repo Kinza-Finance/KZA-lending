@@ -1,7 +1,7 @@
 log/
 broadcast/
 .DS_Store
-.env
+.env*
 #Hardhat files
 cache
 artifacts
@@ -25,3 +25,4 @@ coverage.json
 **.last_conf*
 certora_debug_log.txt
 resource_errors.json
+*.sol
