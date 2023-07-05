@@ -9,21 +9,27 @@ import "../../src/core/interfaces/IPoolDataProvider.sol";
 
 contract setDebtCeiling is Script {
     function run() external {
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address provider = vm.envAddress("PoolAddressesProvider");
         address dataprovider = vm.envAddress("PoolDataProvider");
+        uint256 deployerPrivateKey;
+        bool isProd = vm.envBool("isProd");
+        if (isProd) {
+            deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+        } else {
+            deployerPrivateKey = vm.envUint("PRIVATE_KEY_TESTNET");
+        }
         vm.startBroadcast(deployerPrivateKey);
 
         IPoolConfigurator configurator = IPoolConfigurator(IPoolAddressesProvider(provider).getPoolConfigurator());
         IPoolDataProvider.TokenData[] memory reserves = IPoolDataProvider(dataprovider).getAllReservesTokens();
-
-        string[] memory addressToAdd = new string[](1);
-        addressToAdd[0] = "USDT";
-        uint256 newDebtCeiling = 2.5 * 1e7 * 1e2; // nominal, 2 decimals
+        string[] memory addressToAdd = new string[](2);
+        addressToAdd[0] = "TUSD";
+        addressToAdd[1] = "USDT";
+        uint256 newDebtCeiling = 2.5 * 1e6 * 1e2; // nominal, 2 decimals
         for (uint256 i; i < reserves.length; i++) {
             address tokenAddress = reserves[i].tokenAddress;
             for (uint256 j; j < addressToAdd.length; j++) {
-                if (keccak256(abi.encodePacked(addressToAdd[j])) == keccak256(abi.encodePacked(IERC20Detailed(tokenAddress).name()))) {
+                if (keccak256(abi.encodePacked(addressToAdd[j])) == keccak256(abi.encodePacked(IERC20Detailed(tokenAddress).symbol()))) {
                     configurator.setDebtCeiling(tokenAddress, newDebtCeiling);
                 }
             }
