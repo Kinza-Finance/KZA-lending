@@ -215,3 +215,8 @@ forge script script/10-deployPairForLiquidation/CreatePairs.s.sol --rpc-url $RPC
 # remember which number of wallet is it; first is on "m/44'/60'/0'/0/0", second is on "m/44'/60'/1'/0/0"
 # enable Debug, contract data, nonce in the ledger setting; choose Ethereum network
 forge script script/10-deployPairForLiquidation/ExecuteLiquidationWithLedger.s.sol --sender $LEDGER --ledger --hd-paths "m/44'/60'/$LEDGER_NUMBER'/0/0" --rpc-url $RPC_URL --broadcast --verify -vvvv
+
+
+# 11 deploy custom oracle
+forge script script/11-deployCustomOracle/deployMockWbETH.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+forge script script/11-deployCustomOracle/wbETHOracle.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv

@@ -6,16 +6,18 @@ import "../../src/periphery/misc/WbETHPriceAdaptor.sol";
 
 contract deployWbETHPriceAdaptor is Script {
     function run() external {
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+        uint256 deployerPrivateKey;
         bool isProd = vm.envBool("isProd");
         address wbeth;
         address ethAggregator;
         if (isProd) {
             wbeth = vm.envAddress("WBETH_PROD");
             ethAggregator = vm.envAddress("WETH_AGGREGATOR_PROD");
+            deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         } else {
             wbeth = vm.envAddress("WBETH_TESTNET");
             ethAggregator = vm.envAddress("WETH_AGGREGATOR_TESTNET");
+            deployerPrivateKey = vm.envUint("PRIVATE_KEY_TESTNET");
         }
         vm.startBroadcast(deployerPrivateKey);
 
