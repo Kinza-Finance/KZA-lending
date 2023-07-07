@@ -8,10 +8,10 @@ import {ITWAPAggregator} from "./ITWAPAggregator.sol";
 import {Ownable} from "../../dependencies/openzeppelin/contracts/Ownable.sol";
 
 contract HAYBinanceOracleAggregator is Ownable, AggregatorInterface {
-    string public constant feedRegistrySID = "hay-usd.boracle.bnb";
-    bytes32 public constant nodeHash = 0xdefb391114b081d478abf3dc3f56caa145fee6ff97aedc4ff0342eb8b06da292;
+    string private constant feedRegistrySID = "hay-usd.boracle.bnb";
+    bytes32 private constant nodeHash = 0xdefb391114b081d478abf3dc3f56caa145fee6ff97aedc4ff0342eb8b06da292;
     address public immutable sidRegistryAddress;
-    address twapAggregatorAddress;
+    address public twapAggregatorAddress;
 
     event SetTWAPAggregatorAddress(address twapAggregatorAddress);
 
@@ -24,22 +24,35 @@ contract HAYBinanceOracleAggregator is Ownable, AggregatorInterface {
         emit SetTWAPAggregatorAddress(_twapAggregatorAddress);
     }
 
-    function getFeedRegistryAddress() internal view returns (address) {
+    function getFeedRegistryAddress() public view returns (address) {
         SID sidRegistry = SID(sidRegistryAddress);
         address publicResolver = sidRegistry.resolver(nodeHash);
         return IPublicResolver(publicResolver).addr(nodeHash);
     }
 
-    function getTWAP() private view returns (int256) {
-        return int256(ITWAPAggregator(twapAggregatorAddress).getTWAP());
-    }
-
     function checkBinanceOracleAccess() external view returns (bool) {
         AggregatorInterface feedRegistry = AggregatorInterface(getFeedRegistryAddress());
-        if (feedRegistry.latestAnswer() >= 0) {
+        try feedRegistry.latestAnswer() returns (int256) {
             return true;
+        } catch {
+            return false;
         }
-        return false;
+    }
+
+    /**
+     * @dev Converts an unsigned uint256 into a signed int256.
+     *
+     * Requirements:
+     *
+     * - input must be less than or equal to maxInt256.
+     */
+    function toInt256(uint256 value) internal pure returns (int256) {
+        require(value < 2**255, "SafeCast: value doesn't fit in an int256");
+        return int256(value);
+    }
+
+    function getHAYTWAP() internal view returns (int256) {
+        return toInt256(ITWAPAggregator(twapAggregatorAddress).getTWAP());
     }
 
     function latestAnswer() external view returns (int256) {
@@ -47,7 +60,7 @@ contract HAYBinanceOracleAggregator is Ownable, AggregatorInterface {
         try feedRegistry.latestAnswer() returns (int256 answer) {
             return answer;
         } catch {
-            return getTWAP();
+            return getHAYTWAP();
         }
     }
 
