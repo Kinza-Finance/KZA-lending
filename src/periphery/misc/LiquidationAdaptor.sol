@@ -26,7 +26,7 @@ import '../../core/protocol/libraries/types/DataTypes.sol';
             external payable;
  }
 contract LiquidationAdaptor {
-    address constant public WBNB = 0x4FEc155A250922a9A16B3bDc84a5F855fcd67472;
+    address constant public WBNB = 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c;
 
     address constant public router = 0x13f4EA83D0bd40E75C8222255bc855a974568Dd4;
     // this struct for getting away with "stack too depp"
