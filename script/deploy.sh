@@ -93,6 +93,10 @@ echo "WBTC_AGGREGATOR_TESTNET=$WBTC_AGGREGATOR_TESTNET" >> ".env"
 echo "WETH_AGGREGATOR_TESTNET=$WETH_AGGREGATOR_TESTNET" >> ".env"
 echo "WBNB_AGGREGATOR_TESTNET=$WBNB_AGGREGATOR_TESTNET" >> ".env"
 
+forge script script/1.5-testnet/1.5.3-MockWBETH.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+WBETH=($(jq -r '.transactions[0].contractAddress' broadcast/1.5.3-MockWBETH.s.sol/${chainId}/run-latest.json))
+echo "WBETH_TESTNET=$WBETH" >> ".env"
+
 forge script script/1.5-testnet/updateAggregatorSingle.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 # 2 Treasury Proxy
 
