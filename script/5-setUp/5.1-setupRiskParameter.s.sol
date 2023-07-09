@@ -13,9 +13,10 @@ contract setupRiskParameter is Script {
         bool isProd = vm.envBool("isProd");
         address provider = vm.envAddress("PoolAddressesProvider");
         address aclAddress = vm.envAddress("ACLManager");
+        address helperAddr = vm.envAddress("ReservesSetupHelper");
         vm.startBroadcast(deployerPrivateKey);
 
-        ReservesSetupHelper helper = new ReservesSetupHelper();
+        ReservesSetupHelper helper = ReservesSetupHelper(helperAddr);
         //add helper to pool admin
         ACLManager acl = ACLManager(aclAddress);
         acl.addPoolAdmin(address(helper));
