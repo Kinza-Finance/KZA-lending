@@ -47,6 +47,10 @@ contract WbETHPriceAdaptor {
     return DECIMALS;
   }
 
+  function aggregator() external view returns (address) {
+    return address(ETH_TO_BASE);
+  }
+
   function latestAnswer() public view returns (int256) {
     int256 ethToBasePrice = ETH_TO_BASE.latestAnswer();
     int256 ratio = int256(WBETH.exchangeRate());
