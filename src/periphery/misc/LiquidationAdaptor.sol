@@ -195,7 +195,7 @@ contract LiquidationAdaptor {
         IRouter(router).swapExactTokensForTokens(_amountIn, 0, path, address(this));
     }
 
-    function _pathForWBETH(address _tokenIn, address _tokenOut) internal returns(address[] memory) {
+    function _pathForWBETH(address _tokenIn, address _tokenOut) internal pure returns(address[] memory) {
         address[] memory path = new address[](4);
         if (_tokenIn == WBETH) {
             path[0] = WBETH;
@@ -208,6 +208,7 @@ contract LiquidationAdaptor {
             path[2] = ETH;
             path[3] = WBETH;
         }
+        return path;
     }
 }
 
