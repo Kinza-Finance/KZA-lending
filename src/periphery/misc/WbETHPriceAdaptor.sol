@@ -5,6 +5,7 @@ import {IEACAggregatorProxy} from './interfaces/IEACAggregatorProxy.sol';
 import {IwbETH} from './interfaces/IwbETH.sol';
 
 contract WbETHPriceAdaptor {
+  address public immutable WETH;
   /**
    * @notice Price feed for (ETH / Base) pair
    */
@@ -29,7 +30,8 @@ contract WbETHPriceAdaptor {
   /**
    * @param ethToBaseAggregatorAddress the address of ETH / BASE feed
    */
-  constructor(address ethToBaseAggregatorAddress, address wbETHAddress) {
+  constructor(address weth, address ethToBaseAggregatorAddress, address wbETHAddress) {
+    WETH = weth;
     ETH_TO_BASE = IEACAggregatorProxy(ethToBaseAggregatorAddress);
 
     DECIMALS = ETH_TO_BASE.decimals();
@@ -48,7 +50,17 @@ contract WbETHPriceAdaptor {
   }
 
   function aggregator() external view returns (address) {
-    return address(ETH_TO_BASE);
+    return ETH_TO_BASE.aggregator();
+  }
+
+  function getSubTokens() external view returns (address[] memory) {
+    address[] memory dependentAssets = new address[](1);
+    dependentAssets[0] = WETH;
+    return dependentAssets;
+  }
+  function getTokenType() external pure returns (uint256) {
+    //  not simple but composite, for a different subgraph handler
+    return 2;
   }
 
   function latestAnswer() public view returns (int256) {
