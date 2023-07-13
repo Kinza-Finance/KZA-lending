@@ -26,6 +26,8 @@ import '../../core/protocol/libraries/types/DataTypes.sol';
             external payable;
  }
 contract LiquidationAdaptor {
+    address constant public ETH = 0x2170Ed0880ac9A755fd29B2688956BD959F933F8;
+    address constant public WBETH = 0xa2E3356610840701BDf5611a53974510Ae27E2e1;
     address constant public WBNB = 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c;
 
     address constant public router = 0x13f4EA83D0bd40E75C8222255bc855a974568Dd4;
@@ -176,17 +178,36 @@ contract LiquidationAdaptor {
 
     function _swap(address _tokenIn, address _tokenOut, uint256 _amountIn) internal {
         address[] memory path;
-        if (_tokenIn == WBNB || _tokenOut == WBNB) {
-        path = new address[](2);
-        path[0] = _tokenIn;
-        path[1] = _tokenOut;
+        if (_tokenIn == WBETH || _tokenOut == WBETH) {
+            path = _pathForWBETH(_tokenIn, _tokenOut);
         } else {
-        path = new address[](3);
-        path[0] = _tokenIn;
-        path[1] = WBNB;
-        path[2] = _tokenOut;
+            if (_tokenIn == WBNB || _tokenOut == WBNB) {
+                path = new address[](2);
+                path[0] = _tokenIn;
+                path[1] = _tokenOut;
+            } else {
+                path = new address[](3);
+                path[0] = _tokenIn;
+                path[1] = WBNB;
+                path[2] = _tokenOut;
+            }
         }
         IRouter(router).swapExactTokensForTokens(_amountIn, 0, path, address(this));
+    }
+
+    function _pathForWBETH(address _tokenIn, address _tokenOut) internal returns(address[] memory) {
+        address[] memory path = new address[](4);
+        if (_tokenIn == WBETH) {
+            path[0] = WBETH;
+            path[1] = ETH;
+            path[2] = WBNB;
+            path[3] = _tokenOut;
+        } else {
+            path[0] = _tokenIn;
+            path[1] = WBNB;
+            path[2] = ETH;
+            path[3] = WBETH;
+        }
     }
 }
 
