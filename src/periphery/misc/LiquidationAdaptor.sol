@@ -24,11 +24,26 @@ import '../../core/protocol/libraries/types/DataTypes.sol';
             address[] memory path, 
             address to) 
             external payable;
+    function factory() external view returns(address);
+    function factoryV2() external view returns(address);
  }
+
+ interface IFactory {
+    function getPool(address, address, uint256) external view returns(address);
+ }
+ interface IFactory2 {
+    function getPair(address, address) external view returns(address);
+ }
+
 contract LiquidationAdaptor {
     address constant public ETH = 0x2170Ed0880ac9A755fd29B2688956BD959F933F8;
     address constant public WBETH = 0xa2E3356610840701BDf5611a53974510Ae27E2e1;
     address constant public WBNB = 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c;
+    address constant public BTC = 0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c;
+    address constant public USDT = 0x55d398326f99059fF775485246999027B3197955;
+    address constant public BUSD = 0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56;
+    address constant public USDC = 0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d;
+    address constant public TUSD = 0x40af3827F39D0EAcBF4A168f8D4ee67c121D11c9;
 
     address constant public router = 0x13f4EA83D0bd40E75C8222255bc855a974568Dd4;
     // this struct for getting away with "stack too depp"
@@ -165,6 +180,13 @@ contract LiquidationAdaptor {
         // approve the router for pulling the tokeIn
         IERC20(collateralAsset).approve(address(router), type(uint256).max);
         _swap(collateralAsset, borrowedAsset, seizedCollateralAmount);
+        if (collateralAsset != borrowedAsset) {
+            uint256 seizedCollateralAmount = IERC20(collateralAsset).balanceOf(address(this));
+            // 2. swap the collateral back to the debtToken
+            // approve the router for pulling the tokeIn
+            IERC20(collateralAsset).approve(address(router), type(uint256).max);
+            _swap(collateralAsset, borrowedAsset, seizedCollateralAmount);
+        }
         // 3. set aside the flashloan amount + premium for repay
         // minus 1 wei more for any (potential) floor down
         uint256 profit = IERC20(borrowedAsset).balanceOf(address(this)) - amount - premium - 1;
@@ -192,11 +214,71 @@ contract LiquidationAdaptor {
                 path[2] = _tokenOut;
             }
         }
+        path = _pathGenerator(_tokenIn, _tokenOut);
         IRouter(router).swapExactTokensForTokens(_amountIn, 0, path, address(this));
     }
 
     function _pathForWBETH(address _tokenIn, address _tokenOut) internal pure returns(address[] memory) {
         address[] memory path = new address[](4);
+    }
+    function _pathGenerator(address _tokenIn, address _tokenOut) internal view returns (address[] memory) {
+        
+        address[] memory path; 
+        // hide direct pool since some of them has less liquidity (TUSD -> WBNB etc)
+        // if (IFactory2(IRouter(router).factoryV2()).getPair(_tokenIn, _tokenOut) != address(0) || 
+        //     IFactory(IRouter(router).factory()).getPool(_tokenIn, _tokenOut, 10000) != address(0) ||
+        //     IFactory(IRouter(router).factory()).getPool(_tokenIn, _tokenOut, 2500) != address(0) ||
+        //     IFactory(IRouter(router).factory()).getPool(_tokenIn, _tokenOut, 500) != address(0) ||
+        //     IFactory(IRouter(router).factory()).getPool(_tokenIn, _tokenOut, 100) != address(0)
+        //     ) {
+        //         // exact pool exists
+        //         path = new address[](2);
+        //         path[0] = _tokenIn;
+        //         path[1] = _tokenOut;
+        //         return path;
+        //     }
+        // otherwise we use hard-coded path;
+        // 5 is the max length to swap to WBNB as the intermediate
+        address[] memory tmp_path = new address[](5);
+        uint256 length;
+        if (_tokenIn == BTC) {
+            tmp_path[length] == BTC;
+            tmp_path[length+1] == WBNB;
+            length+=2;
+        }
+
+        if (_tokenIn == ETH) {
+            tmp_path[length] == ETH;
+            tmp_path[length+1] == WBNB;
+            length+=2;
+        }
+
+        if (_tokenIn == WBNB) {
+            tmp_path[length] == WBNB;
+            length++;
+        }
+        if (_tokenIn == USDC) {
+            tmp_path[length] == USDC;
+            tmp_path[length+1] == BUSD;
+            tmp_path[length+2] == WBNB;
+            length += 3;
+        }
+        if (_tokenIn == TUSD) {
+            tmp_path[length] == TUSD;
+            tmp_path[length+1] == USDT;
+            tmp_path[length+2] == WBNB;
+            length += 3;
+        }
+        if (_tokenIn == USDT) {
+            tmp_path[length] == USDT;
+            tmp_path[length+1] == WBNB;
+            length += 2;
+        }
+        if (_tokenIn == BUSD) {
+            tmp_path[length] == BUSD;
+            tmp_path[length+1] == WBNB;
+            length += 2;
+        }
         if (_tokenIn == WBETH) {
             path[0] = WBETH;
             path[1] = ETH;
@@ -207,8 +289,47 @@ contract LiquidationAdaptor {
             path[1] = WBNB;
             path[2] = ETH;
             path[3] = WBETH;
+            tmp_path[length] = WBETH;
+            tmp_path[length+1] = ETH;
+            tmp_path[length+2] = WBNB;
+            length += 2;
+        }
+
+        // output
+        if (_tokenOut == ETH) {
+            tmp_path[length] == ETH;
+            length++;
+        }
+        if (_tokenOut == WBNB) {
+            // do nothing
+        }
+        if (_tokenOut == USDC) {
+            tmp_path[length] == BUSD;
+            tmp_path[length+1] == USDC;
+            length += 2;
+        }
+        if (_tokenOut == TUSD) {
+            tmp_path[length] == USDT;
+            tmp_path[length+1] == TUSD;
+            length += 2;
+        }
+        if (_tokenOut == USDT) {
+            tmp_path[length] == USDT;
+            length += 1;
+        }
+        if (_tokenOut == BUSD) {
+            tmp_path[length] == BUSD;
+            length += 1;
+        }
+        if (_tokenOut == WBETH) {
+            tmp_path[length] = ETH;
+            tmp_path[length+1] = WBETH;
+            length += 2;
+        }
+        path = new address[](length);
+        for (uint256 i;i < length;i++) {
+            path[i] = tmp_path[i];
         }
         return path;
     }
 }
-
