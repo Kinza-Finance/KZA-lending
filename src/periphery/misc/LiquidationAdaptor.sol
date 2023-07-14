@@ -176,10 +176,6 @@ contract LiquidationAdaptor {
             false
             );
         uint256 seizedCollateralAmount = IERC20(collateralAsset).balanceOf(address(this));
-        // 2. swap the collateral back to the debtToken
-        // approve the router for pulling the tokeIn
-        IERC20(collateralAsset).approve(address(router), type(uint256).max);
-        _swap(collateralAsset, borrowedAsset, seizedCollateralAmount);
         if (collateralAsset != borrowedAsset) {
             uint256 seizedCollateralAmount = IERC20(collateralAsset).balanceOf(address(this));
             // 2. swap the collateral back to the debtToken
@@ -200,27 +196,10 @@ contract LiquidationAdaptor {
 
     function _swap(address _tokenIn, address _tokenOut, uint256 _amountIn) internal {
         address[] memory path;
-        if (_tokenIn == WBETH || _tokenOut == WBETH) {
-            path = _pathForWBETH(_tokenIn, _tokenOut);
-        } else {
-            if (_tokenIn == WBNB || _tokenOut == WBNB) {
-                path = new address[](2);
-                path[0] = _tokenIn;
-                path[1] = _tokenOut;
-            } else {
-                path = new address[](3);
-                path[0] = _tokenIn;
-                path[1] = WBNB;
-                path[2] = _tokenOut;
-            }
-        }
         path = _pathGenerator(_tokenIn, _tokenOut);
         IRouter(router).swapExactTokensForTokens(_amountIn, 0, path, address(this));
     }
 
-    function _pathForWBETH(address _tokenIn, address _tokenOut) internal pure returns(address[] memory) {
-        address[] memory path = new address[](4);
-    }
     function _pathGenerator(address _tokenIn, address _tokenOut) internal view returns (address[] memory) {
         
         address[] memory path; 
@@ -237,7 +216,7 @@ contract LiquidationAdaptor {
         //         path[1] = _tokenOut;
         //         return path;
         //     }
-        // otherwise we use hard-coded path;
+        // use hard-coded path;
         // 5 is the max length to swap to WBNB as the intermediate
         address[] memory tmp_path = new address[](5);
         uint256 length;
