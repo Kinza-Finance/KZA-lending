@@ -259,15 +259,6 @@ contract LiquidationAdaptor {
             length += 2;
         }
         if (_tokenIn == WBETH) {
-            path[0] = WBETH;
-            path[1] = ETH;
-            path[2] = WBNB;
-            path[3] = _tokenOut;
-        } else {
-            path[0] = _tokenIn;
-            path[1] = WBNB;
-            path[2] = ETH;
-            path[3] = WBETH;
             tmp_path[length] = WBETH;
             tmp_path[length+1] = ETH;
             tmp_path[length+2] = WBNB;
