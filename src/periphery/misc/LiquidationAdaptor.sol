@@ -2,7 +2,6 @@
 pragma solidity ^0.8.10;
 
 import {IERC20} from '@aave/core-v3/contracts/dependencies/openzeppelin/contracts/IERC20.sol';
-
 import "lib/openzeppelin-contracts/contracts/access/Ownable.sol";
 
 import '../../core/interfaces/IPoolAddressesProvider.sol';
@@ -17,30 +16,41 @@ import '../../core/protocol/libraries/types/DataTypes.sol';
  * @notice Implements a friendly handler for liquidation
  **/
 
+interface IPancakeV3SwapCallback {
+    function pancakeV3SwapCallback(
+        int256 amount0Delta,
+        int256 amount1Delta,
+        bytes calldata data
+    ) external;
+}
 
- interface IRouter {
+
+ interface IV2SwapRouter {
     // V2 interface
     function swapExactTokensForTokens(
-            uint256 amounIn, 
-            uint256 amountOutMin, 
-            address[] memory path, 
-            address to) 
-            external payable returns(uint256 amountOut);
-    // V3 interface
+        uint256 amountIn,
+        uint256 amountOutMin,
+        address[] calldata path,
+        address to
+    ) external payable returns (uint256 amountOut);
+    
+ }
+
+/// @title Router token swapping functionality
+/// @notice Functions for swapping tokens via PancakeSwap V3
+interface IV3SwapRouter is IPancakeV3SwapCallback {
     struct ExactInputParams {
         bytes path;
         address recipient;
         uint256 amountIn;
         uint256 amountOutMinimum;
     }
-    function ExactInput(ExactInputParams calldata params) external payable returns(uint256 amountOut);
-    
- }
+    function exactInput(ExactInputParams calldata params) external payable returns (uint256 amountOut);
+}
 
 interface IAdaptorFallBack {
     function getPath(address _tokenIn, address _tokenOut) external returns(bytes memory);
 }
-
 
 contract LiquidationAdaptor is Ownable {
     // FALLBACK means the flows "try V3" first, if fails it attempts V2
@@ -218,23 +228,25 @@ contract LiquidationAdaptor is Ownable {
             //V3 swap
             bool tradeExecuted;
             if (inputs.route == ROUTE.V3CUSTOMED || inputs.route == ROUTE.V3FALLBACK || inputs.route == ROUTE.FALLBACK) {
-                IRouter.ExactInputParams memory params;
-                params.path = inputs.customPath;
+                IV3SwapRouter.ExactInputParams memory params;
+                params.path = path;
                 params.recipient = address(this);
                 params.amountIn = seizedCollateralAmount;
                 params.amountOutMinimum = 0;
                 // if fallback we try execute V3 first but dont revert if it fails
                 if (inputs.route == ROUTE.FALLBACK) {
-                    try IRouter(smartRouter).ExactInput(params) returns (uint256 result){tradeExecuted = true;} catch {}
+                    try IV3SwapRouter(smartRouter).exactInput(params) returns (uint256 result){tradeExecuted = true;} catch {}
                 } else {
-                    IRouter(smartRouter).ExactInput(params);
+                    IV3SwapRouter(smartRouter).exactInput(params);
                 }
             }
             if ((inputs.route == ROUTE.V2CUSTOMED || inputs.route == ROUTE.V2FALLBACK || 
             inputs.route == ROUTE.FALLBACK) && !tradeExecuted) {
                 address[] memory finalPath;
-                finalPath = abi.decode(inputs.customPath, (address[]));
-                IRouter(smartRouter).swapExactTokensForTokens(seizedCollateralAmount, 0, finalPath, address(this));
+                for (uint i; i*20 < path.length; i++) {
+                    finalPath[i] = _toAddress(path, i*20);
+                }
+                IV2SwapRouter(smartRouter).swapExactTokensForTokens(seizedCollateralAmount, 0, finalPath, address(this));
             }
         }
         // 3. set aside the flashloan amount + premium for repay
@@ -245,7 +257,6 @@ contract LiquidationAdaptor is Ownable {
         return true;
     }
 
-
     /// OWNABLE
     function updateV2Fallback(address _newV2Fallback) external onlyOwner {
         V2Fallback = _newV2Fallback;
@@ -253,5 +264,19 @@ contract LiquidationAdaptor is Ownable {
 
     function updateV3Fallback(address _newV3Fallback) external onlyOwner {
         V3Fallback = _newV3Fallback;
+    }
+
+
+    // INTERNAL
+    // copied from BytesLib https://github.com/GNSPS/solidity-bytes-utils/blob/master/contracts/BytesLib.sol
+    function _toAddress(bytes memory _bytes, uint256 _start) internal pure returns (address) {
+        require(_bytes.length >= _start + 20, "toAddress_outOfBounds");
+        address tempAddress;
+
+        assembly {
+            tempAddress := div(mload(add(add(_bytes, 0x20), _start)), 0x1000000000000000000000000)
+        }
+
+        return tempAddress;
     }
 }
