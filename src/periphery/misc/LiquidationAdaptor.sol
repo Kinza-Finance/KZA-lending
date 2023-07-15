@@ -208,10 +208,10 @@ contract LiquidationAdaptor is Ownable {
             if (inputs.route == ROUTE.V2CUSTOMED || inputs.route == ROUTE.V3CUSTOMED) {
                 path = inputs.customPath;
             } else {
-                if (inputs.route == ROUTE.V2CUSTOMED) {
+                if (inputs.route == ROUTE.V2FALLBACK) {
                     path = IAdaptorFallBack(V2Fallback).getPath(inputs.collateralAsset, borrowedAsset);
                 } else {
-                    // can only be V3CUSTOMED
+                    // can only be V3FALLBACK or FALLBACK(which prioritize V3)
                     path = IAdaptorFallBack(V3Fallback).getPath(inputs.collateralAsset, borrowedAsset);
                 }
             }
