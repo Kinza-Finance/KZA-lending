@@ -3,6 +3,8 @@ pragma solidity ^0.8.10;
 
 import {IERC20} from '@aave/core-v3/contracts/dependencies/openzeppelin/contracts/IERC20.sol';
 
+import "lib/openzeppelin-contracts/contracts/access/Ownable.sol";
+
 import '../../core/interfaces/IPoolAddressesProvider.sol';
 import '../../core/interfaces/IPool.sol';
 import '../../core/interfaces/IPoolDataProvider.sol';
@@ -10,42 +12,43 @@ import '../../core/interfaces/IAaveOracle.sol';
 import '../../core/protocol/libraries/types/DataTypes.sol';
 
 /**
- * @title EmodeBorrowableData contract
+ * @title LiquidationAdaptor contract
  * @author Kinza
- * @notice Implements a logic of getting max borrowable for a particular account
- * @dev NOTE: THIS CONTRACT IS NOT USED WITHIN THE LENDING PROTOCOL. It's an accessory contract used to reduce the number of calls
- * towards the blockchain from the backend.
+ * @notice Implements a friendly handler for liquidation
  **/
 
+
  interface IRouter {
+    // V2 interface
     function swapExactTokensForTokens(
             uint256 amounIn, 
             uint256 amountOutMin, 
             address[] memory path, 
             address to) 
-            external payable;
-    function factory() external view returns(address);
-    function factoryV2() external view returns(address);
+            external payable returns(uint256 amountOut);
+    // V3 interface
+    struct ExactInputParams {
+        bytes path;
+        address recipient;
+        uint256 amountIn;
+        uint256 amountOutMinimum;
+    }
+    function ExactInput(ExactInputParams calldata params) external payable returns(uint256 amountOut);
+    
  }
 
- interface IFactory {
-    function getPool(address, address, uint256) external view returns(address);
- }
- interface IFactory2 {
-    function getPair(address, address) external view returns(address);
- }
+interface IAdaptorFallBack {
+    function getPath(address _tokenIn, address _tokenOut) external returns(bytes memory);
+}
 
-contract LiquidationAdaptor {
-    address constant public ETH = 0x2170Ed0880ac9A755fd29B2688956BD959F933F8;
-    address constant public WBETH = 0xa2E3356610840701BDf5611a53974510Ae27E2e1;
-    address constant public WBNB = 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c;
-    address constant public BTC = 0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c;
-    address constant public USDT = 0x55d398326f99059fF775485246999027B3197955;
-    address constant public BUSD = 0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56;
-    address constant public USDC = 0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d;
-    address constant public TUSD = 0x40af3827F39D0EAcBF4A168f8D4ee67c121D11c9;
 
-    address constant public router = 0x13f4EA83D0bd40E75C8222255bc855a974568Dd4;
+contract LiquidationAdaptor is Ownable {
+    // FALLBACK means the flows "try V3" first, if fails it attempts V2
+    enum ROUTE {FALLBACK, V2FALLBACK, V3FALLBACK, V2CUSTOMED, V3CUSTOMED}
+
+    address constant public smartRouter = 0x13f4EA83D0bd40E75C8222255bc855a974568Dd4;
+    address public V2Fallback;
+    address public V3Fallback;
     // this struct for getting away with "stack too depp"
     struct UserReserve{
         uint256 currentATokenBalance;
@@ -62,6 +65,15 @@ contract LiquidationAdaptor {
         uint256 DebtPrice;
         uint256 CollateralAmountSeizable;
         uint256 DebtAmountRepayable;
+    }
+
+    // to get away from stack too deep
+    struct ExecuteOperationInput {
+        address collateralAsset; 
+        address liquidatedUser; 
+        address liquidator;
+        ROUTE route;
+        bytes customPath;
     }
 
     uint256 internal constant HEALTH_THRESHOLD = 1 * 10 ** 18;
@@ -141,13 +153,14 @@ contract LiquidationAdaptor {
     }
 
     // call this to liquidate a user
-    function liquidateWithFlashLoan(address liquidated, address collateral, address debtToken, uint256 debtAmount) external {
+    function liquidateWithFlashLoan(address liquidated, address collateral, address debtToken, uint256 debtAmount, ROUTE route, bytes memory customPath) external {
         IPoolDataProvider dataProvider = IPoolDataProvider(provider.getPoolDataProvider());
         IPool pool = IPool(provider.getPool());
         // allow the pool to get back the flashloan + premium
         IERC20(debtToken).approve(address(pool), type(uint256).max);
         //construct calldata to be execute in "executeOperation
-        bytes memory params = abi.encode(collateral, liquidated, msg.sender);
+        // swapData is only necessarily when route is "CUSTOM", otherwise it can be left as emptied
+        bytes memory params = abi.encode(collateral, liquidated, msg.sender, route, customPath);
         pool.flashLoanSimple(
             address(this),
             debtToken,
@@ -165,141 +178,80 @@ contract LiquidationAdaptor {
     bytes memory params
   )  external onlyPool returns (bool){
         // 1. repay for the liquidated user using the flashloan amount
-        (address collateralAsset, address liquidatedUser, address liquidator) = abi.decode(params, (address, address, address));
+        ExecuteOperationInput memory inputs;
+        {
+            (address collateralAsset, address liquidatedUser, address liquidator, ROUTE route, bytes memory customPath) = 
+            abi.decode(params, (address, address, address, ROUTE, bytes));
+            inputs.collateralAsset = collateralAsset;
+            inputs.liquidatedUser = liquidatedUser;
+            inputs.liquidator = liquidator;
+            inputs.route = route;
+            inputs.customPath = customPath;
+        }
+        
         IPool pool = IPool(provider.getPool());
         pool.liquidationCall(
-            collateralAsset,
+            inputs.collateralAsset,
             borrowedAsset,
-            liquidatedUser,
+            inputs.liquidatedUser,
             amount,
             // receiveAToken
             false
             );
-        uint256 seizedCollateralAmount = IERC20(collateralAsset).balanceOf(address(this));
-        if (collateralAsset != borrowedAsset) {
-            uint256 seizedCollateralAmount = IERC20(collateralAsset).balanceOf(address(this));
+        uint256 seizedCollateralAmount = IERC20(inputs.collateralAsset).balanceOf(address(this));
+        if (inputs.collateralAsset != borrowedAsset) {
+            uint256 seizedCollateralAmount = IERC20(inputs.collateralAsset).balanceOf(address(this));
             // 2. swap the collateral back to the debtToken
             // approve the router for pulling the tokeIn
-            IERC20(collateralAsset).approve(address(router), type(uint256).max);
-            _swap(collateralAsset, borrowedAsset, seizedCollateralAmount);
+            IERC20(inputs.collateralAsset).approve(address(smartRouter), type(uint256).max);
+            bytes memory path;
+            if (inputs.route == ROUTE.V2CUSTOMED || inputs.route == ROUTE.V3CUSTOMED) {
+                path = inputs.customPath;
+            } else {
+                if (inputs.route == ROUTE.V2CUSTOMED) {
+                    path = IAdaptorFallBack(V2Fallback).getPath(inputs.collateralAsset, borrowedAsset);
+                } else {
+                    // can only be V3CUSTOMED
+                    path = IAdaptorFallBack(V3Fallback).getPath(inputs.collateralAsset, borrowedAsset);
+                }
+            }
+            //V3 swap
+            bool tradeExecuted;
+            if (inputs.route == ROUTE.V3CUSTOMED || inputs.route == ROUTE.V3FALLBACK || inputs.route == ROUTE.FALLBACK) {
+                IRouter.ExactInputParams memory params;
+                params.path = inputs.customPath;
+                params.recipient = address(this);
+                params.amountIn = seizedCollateralAmount;
+                params.amountOutMinimum = 0;
+                // if fallback we try execute V3 first but dont revert if it fails
+                if (inputs.route == ROUTE.FALLBACK) {
+                    try IRouter(smartRouter).ExactInput(params) returns (uint256 result){tradeExecuted = true;} catch {}
+                } else {
+                    IRouter(smartRouter).ExactInput(params);
+                }
+            }
+            if ((inputs.route == ROUTE.V2CUSTOMED || inputs.route == ROUTE.V2FALLBACK || 
+            inputs.route == ROUTE.FALLBACK) && !tradeExecuted) {
+                address[] memory finalPath;
+                finalPath = abi.decode(inputs.customPath, (address[]));
+                IRouter(smartRouter).swapExactTokensForTokens(seizedCollateralAmount, 0, finalPath, address(this));
+            }
         }
         // 3. set aside the flashloan amount + premium for repay
         // minus 1 wei more for any (potential) floor down
         uint256 profit = IERC20(borrowedAsset).balanceOf(address(this)) - amount - premium - 1;
         // 4. send any profit to msg.sender
-        IERC20(borrowedAsset).transfer(liquidator, profit);
+        IERC20(borrowedAsset).transfer(inputs.liquidator, profit);
         return true;
     }
 
-    // this function takes tokenIn and return tokenOut,
-    // by swapping tokenIn -> BNB, then BNB -> tokenOut;
 
-    function _swap(address _tokenIn, address _tokenOut, uint256 _amountIn) internal {
-        address[] memory path;
-        path = _pathGenerator(_tokenIn, _tokenOut);
-        IRouter(router).swapExactTokensForTokens(_amountIn, 0, path, address(this));
+    /// OWNABLE
+    function updateV2Fallback(address _newV2Fallback) external onlyOwner {
+        V2Fallback = _newV2Fallback;
     }
 
-    function _pathGenerator(address _tokenIn, address _tokenOut) internal view returns (address[] memory) {
-        
-        address[] memory path; 
-        // hide direct pool since some of them has less liquidity (TUSD -> WBNB etc)
-        // if (IFactory2(IRouter(router).factoryV2()).getPair(_tokenIn, _tokenOut) != address(0) || 
-        //     IFactory(IRouter(router).factory()).getPool(_tokenIn, _tokenOut, 10000) != address(0) ||
-        //     IFactory(IRouter(router).factory()).getPool(_tokenIn, _tokenOut, 2500) != address(0) ||
-        //     IFactory(IRouter(router).factory()).getPool(_tokenIn, _tokenOut, 500) != address(0) ||
-        //     IFactory(IRouter(router).factory()).getPool(_tokenIn, _tokenOut, 100) != address(0)
-        //     ) {
-        //         // exact pool exists
-        //         path = new address[](2);
-        //         path[0] = _tokenIn;
-        //         path[1] = _tokenOut;
-        //         return path;
-        //     }
-        // use hard-coded path;
-        // 5 is the max length to swap to WBNB as the intermediate
-        address[] memory tmp_path = new address[](5);
-        uint256 length;
-        if (_tokenIn == BTC) {
-            tmp_path[length] == BTC;
-            tmp_path[length+1] == WBNB;
-            length+=2;
-        }
-
-        if (_tokenIn == ETH) {
-            tmp_path[length] == ETH;
-            tmp_path[length+1] == WBNB;
-            length+=2;
-        }
-
-        if (_tokenIn == WBNB) {
-            tmp_path[length] == WBNB;
-            length++;
-        }
-        if (_tokenIn == USDC) {
-            tmp_path[length] == USDC;
-            tmp_path[length+1] == BUSD;
-            tmp_path[length+2] == WBNB;
-            length += 3;
-        }
-        if (_tokenIn == TUSD) {
-            tmp_path[length] == TUSD;
-            tmp_path[length+1] == USDT;
-            tmp_path[length+2] == WBNB;
-            length += 3;
-        }
-        if (_tokenIn == USDT) {
-            tmp_path[length] == USDT;
-            tmp_path[length+1] == WBNB;
-            length += 2;
-        }
-        if (_tokenIn == BUSD) {
-            tmp_path[length] == BUSD;
-            tmp_path[length+1] == WBNB;
-            length += 2;
-        }
-        if (_tokenIn == WBETH) {
-            tmp_path[length] = WBETH;
-            tmp_path[length+1] = ETH;
-            tmp_path[length+2] = WBNB;
-            length += 2;
-        }
-
-        // output
-        if (_tokenOut == ETH) {
-            tmp_path[length] == ETH;
-            length++;
-        }
-        if (_tokenOut == WBNB) {
-            // do nothing
-        }
-        if (_tokenOut == USDC) {
-            tmp_path[length] == BUSD;
-            tmp_path[length+1] == USDC;
-            length += 2;
-        }
-        if (_tokenOut == TUSD) {
-            tmp_path[length] == USDT;
-            tmp_path[length+1] == TUSD;
-            length += 2;
-        }
-        if (_tokenOut == USDT) {
-            tmp_path[length] == USDT;
-            length += 1;
-        }
-        if (_tokenOut == BUSD) {
-            tmp_path[length] == BUSD;
-            length += 1;
-        }
-        if (_tokenOut == WBETH) {
-            tmp_path[length] = ETH;
-            tmp_path[length+1] = WBETH;
-            length += 2;
-        }
-        path = new address[](length);
-        for (uint256 i;i < length;i++) {
-            path[i] = tmp_path[i];
-        }
-        return path;
+    function updateV3Fallback(address _newV3Fallback) external onlyOwner {
+        V3Fallback = _newV3Fallback;
     }
 }
