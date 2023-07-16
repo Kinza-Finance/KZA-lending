@@ -3,7 +3,7 @@ pragma solidity ^0.8.10;
 
 import "lib/openzeppelin-contracts/contracts/access/Ownable.sol";
 
-contract LiquidationAdaptorPnacakeV2FallBack is Ownable {
+contract LiquidationAdaptorPancakeV2FallBack is Ownable {
     address constant public pancakeRouter = 0x13f4EA83D0bd40E75C8222255bc855a974568Dd4;
 
     address constant public ETH = 0x2170Ed0880ac9A755fd29B2688956BD959F933F8;
