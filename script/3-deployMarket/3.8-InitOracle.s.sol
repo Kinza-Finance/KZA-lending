@@ -3,7 +3,7 @@ pragma solidity 0.8.10;
 
 import "forge-std/Script.sol";
 import "../../src/core/misc/AaveOracle.sol";
-import "../../src/core/misc/BinanceOracle/BinanceOracleAggregator.sol";
+import "../../src/core/misc/BinanceOracle/HAYBinanceOracleAggregator.sol";
 
 contract InitOracle is Script {
     function run() external {
@@ -45,9 +45,9 @@ contract InitOracle is Script {
             // sources[5] = vm.envAddress("WBNB_AGGREGATOR_TESTNET");
 
             // binance oracle
-            assets[0] = vm.envAddress("HAY_TESTNET");
-            bytes32 HAY_NODE_HASH_TESTNET = vm.envBytes32("HAY_NODE_HASH_TESTNET");
-            BinanceOracleAggregator hayAggregator = new BinanceOracleAggregator(BSCTEST_SID_Registry, assets[0], HAY_NODE_HASH_TESTNET);
+            // assets[0] = vm.envAddress("HAY_TESTNET");
+            // bytes32 HAY_NODE_HASH_TESTNET = vm.envBytes32("HAY_NODE_HASH_TESTNET");
+            HAYBinanceOracleAggregator hayAggregator = new HAYBinanceOracleAggregator(BSCTEST_SID_Registry);
             sources[0] = address(hayAggregator);
         }
 
