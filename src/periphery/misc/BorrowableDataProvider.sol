@@ -2,6 +2,7 @@
 pragma solidity ^0.8.10;
 
 import {IERC20} from '@aave/core-v3/contracts/dependencies/openzeppelin/contracts/IERC20.sol';
+import {IERC20Detailed} from '@aave/core-v3/contracts/dependencies/openzeppelin/contracts/IERC20Detailed.sol';
 
 import '../../core/interfaces/IPoolAddressesProvider.sol';
 import '../../core/interfaces/IPool.sol';
@@ -108,7 +109,7 @@ contract BorrowableDataProvider {
     IPoolDataProvider dataProvider = IPoolDataProvider(provider.getPoolDataProvider());
     uint256 supply = dataProvider.getATokenTotalSupply(asset);
     uint256 debt = dataProvider.getTotalDebt(asset);
-    return supply > debt ? BORROWABLE_PRECISION * (supply - debt) / 10**18 : 0;
+    return supply > debt ? BORROWABLE_PRECISION * (supply - debt) / 10** IERC20Detailed(asset).decimals() : 0;
   }
 
   function getBorrowableUnderDebtCeiling(address asset) public view returns(uint256) {
