@@ -15,13 +15,15 @@ contract WBETHBinanceOracleAggregator is Ownable, AggregatorInterface {
     // @TODO add the nodeHash for wbeth
     bytes32 private constant nodeHash = 0xf4132c82e8606c3c23c6e0e05f3fdaa88d1d56188433bc36a95c2f89504f31d2;
     address public immutable sidRegistryAddress;
+    address public immutable WETH;
     address public chainlinkAggregatorProxy;
 
     event SetChainlinkAggregatorProxyAddress(address NewChainlinkAggregatorProxy);
 
-    constructor(address _sidRegistryAddress, address _chainlinkAggregator) {
+    constructor(address _sidRegistryAddress, address _chainlinkAggregator, address _weth) {
         sidRegistryAddress = _sidRegistryAddress;
         chainlinkAggregatorProxy = _chainlinkAggregator;
+        WETH = _weth;
     }
 
     function setChainlinkAggregatorAddress(address _chainlinkAggregatorProxy) external onlyOwner {
@@ -87,5 +89,18 @@ contract WBETHBinanceOracleAggregator is Ownable, AggregatorInterface {
 
     function tryCustomOracleAnswer(address _customOracle) public view returns(int256) {
         return AggregatorInterface(_customOracle).latestAnswer();
+    }
+    function aggregator() external view returns (address) {
+    return address(chainlinkAggregatorProxy);
+    }
+
+    function getSubTokens() external view returns (address[] memory) {
+        address[] memory dependentAssets = new address[](1);
+        dependentAssets[0] = WETH;
+        return dependentAssets;
+    }
+    function getTokenType() external pure returns (uint256) {
+        //  not simple but composite, for a different subgraph handler
+        return 2;
     }
 }
