@@ -8,6 +8,7 @@ import {ITWAPAggregator} from "./ITWAPAggregator.sol";
 import {Ownable} from "../../dependencies/openzeppelin/contracts/Ownable.sol";
 
 contract HAYBinanceOracleAggregator is Ownable, AggregatorInterface {
+    // for information; refer to https://oracle.binance.com/docs/price-feeds/contract-addresses/bnb-mainnet
     string private constant feedRegistrySID = "hay-usd.boracle.bnb";
     bytes32 private constant nodeHash = 0xdefb391114b081d478abf3dc3f56caa145fee6ff97aedc4ff0342eb8b06da292;
     address public immutable sidRegistryAddress;

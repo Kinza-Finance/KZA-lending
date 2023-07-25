@@ -11,20 +11,19 @@ interface IChainlinkAggregatorProxy {
 }
 
 contract WBETHBinanceOracleAggregator is Ownable, AggregatorInterface {
+    // for information; refer to https://oracle.binance.com/docs/price-feeds/contract-addresses/bnb-mainnet
     string private constant feedRegistrySID = "wbeth-usd.boracle.bnb";
-    // @TODO add the nodeHash for wbeth
-    //bytes32 private constant nodeHash = 0xdefb391114b081d478abf3dc3f56caa145fee6ff97aedc4ff0342eb8b06da292;
+    bytes32 private constant nodeHash = 0xf4132c82e8606c3c23c6e0e05f3fdaa88d1d56188433bc36a95c2f89504f31d2;
     address public immutable sidRegistryAddress;
     address public chainlinkAggregatorProxy;
 
     event SetChainlinkAggregatorProxyAddress(address NewChainlinkAggregatorProxy);
 
-    constructor(address _sidRegistryAddress, address _chainlinkAggregator) {
+    constructor(address _sidRegistryAddress) {
         sidRegistryAddress = _sidRegistryAddress;
-        chainlinkAggregatorProxy = _chainlinkAggregator;
     }
 
-    function setTWAPAggregatorAddress(address _chainlinkAggregatorProxy) external onlyOwner {
+    function setChainlinkAggregatorAddress(address _chainlinkAggregatorProxy) external onlyOwner {
         chainlinkAggregatorProxy = _chainlinkAggregatorProxy;
         emit SetChainlinkAggregatorProxyAddress(_chainlinkAggregatorProxy);
     }
