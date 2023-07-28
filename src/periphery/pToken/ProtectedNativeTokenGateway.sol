@@ -103,7 +103,7 @@ contract ProtectedNativeTokenGateway is Ownable {
     // permit `amount` rather than `amountToWithdraw` to make it easier for front-ends and integrators
     apWBNB.permit(msg.sender, address(this), amount, deadline, permitV, permitR, permitS);
     apWBNB.transferFrom(msg.sender, address(this), amountToWithdraw);
-    POOL.withdraw(address(WBNB), amountToWithdraw, address(this));
+    POOL.withdraw(address(pWBNB), amountToWithdraw, address(this));
     // withdraw the pToken to wToken first
     pWBNB.withdrawTo(address(this), amountToWithdraw);
     // withdraw the wToken to native token
