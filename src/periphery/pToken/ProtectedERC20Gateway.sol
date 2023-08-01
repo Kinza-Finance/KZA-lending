@@ -22,9 +22,6 @@ contract ProtectedERC20Gateway is Ownable {
   using GPv2SafeERC20 for IERC20;
 
   IPool internal immutable POOL;
-  mapping(address => IPERC20) public pTokens;
-
-  event NewPToken(address token, address pToken);
   
   constructor(
     IPool pool
@@ -34,13 +31,13 @@ contract ProtectedERC20Gateway is Ownable {
   }
     
   function depositProtectedToken(
-    IERC20 token,
+    IPERC20 pToken,
     address onBehalfOf,
     uint256 amount,
     uint16 referralCode
   ) external {
-    IPERC20 pToken = pTokens[address(token)];
-    token.transferFrom(msg.sender, address(this), amount);
+    address token = pToken.underlying();
+    IERC20(token).transferFrom(msg.sender, address(this), amount);
     pToken.depositFor(address(this), amount);
 
     // if pToken does not exist as an reserve, this would revert
@@ -120,31 +117,6 @@ contract ProtectedERC20Gateway is Ownable {
     uint256 amount
   ) external onlyOwner {
     IERC20(token).safeTransfer(to, amount);
-  }
-
-    function updatePToken(address pToken) external onlyOwner {
-        address token = address(IPERC20(pToken).underlying());
-        address prev = address(pTokens[token]);
-        if (prev != address(0)) {
-            // remove allowance for the previous token
-            _sunsetProtectedToken(IERC20(token), IERC20(prev));
-        }
-        if (pToken != address(0)) {
-            // add allowance for the new one
-            _onBoardNewProtectedToken(IERC20(token), IERC20(pToken));
-        }
-        pTokens[token] = IPERC20(pToken);
-        emit NewPToken(token, pToken);
-    }
-  function _onBoardNewProtectedToken(IERC20 token, IERC20 pToken) internal {
-    token.approve(address(pToken), type(uint256).max);
-    pToken.approve(address(POOL), type(uint256).max); 
-    
-  }
-
-  function _sunsetProtectedToken(IERC20 token, IERC20 pToken) internal {
-    token.approve(address(pToken), 0);
-    pToken.approve(address(POOL), 0); 
   }
 
   receive() external payable {
