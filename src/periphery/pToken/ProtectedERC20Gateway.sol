@@ -28,6 +28,7 @@ contract ProtectedERC20Gateway is Ownable {
   ) {
     POOL = pool;
     
+    
   }
     
   function depositProtectedToken(
@@ -36,10 +37,15 @@ contract ProtectedERC20Gateway is Ownable {
     uint256 amount,
     uint16 referralCode
   ) external {
-    address token = pToken.underlying();
-    IERC20(token).transferFrom(msg.sender, address(this), amount);
+    IERC20 token = IERC20(pToken.underlying());
+    token.transferFrom(msg.sender, address(this), amount);
+    if (token.allowance(address(this), address(pToken)) < amount) {
+        token.approve(address(pToken), type(uint256).max);
+    }
     pToken.depositFor(address(this), amount);
-
+    if (pToken.allowance(address(this), address(POOL)) < amount) {
+        pToken.approve(address(POOL), type(uint256).max);
+    }
     // if pToken does not exist as an reserve, this would revert
     POOL.deposit(address(pToken), amount, onBehalfOf, referralCode);
   }

@@ -1,6 +1,5 @@
 
-
-
+import {IERC20} from '@aave/core-v3/contracts/dependencies/openzeppelin/contracts/IERC20.sol';
 /**
  * @dev Extension of the ERC20 token contract to support token wrapping.
  *
@@ -10,7 +9,7 @@
  *
  * _Available since v4.2._
  */
-interface IPERC20{
+interface IPERC20 is IERC20 {
     
     function underlying() external returns(address);
     function depositFor(address account, uint256 amount) external returns (bool);
