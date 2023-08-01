@@ -24,11 +24,14 @@ contract WalletBalanceProvider {
   using GPv2SafeERC20 for IERC20;
   using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
   address immutable public provider;
-  address constant MOCK_ETH_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
+  // address constant MOCK_ETH_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
+  address immutable WETH_ADDREASS;
 
-  constructor(address _provider) {
+  constructor(address _provider, address _wethAddress) {
     provider = _provider;
+    WETH_ADDREASS = _wethAddress;
   }
+
   /**
     @dev Fallback function, don't accept any ETH
     **/
@@ -44,7 +47,10 @@ contract WalletBalanceProvider {
       - return 0 on non-contract address
     **/
   function balanceOf(address user, address token) public view returns (uint256) {
-    if (token.isContract()) {
+    if (token == WETH_ADDREASS) {
+      return user.balance; // ETH balance
+      // check if token is actually a contract
+    } else if (token.isContract()) {
       return IERC20(token).balanceOf(user);
     }
     revert('INVALID_TOKEN');
