@@ -140,6 +140,9 @@ contract BorrowableDataProvider {
   function calculateLTVBorrowable(address user, address asset) public view returns(uint256) {
         IPool pool = IPool(provider.getPool());
         IPoolDataProvider dataProvider = IPoolDataProvider(provider.getPoolDataProvider());
+        if (!isAssetActiveBorrowable(asset)) {
+            return 0;
+        }
         uint256 price = getAssetPrice(asset);
         uint256 userEModeCategory = pool.getUserEMode(user);
         // if user Emode does not equal to the asset eMode and userEmode is non-zero
@@ -181,6 +184,14 @@ contract BorrowableDataProvider {
             }
         }
         return true;
+    }
+
+    function isAssetActiveBorrowable(address asset) public view returns(bool) {
+        IPoolDataProvider dataProvider = IPoolDataProvider(provider.getPoolDataProvider());
+        (,,,,,,bool borrowingEnabled,,bool isActive, bool isFrozen) = 
+            dataProvider.getReserveConfigurationData(asset);
+        bool isPaused = dataProvider.getPaused(asset);
+        return isActive && !isFrozen && !isPaused && borrowingEnabled;
     }
 }
 
