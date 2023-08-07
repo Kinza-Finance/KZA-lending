@@ -17,14 +17,15 @@ contract setIsolation is Script {
         IPoolConfigurator configurator = IPoolConfigurator(IPoolAddressesProvider(provider).getPoolConfigurator());
         IPoolDataProvider.TokenData[] memory reserves = IPoolDataProvider(dataprovider).getAllReservesTokens();
 
-        string[] memory addressToAdd = new string[](3);
-        addressToAdd[0] = "Tether USD";
-        addressToAdd[1] = "USD Coin";
-        addressToAdd[2] = "BUSD Token";
+        string[] memory addressToAdd = new string[](4);
+        addressToAdd[0] = "USDT";
+        addressToAdd[1] = "USDC";
+        addressToAdd[2] = "BUSD";
+        addressToAdd[3] = "TUSD";
         for (uint256 i; i < reserves.length; i++) {
             address tokenAddress = reserves[i].tokenAddress;
             for (uint256 j; j < addressToAdd.length; j++) {
-                if (keccak256(abi.encodePacked(addressToAdd[j])) == keccak256(abi.encodePacked(IERC20Detailed(tokenAddress).name()))) {
+                if (keccak256(abi.encodePacked(addressToAdd[j])) == keccak256(abi.encodePacked(IERC20Detailed(tokenAddress).symbol()))) {
                     configurator.setBorrowableInIsolation(tokenAddress, true);
                 }
             }

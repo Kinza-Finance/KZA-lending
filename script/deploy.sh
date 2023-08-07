@@ -12,16 +12,15 @@ export VERIFIER_URL=$BSCTEST_VERIFIER_URL
 export ETHERSCAN_API_KEY=$BSCTEST_ETHERSCAN_API_KEY
 fi
 
-forge verify-contract \
-    --chain-id  $chainId \
-    --num-of-optimizations 200 \
-    --watch \
-    --constructor-args $(cast abi-encode "constructor(address)" $ConfiguratorProxy) \
-    --etherscan-api-key $ETHERSCAN_API_KEY \
-    --compiler-version v0.8.10+commit.fc410830 \
-    0xB82C3631081eE5D1339e77b46C3E476f1fDD4a19 \
-    src/core/protocol/libraries/aave-upgradeability/InitializableImmutableAdminUpgradeabilityProxy.sol:InitializableImmutableAdminUpgradeabilityProxy
-
+# # forge verify-contract \
+#     --chain-id  $chainId \
+#     --num-of-optimizations 200 \
+#     --watch \
+#     --constructor-args $(cast abi-encode "constructor(address)" $deployer) \
+#     --etherscan-api-key $ETHERSCAN_API_KEY \
+#     --compiler-version v0.8.10+commit.fc410830 \
+#     0xb62afd0f911af3ae28fb69a3eee3292b67fa8345 \
+#     src/core/protocol/configuration/PoolAddressesProviderRegistry.sol:PoolAddressesProviderRegistry
 
 # 1 - Logics
 # 1.1 Supply Logic

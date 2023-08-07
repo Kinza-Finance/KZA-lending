@@ -14,7 +14,7 @@ contract DeployOracle is Script {
         address[] memory assets;
         address[] memory sources;
 
-        new AaveOracle(
+        AaveOracle oracle = new AaveOracle(
                 IPoolAddressesProvider(provider),
                 assets,
                 sources,
@@ -22,8 +22,10 @@ contract DeployOracle is Script {
                 address(0),
                 1 * 1e8
         );
-        vm.stopBroadcast();
 
+        IPoolAddressesProvider(provider).setPriceOracle(address(oracle));
+
+        vm.stopBroadcast();
         
     }
 }

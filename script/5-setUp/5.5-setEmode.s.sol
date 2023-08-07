@@ -31,7 +31,7 @@ contract UnpausePool is Script {
         for (uint256 i; i < reserves.length; i++) {
             address tokenAddress = reserves[i].tokenAddress;
             for (uint256 j; j < addressToAdd.length; j++) {
-                if (keccak256(abi.encodePacked(addressToAdd[j])) == keccak256(abi.encodePacked(IERC20Detailed(tokenAddress).name()))) {
+                if (keccak256(abi.encodePacked(addressToAdd[j])) == keccak256(abi.encodePacked(IERC20Detailed(tokenAddress).symbol()))) {
                     configurator.setAssetEModeCategory(tokenAddress, categoryId);
                 }
             }

@@ -4,31 +4,25 @@ pragma solidity 0.8.10;
 import {AggregatorInterface} from "../../dependencies/chainlink/AggregatorInterface.sol";
 import {SID} from "../../dependencies/binance/SID.sol";
 import {IPublicResolver} from "../../dependencies/binance/IPublicResolver.sol";
+import {ITWAPAggregator} from "./ITWAPAggregator.sol";
 import {Ownable} from "../../dependencies/openzeppelin/contracts/Ownable.sol";
 
-interface IChainlinkAggregatorProxy {
-    function latestAnswer() external view returns (int256);
-}
-
-contract WBETHBinanceOracleAggregator is Ownable, AggregatorInterface {
-
+contract HAYBinanceOracleAggregator is Ownable, AggregatorInterface {
     // for information; refer to https://oracle.binance.com/docs/price-feeds/contract-addresses/bnb-mainnet
-    string private constant feedRegistrySID = "wbeth-usd.boracle.bnb";
-    bytes32 private constant nodeHash = 0xf4132c82e8606c3c23c6e0e05f3fdaa88d1d56188433bc36a95c2f89504f31d2;
+    string private constant feedRegistrySID = "hay-usd.boracle.bnb";
+    bytes32 private constant nodeHash = 0xdefb391114b081d478abf3dc3f56caa145fee6ff97aedc4ff0342eb8b06da292;
     address public immutable sidRegistryAddress;
-    address public chainlinkAggregatorProxy;
+    address public twapAggregatorAddress;
 
-    event SetChainlinkAggregatorProxyAddress(address NewChainlinkAggregatorProxy);
+    event SetTWAPAggregatorAddress(address twapAggregatorAddress);
 
-    constructor(address _sidRegistryAddress, address _chainlinkAggregator, address _weth) {
+    constructor(address _sidRegistryAddress) {
         sidRegistryAddress = _sidRegistryAddress;
-        chainlinkAggregatorProxy = _chainlinkAggregator;
-        WETH = _weth;
     }
 
-    function setChainlinkAggregatorAddress(address _chainlinkAggregatorProxy) external onlyOwner {
-        chainlinkAggregatorProxy = _chainlinkAggregatorProxy;
-        emit SetChainlinkAggregatorProxyAddress(_chainlinkAggregatorProxy);
+    function setTWAPAggregatorAddress(address _twapAggregatorAddress) external onlyOwner {
+        twapAggregatorAddress = _twapAggregatorAddress;
+        emit SetTWAPAggregatorAddress(_twapAggregatorAddress);
     }
 
     function getFeedRegistryAddress() public view returns (address) {
@@ -53,9 +47,13 @@ contract WBETHBinanceOracleAggregator is Ownable, AggregatorInterface {
      *
      * - input must be less than or equal to maxInt256.
      */
+    function toInt256(uint256 value) internal pure returns (int256) {
+        require(value < 2**255, "SafeCast: value doesn't fit in an int256");
+        return int256(value);
+    }
 
-    function getChainlinkAnswer() internal view returns (int256) {
-        return IChainlinkAggregatorProxy(chainlinkAggregatorProxy).latestAnswer();
+    function getHAYTWAP() internal view returns (int256) {
+        return toInt256(ITWAPAggregator(twapAggregatorAddress).getTWAP());
     }
 
     function latestAnswer() external view returns (int256) {
@@ -63,7 +61,7 @@ contract WBETHBinanceOracleAggregator is Ownable, AggregatorInterface {
         try feedRegistry.latestAnswer() returns (int256 answer) {
             return answer;
         } catch {
-            return getChainlinkAnswer();
+            return getHAYTWAP();
         }
     }
 
