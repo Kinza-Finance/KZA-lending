@@ -20,10 +20,8 @@ contract WBETHBinanceOracleAggregator is Ownable, AggregatorInterface {
 
     event SetChainlinkAggregatorProxyAddress(address NewChainlinkAggregatorProxy);
 
-    constructor(address _sidRegistryAddress, address _chainlinkAggregator, address _weth) {
+    constructor(address _sidRegistryAddress) {
         sidRegistryAddress = _sidRegistryAddress;
-        chainlinkAggregatorProxy = _chainlinkAggregator;
-        WETH = _weth;
     }
 
     function setChainlinkAggregatorAddress(address _chainlinkAggregatorProxy) external onlyOwner {

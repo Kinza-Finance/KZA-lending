@@ -24,7 +24,7 @@ contract InitBinanceOracle is Script {
         }
 
         require(SID_Registry != address(0));
-        new WBETHBinanceOracleAggregator(SID_Registry, ChainlinkAggregator, weth);
+        new WBETHBinanceOracleAggregator(SID_Registry);
         // aggregator.setTWAPAggregatorAddress(HAYTWAPAggregator);
 
         vm.stopBroadcast();
