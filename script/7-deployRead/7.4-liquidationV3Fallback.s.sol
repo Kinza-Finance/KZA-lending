@@ -3,15 +3,14 @@ pragma solidity 0.8.10;
 
 import "forge-std/Script.sol";
 import "../../src/core/interfaces/IPoolConfigurator.sol";
-import "../../src/periphery/misc/BorrowableDataProvider.sol";
+import "../../src/periphery/misc/LiquidationAdaptorPancakeV3FallBack.sol";
 
-contract deployBorrowableDataProvider is Script {
+contract deployLiquidationAdaptorPancakeV3Fallback is Script {
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-        address provider = vm.envAddress("PoolAddressesProvider");
         vm.startBroadcast(deployerPrivateKey);
 
-        new BorrowableDataProvider(provider);
+        new LiquidationAdaptorPancakeV3FallBack();
         
         vm.stopBroadcast();
     }

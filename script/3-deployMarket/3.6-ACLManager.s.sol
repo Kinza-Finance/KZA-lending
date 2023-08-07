@@ -5,7 +5,7 @@ import "forge-std/Script.sol";
 import "../../src/core/protocol/configuration/ACLManager.sol";
 import "../../src/core/interfaces/IPoolAddressesProvider.sol";
 
-contract DeployPoolConfiguratorImpl is Script {
+contract DeployACLManager is Script {
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address provider = vm.envAddress("PoolAddressesProvider");

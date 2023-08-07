@@ -11,6 +11,7 @@ export RPC_URL=$BSCTEST_RPC_URL
 export VERIFIER_URL=$BSCTEST_VERIFIER_URL
 export ETHERSCAN_API_KEY=$BSCTEST_ETHERSCAN_API_KEY
 fi
+
 # # forge verify-contract \
 #     --chain-id  $chainId \
 #     --num-of-optimizations 200 \
@@ -20,7 +21,6 @@ fi
 #     --compiler-version v0.8.10+commit.fc410830 \
 #     0xb62afd0f911af3ae28fb69a3eee3292b67fa8345 \
 #     src/core/protocol/configuration/PoolAddressesProviderRegistry.sol:PoolAddressesProviderRegistry
-
 
 # 1 - Logics
 # 1.1 Supply Logic
@@ -91,6 +91,10 @@ echo "USDT_AGGREGATOR_TESTNET=$USDT_AGGREGATOR_TESTNET" >> ".env"
 echo "WBTC_AGGREGATOR_TESTNET=$WBTC_AGGREGATOR_TESTNET" >> ".env"
 echo "WETH_AGGREGATOR_TESTNET=$WETH_AGGREGATOR_TESTNET" >> ".env"
 echo "WBNB_AGGREGATOR_TESTNET=$WBNB_AGGREGATOR_TESTNET" >> ".env"
+
+forge script script/1.5-testnet/1.5.3-MockWBETH.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+WBETH=($(jq -r '.transactions[0].contractAddress' broadcast/1.5.3-MockWBETH.s.sol/${chainId}/run-latest.json))
+echo "WBETH_TESTNET=$WBETH" >> ".env"
 
 forge script script/1.5-testnet/updateAggregatorSingle.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 # 2 Treasury Proxy
@@ -214,3 +218,8 @@ forge script script/10-deployPairForLiquidation/CreatePairs.s.sol --rpc-url $RPC
 # remember which number of wallet is it; first is on "m/44'/60'/0'/0/0", second is on "m/44'/60'/1'/0/0"
 # enable Debug, contract data, nonce in the ledger setting; choose Ethereum network
 forge script script/10-deployPairForLiquidation/ExecuteLiquidationWithLedger.s.sol --sender $LEDGER --ledger --hd-paths "m/44'/60'/$LEDGER_NUMBER'/0/0" --rpc-url $RPC_URL --broadcast --verify -vvvv
+
+
+# 11 deploy custom oracle
+forge script script/11-deployCustomOracle/deployMockWbETH.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+forge script script/11-deployCustomOracle/wbETHOracle.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv

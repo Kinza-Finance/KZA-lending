@@ -2,6 +2,8 @@ log/
 broadcast/
 .DS_Store
 .env
+.env.test
+.env.prod
 #Hardhat files
 cache
 artifacts

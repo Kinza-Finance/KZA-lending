@@ -2,6 +2,7 @@
 pragma solidity ^0.8.10;
 
 import {IERC20} from '@aave/core-v3/contracts/dependencies/openzeppelin/contracts/IERC20.sol';
+import {IERC20Detailed} from '@aave/core-v3/contracts/dependencies/openzeppelin/contracts/IERC20Detailed.sol';
 
 import '../../core/interfaces/IPoolAddressesProvider.sol';
 import '../../core/interfaces/IPool.sol';
@@ -10,13 +11,13 @@ import '../../core/interfaces/IAaveOracle.sol';
 import '../../core/protocol/libraries/types/DataTypes.sol';
 
 /**
- * @title EmodeBorrowableData contract
+ * @title BorrowableDataProvider contract
  * @author Kinza
  * @notice Implements a logic of getting max borrowable for a particular account
  * @dev NOTE: THIS CONTRACT IS NOT USED WITHIN THE LENDING PROTOCOL. It's an accessory contract used to reduce the number of calls
  * towards the blockchain from the backend.
  **/
-contract EmodeBorrowableDataProvider {
+contract BorrowableDataProvider {
   uint256 internal constant BORROWABLE_IN_ISOLATION_MASK =   0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFDFFFFFFFFFFFFFFF; // prettier-ignore
   uint256 internal constant MAX_LTV = 10000;
   // some borrow needs bigger precision, for example borrowing bitcoin
@@ -108,7 +109,7 @@ contract EmodeBorrowableDataProvider {
     IPoolDataProvider dataProvider = IPoolDataProvider(provider.getPoolDataProvider());
     uint256 supply = dataProvider.getATokenTotalSupply(asset);
     uint256 debt = dataProvider.getTotalDebt(asset);
-    return supply > debt ? BORROWABLE_PRECISION * (supply - debt) / 10**18 : 0;
+    return supply > debt ? BORROWABLE_PRECISION * (supply - debt) / 10** IERC20Detailed(asset).decimals() : 0;
   }
 
   function getBorrowableUnderDebtCeiling(address asset) public view returns(uint256) {
@@ -139,6 +140,9 @@ contract EmodeBorrowableDataProvider {
   function calculateLTVBorrowable(address user, address asset) public view returns(uint256) {
         IPool pool = IPool(provider.getPool());
         IPoolDataProvider dataProvider = IPoolDataProvider(provider.getPoolDataProvider());
+        if (!isAssetActiveBorrowable(asset)) {
+            return 0;
+        }
         uint256 price = getAssetPrice(asset);
         uint256 userEModeCategory = pool.getUserEMode(user);
         // if user Emode does not equal to the asset eMode and userEmode is non-zero
@@ -180,6 +184,14 @@ contract EmodeBorrowableDataProvider {
             }
         }
         return true;
+    }
+
+    function isAssetActiveBorrowable(address asset) public view returns(bool) {
+        IPoolDataProvider dataProvider = IPoolDataProvider(provider.getPoolDataProvider());
+        (,,,,,,bool borrowingEnabled,,bool isActive, bool isFrozen) = 
+            dataProvider.getReserveConfigurationData(asset);
+        bool isPaused = dataProvider.getPaused(asset);
+        return isActive && !isFrozen && !isPaused && borrowingEnabled;
     }
 }
 

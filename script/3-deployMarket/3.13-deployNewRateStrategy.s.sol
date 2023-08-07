@@ -7,29 +7,22 @@ import "../../src/core/protocol/pool/DefaultReserveInterestRateStrategy.sol";
 import "../../src/core/interfaces/IPoolConfigurator.sol";
 import "../../src/core/interfaces/IPoolAddressesProvider.sol";
 import "../../src/core/protocol/libraries/types/ConfiguratorInputTypes.sol";
-contract InitReserve is Script {
+contract InitNewRateStrategy is Script {
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-        bool isProd = vm.envBool("isProd");
         address provider = vm.envAddress("PoolAddressesProvider");
-        address treasury = vm.envAddress("Treasury");
-        address aTokenImpl = vm.envAddress("ATokenImpl");
-        address sdTokenImpl = vm.envAddress("sdTokenImpl");
-        address vdTokenImpl = vm.envAddress("vdTokenImpl");
+        bool isProd = vm.envBool("isProd");
         vm.startBroadcast(deployerPrivateKey);
-        IPoolConfigurator configurator = IPoolConfigurator(IPoolAddressesProvider(provider).getPoolConfigurator());
-        bytes32 incentivesControllerId = 0x703c2c8634bed68d98c029c18f310e7f7ec0e5d6342c590190b3cb8b3ba54532;
-        address incentivesController = IPoolAddressesProvider(provider).getAddress(incentivesControllerId);
 
-        string[] memory tokens = new string[](6);
-        tokens[0] = "BUSD";
-        tokens[1] = "USDC";
+        IPoolConfigurator configurator = IPoolConfigurator(IPoolAddressesProvider(provider).getPoolConfigurator());
+        string[] memory tokens = new string[](1);
+        tokens[0] = "USDC";
+        tokens[1] = "BUSD";
         tokens[2] = "USDT";
-        tokens[3] = "WBTC";
+        tokens[3] = "BTCB";
         tokens[4] = "WETH";
         tokens[5] = "WBNB";
-        
-        ConfiguratorInputTypes.InitReserveInput[] memory inputs = new ConfiguratorInputTypes.InitReserveInput[](6);
+        tokens[6] = "WETH";
 
         for (uint i; i < tokens.length; ++i) {
             DefaultReserveInterestRateStrategy interestRateStrategy = new DefaultReserveInterestRateStrategy(
@@ -44,7 +37,6 @@ contract InitReserve is Script {
                     vm.envUint(string(abi.encodePacked(tokens[i], "_stableRateExcessOffset"))),
                     vm.envUint(string(abi.encodePacked(tokens[i], "_optimalStableToTotalDebtRatio")))
             );
-
             address interestRateStrategyAddress = address(interestRateStrategy);
             address token;
             if (isProd) {
@@ -52,29 +44,9 @@ contract InitReserve is Script {
             } else {
                 token = vm.envAddress(string(abi.encodePacked(tokens[i], "_TESTNET")));
             }
-            uint8 decimals = IERC20Detailed(token).decimals();
-            inputs[i] = ConfiguratorInputTypes.InitReserveInput(
-                aTokenImpl,
-                sdTokenImpl,
-                vdTokenImpl,
-                decimals,
-                interestRateStrategyAddress,
-                token,
-                treasury,
-                incentivesController,
-                string(abi.encodePacked("Kinza", tokens[i])),
-                string(abi.encodePacked("k", tokens[i])),
-                string(abi.encodePacked("Kinza Variable Debt ", tokens[i])),
-                string(abi.encodePacked("vDebt", tokens[i])),
-                string(abi.encodePacked("Kinza Stable Debt ", tokens[i])),
-                string(abi.encodePacked("sDebt", tokens[i])),
-                abi.encodePacked("0x10")
-                );
-            
+            configurator.setReserveInterestRateStrategyAddress(token, interestRateStrategyAddress);
         }
-        configurator.initReserves(inputs);
 
 
-        
     }
 }
