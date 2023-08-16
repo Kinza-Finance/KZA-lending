@@ -13,6 +13,7 @@ import {DataTypesHelper} from '../libraries/DataTypesHelper.sol';
 import {IWBNB} from './interfaces/IWBNB.sol';
 import {IPERC20} from './interfaces/IPERC20.sol';
 
+import {UtilLib} from '../libraries/UtilLib.sol';
 
 contract ProtectedNativeTokenGateway is Ownable {
   using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
@@ -32,6 +33,9 @@ contract ProtectedNativeTokenGateway is Ownable {
     address pwbnb,
     IPool pool
   ) {
+    UtilLib.checkNonZeroAddress(wbnb);
+    UtilLib.checkNonZeroAddress(pwbnb);
+    UtilLib.checkNonZeroAddress(address(pool));
     WBNB = IWBNB(wbnb);
     pWBNB = IPERC20(pwbnb);
     POOL = pool;
