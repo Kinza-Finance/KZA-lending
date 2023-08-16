@@ -12,7 +12,7 @@ import {DataTypes} from '@aave/core-v3/contracts/protocol/libraries/types/DataTy
 import {DataTypesHelper} from '../libraries/DataTypesHelper.sol';
 import {IPERC20} from './interfaces/IPERC20.sol';
 
-import '../libraries/UtilLib.sol';
+import {UtilLib} from '../libraries/UtilLib.sol';
 
 /**
  * @dev This contract helps to deposit to /wthidraw from the lending pool using protected token
