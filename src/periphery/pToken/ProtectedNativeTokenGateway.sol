@@ -164,10 +164,4 @@ contract ProtectedNativeTokenGateway is Ownable {
     require(msg.sender == address(WBNB), 'Receive not allowed');
   }
 
-  /**
-   * @dev Revert fallback calls
-   */
-  fallback() external payable {
-    revert('Fallback not allowed');
-  }
 }
