@@ -24,15 +24,15 @@ contract setupRiskParameter is Script {
         PoolConfigurator configurator = PoolConfigurator(IPoolAddressesProvider(provider).getPoolConfigurator());
         ReservesSetupHelper.ConfigureReserveInput[] memory inputs = new ReservesSetupHelper.ConfigureReserveInput[](2);
         string[] memory tokens = new string[](2);
-        tokens[0] = "PBUSD";
-        tokens[1] = "PWBNB";
+        tokens[0] = "BUSD";
+        tokens[1] = "WBNB";
 
         address token;
         for (uint256 i; i < tokens.length; i++) {
             if (isProd) {
-                token = vm.envAddress(string(abi.encodePacked(tokens[i], "_PROD")));
+                token = vm.envAddress(string(abi.encodePacked("P", tokens[i], "_PROD")));
             } else {
-                token = vm.envAddress(string(abi.encodePacked(tokens[i], "_TESTNET")));
+                token = vm.envAddress(string(abi.encodePacked("P", tokens[i], "_TESTNET")));
             }
 
             inputs[i] = ReservesSetupHelper.ConfigureReserveInput(
