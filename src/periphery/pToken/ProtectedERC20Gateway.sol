@@ -12,6 +12,8 @@ import {DataTypes} from '@aave/core-v3/contracts/protocol/libraries/types/DataTy
 import {DataTypesHelper} from '../libraries/DataTypesHelper.sol';
 import {IPERC20} from './interfaces/IPERC20.sol';
 
+import {UtilLib} from '../libraries/UtilLib.sol';
+
 /**
  * @dev This contract helps to deposit to /wthidraw from the lending pool using protected token
  *  user can also first wrap token into the protected token himself/herself without going through this gateway
@@ -26,6 +28,7 @@ contract ProtectedERC20Gateway is Ownable {
   constructor(
     IPool pool
   ) {
+    UtilLib.checkNonZeroAddress(address(pool));
     POOL = pool;
     
     
