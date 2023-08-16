@@ -124,14 +124,4 @@ contract ProtectedERC20Gateway is Ownable {
   ) external onlyOwner {
     IERC20(token).safeTransfer(to, amount);
   }
-
-  receive() external payable {
-    revert('Receive not allowed');
-  }
-  /**
-   * @dev Revert fallback calls
-   */
-  fallback() external payable {
-    revert('Fallback not allowed');
-  }
 }
