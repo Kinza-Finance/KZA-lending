@@ -54,7 +54,7 @@ contract ProtectedERC20Gateway is Ownable {
   }
 
   /**
-   * @dev withdraws the protected token of msg.sender.
+   * @dev withdraws the protected token of msg.sender into underlying.
    * @param pToken the address of pToken to withdraw
    * @param amount amount of pToken to withdraw
    * @param to address of the user who will receive the underlying token
@@ -81,7 +81,7 @@ contract ProtectedERC20Gateway is Ownable {
   }
 
   /**
-   * @dev withdraws the protected token of msg.sender.
+   * @dev withdraws the protected token into underlying based on a permit signature.
    * @param pToken the address of pToken to withdraw
    * @param amount amount of pToken to withdraw
    * @param to address of the user who will receive the underlying token
