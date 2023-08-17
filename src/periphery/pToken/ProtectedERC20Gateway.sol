@@ -61,19 +61,12 @@ contract ProtectedERC20Gateway is Ownable {
     address to
   ) external {
     IAToken apToken = IAToken(POOL.getReserveData(pToken).aTokenAddress);
-    uint256 userBalance = apToken.balanceOf(msg.sender);
-    uint256 amountToWithdraw = amount;
-
-    // if amount is equal to uint(-1), the user wants to redeem everything
-    if (amount == type(uint256).max) {
-      amountToWithdraw = userBalance;
-    }
     // get the aToken from user
-    apToken.transferFrom(msg.sender, address(this), amountToWithdraw);
+    apToken.transferFrom(msg.sender, address(this), amount);
     // withdraw the pToken
-    POOL.withdraw(pToken, amountToWithdraw, address(this));
+    uint256 withdrawnAmount = POOL.withdraw(pToken, amount, address(this));
     // unwrap pToken into token and send to "to"
-    IPERC20(pToken).withdrawTo(to, amountToWithdraw);
+    IPERC20(pToken).withdrawTo(to, withdrawnAmount);
   }
 
   /**
