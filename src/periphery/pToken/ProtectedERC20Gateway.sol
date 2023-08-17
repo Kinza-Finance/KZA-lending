@@ -6,10 +6,6 @@ import {IERC20} from '@aave/core-v3/contracts/dependencies/openzeppelin/contract
 import {GPv2SafeERC20} from '@aave/core-v3/contracts/dependencies/gnosis/contracts/GPv2SafeERC20.sol';
 import {IPool} from '@aave/core-v3/contracts/interfaces/IPool.sol';
 import {IAToken} from '@aave/core-v3/contracts/interfaces/IAToken.sol';
-import {ReserveConfiguration} from '@aave/core-v3/contracts/protocol/libraries/configuration/ReserveConfiguration.sol';
-import {UserConfiguration} from '@aave/core-v3/contracts/protocol/libraries/configuration/UserConfiguration.sol';
-import {DataTypes} from '@aave/core-v3/contracts/protocol/libraries/types/DataTypes.sol';
-import {DataTypesHelper} from '../libraries/DataTypesHelper.sol';
 import {IPERC20} from './interfaces/IPERC20.sol';
 
 import {UtilLib} from '../libraries/UtilLib.sol';
@@ -19,8 +15,6 @@ import {UtilLib} from '../libraries/UtilLib.sol';
  *  user can also first wrap token into the protected token himself/herself without going through this gateway
  */
 contract ProtectedERC20Gateway is Ownable {
-  using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
-  using UserConfiguration for DataTypes.UserConfigurationMap;
   using GPv2SafeERC20 for IERC20;
 
   IPool internal immutable POOL;
