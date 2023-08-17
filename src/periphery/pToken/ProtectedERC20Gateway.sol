@@ -37,10 +37,12 @@ contract ProtectedERC20Gateway is Ownable {
     IERC20 token = IERC20(pToken.underlying());
     token.transferFrom(msg.sender, address(this), amount);
     if (token.allowance(address(this), address(pToken)) < amount) {
+        token.approve(address(pToken), 0);
         token.approve(address(pToken), type(uint256).max);
     }
     pToken.depositFor(address(this), amount);
     if (pToken.allowance(address(this), address(POOL)) < amount) {
+        pToken.approve(address(POOL), 0);
         pToken.approve(address(POOL), type(uint256).max);
     }
     // if pToken does not exist as an reserve, this would revert
