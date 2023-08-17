@@ -54,9 +54,10 @@ contract ProtectedERC20Gateway is Ownable {
   }
 
   /**
-   * @dev withdraws the WETH _reserves of msg.sender.
-   * @param amount amount of aWETH to withdraw and receive native ETH
-   * @param to address of the user who will receive native ETH
+   * @dev withdraws the protected token of msg.sender.
+   * @param pToken the address of pToken to withdraw
+   * @param amount amount of pToken to withdraw
+   * @param to address of the user who will receive the underlying token
    */
   function withdrawProtectedToken(
     address pToken,
