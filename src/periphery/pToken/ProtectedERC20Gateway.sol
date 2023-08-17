@@ -81,9 +81,10 @@ contract ProtectedERC20Gateway is Ownable {
   }
 
   /**
-   * @dev withdraws the WETH _reserves of msg.sender.
-   * @param amount amount of aWETH to withdraw and receive native ETH
-   * @param to address of the user who will receive native ETH
+   * @dev withdraws the protected token of msg.sender.
+   * @param pToken the address of pToken to withdraw
+   * @param amount amount of pToken to withdraw
+   * @param to address of the user who will receive the underlying token
    * @param deadline validity deadline of permit and so depositWithPermit signature
    * @param permitV V parameter of ERC712 permit sig
    * @param permitR R parameter of ERC712 permit sig
