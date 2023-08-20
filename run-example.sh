@@ -2,9 +2,9 @@ export env=mainnet
 # dump deployment into env for foundry
 jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' deployment/${env}.json > .env
 # dump reserve config if needed; for initilization of new reserve
-jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' config/reserve.json > .env
+jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' config/reserve.json >> .env
 # dump riskParameter config if needed; for onboarding/changeing risk parameter
-jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' config/riskParameter.json > .env
+jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' config/riskParameter.json >> .env
 source .env
 # replace logic in foundry toml for dynamic linking if needed
 sed -re "s/(SupplyLogic:)[0-9a-xA-X]+/\1${SupplyLogic}/" \
