@@ -21,3 +21,11 @@ libraries = [
     "src/core/protocol/libraries/logic/FlashLoanLogic.sol:FlashLoanLogic:0x7954F3efe905D4f2690a05a594886706F424327f",
     "src/core/protocol/libraries/logic/PoolLogic.sol:PoolLogic:0x30777a478886eCFcA0DC8B023e4Fd19b133D616F",
     ]
+[etherscan]
+t_opBNB = { key = "${TOPBNB_ETHERSCAN_API_KEY}", chain=5611, url="https://open-platform.nodereal.io/${NODEREAL_KEY}/op-bnb-testnet/contract/" }
+bsc = { key = "${BSC_ETHERSCAN_API_KEY}", chain=56, url="https://api.bscscan.com/api"}
+chapel = { key = "${CHAPEL_ETHERSCAN_API_KEY}", chain=97, url="https://api-testnet.bscscan.com/api"}
+
+[default.rpc_endpoints]
+bsc = "https://bsc-dataseed1.binance.org/"
+chapel = "https://data-seed-prebsc-1-s1.binance.org:8545/"
