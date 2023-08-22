@@ -78,4 +78,14 @@
     "WBETH_stableBorrowingEnabled": "false",
     "WBETH_borrowingEnabled": "true",
     "WBETH_flashLoanEnabled": "true",
+
+    "SNBNB_baseLTV": "7000",
+    "SNBNB_liquidationThreshold": "7500",
+    "SNBNB_liquidationBonus": "10800",
+    "SNBNB_reserveFactor": "1500",
+    "SNBNB_borrowCap": "100",
+    "SNBNB_supplyCap": "150",
+    "SNBNB_stableBorrowingEnabled": "false",
+    "SNBNB_borrowingEnabled": "true",
+    "SNBNB_flashLoanEnabled": "true"
 }
