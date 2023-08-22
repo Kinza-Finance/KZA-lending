@@ -8,7 +8,7 @@ import "../../src/core/misc/BinanceOracle/SNBNBBinanceOracleAggregator.sol";
 contract InitBinanceOracle is Script {
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-        address SID_Registry = vm.envAddress("SID_Registry");
+        address SID_Registry = vm.envAddress("SID_REGISTRY");
         address snbnb = vm.envAddress("SNBNB");
         address oracle = vm.envAddress("Oracle");
 

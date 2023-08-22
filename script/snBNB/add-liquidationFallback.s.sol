@@ -29,7 +29,7 @@ contract deployLiquidationAdaptorPancakeV3Fallback is Script {
         tmp.usdt = vm.envAddress("USDT");
         tmp.busd = vm.envAddress("BUSD");
         tmp.tusd = vm.envAddress("TUSD");
-        tmp.eth = vm.envAddress("WETH");
+        tmp.eth = vm.envAddress("ETH");
         tmp.btc = vm.envAddress("BTCB");
         tmp.wbeth = vm.envAddress("WBETH");
         tmp.bnb = vm.envAddress("WBNB");
