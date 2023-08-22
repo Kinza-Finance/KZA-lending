@@ -7,13 +7,8 @@ import "../../src/periphery/pToken/ProtectedERC20.sol";
 contract DeployProtectedERC20 is Script {
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-        bool isProd = vm.envBool("isProd");
-        address token;
-        if (isProd) {
-            token = vm.envAddress("BUSD_PROD");
-        } else {
-            token = vm.envAddress("BUSD_TESTNET");
-        }
+        address token = vm.envAddress("USDC");
+        //address token = vm.envAddress("USDT");
         vm.startBroadcast(deployerPrivateKey);
         string memory name = IERC20Metadata(token).name();
         string memory symbol = IERC20Metadata(token).symbol();
