@@ -10,6 +10,10 @@ import '../../core/interfaces/IPoolDataProvider.sol';
 import '../../core/interfaces/IAaveOracle.sol';
 import '../../core/protocol/libraries/types/DataTypes.sol';
 
+interface IPToken {
+    function underlying() external view returns(address);
+    function withdrawTo(address account, uint256 amount) external returns (bool);
+}
 /**
  * @title LiquidationAdaptor contract
  * @author Kinza
@@ -211,6 +215,16 @@ contract LiquidationAdaptor is Ownable {
         uint256 seizedCollateralAmount = IERC20(inputs.collateralAsset).balanceOf(address(this));
         if (inputs.collateralAsset != borrowedAsset) {
             uint256 seizedCollateralAmount = IERC20(inputs.collateralAsset).balanceOf(address(this));
+            // handling of pToken
+            // assume noramal ERC20 doesnot have this call of underlying
+            (bool success, ) = inputs.collateralAsset.staticcall(abi.encodeWithSignature("underlying()"));
+            // if there is undelying assume this is a pToken
+            if (success) {
+                // withdraw pToken into underlying
+                IPToken(inputs.collateralAsset).withdrawTo(address(this), seizedCollateralAmount);
+                // update collateralAsset to be the underliny, the previous call wont be gas-grieved   
+                inputs.collateralAsset = IPToken(inputs.collateralAsset).underlying();
+            }
             // 2. swap the collateral back to the debtToken
             // approve the router for pulling the tokeIn
             IERC20(inputs.collateralAsset).approve(address(smartRouter), type(uint256).max);
