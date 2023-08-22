@@ -2,28 +2,25 @@
 pragma solidity 0.8.10;
 
 import "forge-std/Script.sol";
+import "../../src/core/misc/AaveOracle.sol";
+import "../../src/core/misc/BinanceOracle/HAYBinanceOracleAggregator.sol";
 import "../../src/core/misc/BinanceOracle/WBETHBinanceOracleAggregator.sol";
 
 contract InitBinanceOracle is Script {
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         bool isProd = vm.envBool("isProd");
-        
-        vm.startBroadcast(deployerPrivateKey);
-        address ChainlinkAggregator;
         address SID_Registry;
-        address weth;
         if (isProd) {
             SID_Registry = vm.envAddress("BSC_SID_Registry");
-            ChainlinkAggregator = vm.envAddress("WBETH_AGGREGATOR_PROD");
-            weth = vm.envAddress("WETH_PROD");
         } else {
             SID_Registry = vm.envAddress("BSCTEST_SID_Registry");
-            ChainlinkAggregator = vm.envAddress("WBETH_AGGREGATOR_TESTNET");
-            weth = vm.envAddress("WETH_TESTNET");
         }
 
+        vm.startBroadcast(deployerPrivateKey);
+
         require(SID_Registry != address(0));
+        new HAYBinanceOracleAggregator(SID_Registry);
         new WBETHBinanceOracleAggregator(SID_Registry);
         // aggregator.setTWAPAggregatorAddress(HAYTWAPAggregator);
 
