@@ -84,22 +84,15 @@ contract ProtectedNativeTokenGateway is Ownable {
     bytes32 permitS
   ) external {
     IAToken apWBNB = IAToken(POOL.getReserveData(address(pWBNB)).aTokenAddress);
-    uint256 userBalance = apWBNB.balanceOf(msg.sender);
-    uint256 amountToWithdraw = amount;
-
-    // if amount is equal to type(uint256).max, the user wants to redeem everything
-    if (amount == type(uint256).max) {
-      amountToWithdraw = userBalance;
-    }
     // permit `amount` rather than `amountToWithdraw` to make it easier for front-ends and integrators
     apWBNB.permit(msg.sender, address(this), amount, deadline, permitV, permitR, permitS);
-    apWBNB.transferFrom(msg.sender, address(this), amountToWithdraw);
-    POOL.withdraw(address(pWBNB), amountToWithdraw, address(this));
+    apWBNB.transferFrom(msg.sender, address(this), amount);
+    uint256 withdrawnAmount = POOL.withdraw(address(pWBNB), amount, address(this));
     // withdraw the pToken to wToken first
-    pWBNB.withdrawTo(address(this), amountToWithdraw);
+    pWBNB.withdrawTo(address(this), withdrawnAmount);
     // withdraw the wToken to native token
-    WBNB.withdraw(amountToWithdraw);
-    _safeTransferBNB(to, amountToWithdraw);
+    WBNB.withdraw(withdrawnAmount);
+    _safeTransferBNB(to, withdrawnAmount);
   }
 
   /**
