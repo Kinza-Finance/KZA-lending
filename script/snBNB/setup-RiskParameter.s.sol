@@ -27,11 +27,7 @@ contract setupRiskParameter is Script {
 
         address token;
         for (uint256 i; i < tokens.length; i++) {
-            if (isProd) {
-                token = vm.envAddress(string(abi.encodePacked(tokens[i])));
-            } else {
-                token = vm.envAddress(string(abi.encodePacked(tokens[i])));
-            }
+            token = vm.envAddress(string(abi.encodePacked(tokens[i])));
 
             inputs[i] = ReservesSetupHelper.ConfigureReserveInput(
                 token,

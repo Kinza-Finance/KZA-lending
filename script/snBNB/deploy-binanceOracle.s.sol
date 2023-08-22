@@ -15,13 +15,12 @@ contract InitBinanceOracle is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         require(SID_Registry != address(0));
-        address aggregator = new SNBNBBinanceOracleAggregator(SID_Registry);
-        address[] memory assets = new address(1);
-        address[] memory sources = new address(1);
+        SNBNBBinanceOracleAggregator aggregator = new SNBNBBinanceOracleAggregator(SID_Registry);
+        address[] memory assets = new address[](1);
+        address[] memory sources = new address[](1);
         assets[0] = snbnb;
-        sources[0] = aggregator;
+        sources[0] = address(aggregator);
         AaveOracle(oracle).setAssetSources(assets, sources);
-        
         vm.stopBroadcast();
     }
 }
