@@ -29,7 +29,7 @@ contract setDebtCeiling is Script {
         address token;
         for (uint256 j; j < addressToAdd.length; j++) {
             newDebtCeiling = vm.envUint(string(abi.encodePacked(addressToAdd[j], "_debtCeiling"))); // nominal, 2 decimals
-            token = vm.envAddress(addressToAdd[i]);
+            token = vm.envAddress(addressToAdd[j]);
             configurator.setDebtCeiling(token, newDebtCeiling);
         }
         
