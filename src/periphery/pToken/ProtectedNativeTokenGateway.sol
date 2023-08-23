@@ -62,10 +62,15 @@ contract ProtectedNativeTokenGateway is Ownable {
     address to
   ) external {
     IAToken apWBNB = IAToken(POOL.getReserveData(address(pWBNB)).aTokenAddress);
+    uint256 userBalance = apWBNB.balanceOf(msg.sender);
+    uint256 amountToWithdraw = amount;
+    if (amount == type(uint256).max) {
+      amountToWithdraw = userBalance;
+    }
     // transfer aPToken from msg.sender to this contract
-    apWBNB.transferFrom(msg.sender, address(this), amount);
+    apWBNB.transferFrom(msg.sender, address(this), amountToWithdraw);
     // withdraw aPToken to pToken
-    uint256 withdrawnAmount = POOL.withdraw(address(apWBNB), amount, address(this));
+    uint256 withdrawnAmount = POOL.withdraw(address(apWBNB), amountToWithdraw, address(this));
     // withdraw the pToken to wToken first
     pWBNB.withdrawTo(address(this), withdrawnAmount);
     // withdraw the wToken to native token
@@ -84,10 +89,15 @@ contract ProtectedNativeTokenGateway is Ownable {
     bytes32 permitS
   ) external {
     IAToken apWBNB = IAToken(POOL.getReserveData(address(pWBNB)).aTokenAddress);
+    uint256 userBalance = apWBNB.balanceOf(msg.sender);
+    uint256 amountToWithdraw = amount;
+    if (amount == type(uint256).max) {
+      amountToWithdraw = userBalance;
+    }
     // permit `amount` rather than `amountToWithdraw` to make it easier for front-ends and integrators
     apWBNB.permit(msg.sender, address(this), amount, deadline, permitV, permitR, permitS);
-    apWBNB.transferFrom(msg.sender, address(this), amount);
-    uint256 withdrawnAmount = POOL.withdraw(address(pWBNB), amount, address(this));
+    apWBNB.transferFrom(msg.sender, address(this), amountToWithdraw);
+    uint256 withdrawnAmount = POOL.withdraw(address(pWBNB), amountToWithdraw, address(this));
     // withdraw the pToken to wToken first
     pWBNB.withdrawTo(address(this), withdrawnAmount);
     // withdraw the wToken to native token

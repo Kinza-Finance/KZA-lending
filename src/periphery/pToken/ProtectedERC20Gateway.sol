@@ -61,10 +61,15 @@ contract ProtectedERC20Gateway is Ownable {
     address to
   ) external {
     IAToken apToken = IAToken(POOL.getReserveData(pToken).aTokenAddress);
-    // get the aToken from user
-    apToken.transferFrom(msg.sender, address(this), amount);
+    // get the apToken from user
+    uint256 userBalance = apToken.balanceOf(msg.sender);
+    uint256 amountToWithdraw = amount;
+    if (amount == type(uint256).max) {
+      amountToWithdraw = userBalance;
+    }
+    apToken.transferFrom(msg.sender, address(this), amountToWithdraw);
     // withdraw the pToken
-    uint256 withdrawnAmount = POOL.withdraw(pToken, amount, address(this));
+    uint256 withdrawnAmount = POOL.withdraw(pToken, amountToWithdraw, address(this));
     // unwrap pToken into token and send to "to"
     IPERC20(pToken).withdrawTo(to, withdrawnAmount);
   }
@@ -89,11 +94,16 @@ contract ProtectedERC20Gateway is Ownable {
     bytes32 permitS
   ) external {
     IAToken apToken = IAToken(POOL.getReserveData(pToken).aTokenAddress);
+    // get the apToken from user
+    uint256 userBalance = apToken.balanceOf(msg.sender);
+    uint256 amountToWithdraw = amount;
+    if (amount == type(uint256).max) {
+      amountToWithdraw = userBalance;
+    }
     // permit `amount` rather than `amountToWithdraw` to make it easier for front-ends and integrators
     apToken.permit(msg.sender, address(this), amount, deadline, permitV, permitR, permitS);
-    apToken.transferFrom(msg.sender, address(this), amount);
-
-    uint256 withdrawnAmount = POOL.withdraw(pToken, amount, address(this));
+    apToken.transferFrom(msg.sender, address(this), amountToWithdraw);
+    uint256 withdrawnAmount = POOL.withdraw(pToken, amountToWithdraw, address(this));
     IPERC20(pToken).withdrawTo(to, withdrawnAmount);
   }
 
