@@ -9,11 +9,11 @@ import "../../src/core/interfaces/IPoolAddressesProvider.sol";
 
 contract setupRiskParameter is Script {
     function run() external {
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+        address deployer = vm.envAddress("Deployer");
         address provider = vm.envAddress("PoolAddressesProvider");
         address aclAddress = vm.envAddress("ACLManager");
         address helperAddr = vm.envAddress("ReservesSetupHelper");
-        vm.startBroadcast(deployerPrivateKey);
+        vm.startBroadcast(deployer);
 
         ReservesSetupHelper helper = ReservesSetupHelper(helperAddr);
         //add helper to pool admin
