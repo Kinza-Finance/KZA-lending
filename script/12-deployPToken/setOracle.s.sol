@@ -3,20 +3,22 @@ pragma solidity 0.8.10;
 
 import "forge-std/Script.sol";
 import "../../src/core/misc/AaveOracle.sol";
-import "../../src/core/misc/BinanceOracle/SNBNBBinanceOracleAggregator.sol";
+import "../../src/periphery/misc/PTokenPriceAdaptor.sol";
 
 contract InitBinanceOracle is Script {
     function run() external {
         address deployer = vm.envAddress("Deployer");
         address asset = vm.envAddress("PUSDT");
-        address agg = vm.envAddress("USDT_AGGREGATOR");
+        address dependentAsset = vm.envAddress("USDT");
+        address aggregator = vm.envAddress("USDT_AGGREGATOR");
         address oracle = vm.envAddress("Oracle");
 
         vm.startBroadcast(deployer);
+        PTokenPriceAdaptor adaptor = new PTokenPriceAdaptor(aggregator, dependentAsset);
         address[] memory assets = new address[](1);
         address[] memory sources = new address[](1);
         assets[0] = asset;
-        sources[0] = address(aggregator);
+        sources[0] = address(adaptor);
         AaveOracle(oracle).setAssetSources(assets, sources);
         vm.stopBroadcast();
     }
