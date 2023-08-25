@@ -98,6 +98,6 @@
     "PUSDT_supplyCap": "10000000",
     "PUSDT_stableBorrowingEnabled": "false",
     "PUSDT_borrowingEnabled": "false",
-    "PUSDT_flashLoanEnabled": "true",
+    "PUSDT_flashLoanEnabled": "false",
     "PUSDT_debtCeiling": "125000000"
 }
