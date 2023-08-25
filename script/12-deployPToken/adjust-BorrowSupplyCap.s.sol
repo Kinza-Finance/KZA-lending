@@ -11,19 +11,12 @@ contract setDebtCeiling is Script {
     function run() external {
         address provider = vm.envAddress("PoolAddressesProvider");
         address dataprovider = vm.envAddress("PoolDataProvider");
-        uint256 deployerPrivateKey;
-        bool isProd = vm.envBool("isProd");
-        if (isProd) {
-            deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-        } else {
-            deployerPrivateKey = vm.envUint("PRIVATE_KEY_TESTNET");
-        }
-        vm.startBroadcast(deployerPrivateKey);
+        address deployer = vm.envAddress("Deployer");
+        vm.startBroadcast(deployer);
 
         IPoolConfigurator configurator = IPoolConfigurator(IPoolAddressesProvider(provider).getPoolConfigurator());
-        string[] memory addressToAdjust = new string[](2);
+        string[] memory addressToAdjust = new string[](1);
         addressToAdjust[0] = "USDT";
-        addressToAdjust[1] = "USDC";
         for (uint256 j; j < addressToAdjust.length; j++) {
             uint256 newBorrowCap = vm.envUint(string(abi.encodePacked(addressToAdjust[j], "_borrowCap"))); // nominal, 2 decimals
             uint256 newSupplyCap = vm.envUint(string(abi.encodePacked(addressToAdjust[j], "_supplyCap"))); // nominal, 2 decimals

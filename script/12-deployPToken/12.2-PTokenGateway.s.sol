@@ -7,9 +7,9 @@ import "../../src/core/interfaces/IPoolAddressesProvider.sol";
 
 contract DeployProtectedERC20Gateway is Script {
     function run() external {
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+        address deployer = vm.envAddress("Deployer");
         address provider = vm.envAddress("PoolAddressesProvider");
-        vm.startBroadcast(deployerPrivateKey);
+        vm.startBroadcast(deployer);
         IPool pool = IPool(IPoolAddressesProvider(provider).getPool());
         new ProtectedERC20Gateway(pool);
 

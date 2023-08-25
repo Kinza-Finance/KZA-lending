@@ -11,14 +11,8 @@ contract setDebtCeiling is Script {
     function run() external {
         address provider = vm.envAddress("PoolAddressesProvider");
         address dataprovider = vm.envAddress("PoolDataProvider");
-        uint256 deployerPrivateKey;
-        bool isProd = vm.envBool("isProd");
-        if (isProd) {
-            deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-        } else {
-            deployerPrivateKey = vm.envUint("PRIVATE_KEY_TESTNET");
-        }
-        vm.startBroadcast(deployerPrivateKey);
+        address deployer = vm.envAddress("Deployer");
+        vm.startBroadcast(deployer);
 
         IPoolConfigurator configurator = IPoolConfigurator(IPoolAddressesProvider(provider).getPoolConfigurator());
         IPoolDataProvider.TokenData[] memory reserves = IPoolDataProvider(dataprovider).getAllReservesTokens();

@@ -7,19 +7,11 @@ import "../../src/core/interfaces/IPoolAddressesProvider.sol";
 
 contract DeployProtectedNativeGateway is Script {
     function run() external {
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+        address deployer = vm.envAddress("Deployer");
         address provider = vm.envAddress("PoolAddressesProvider");
-        bool isProd = vm.envBool("isProd");
-        address wbnb;
-        address pwbnb;
-        if (isProd) {
-            wbnb = vm.envAddress("WBNB_PROD");
-            pwbnb = vm.envAddress("PWBNB_PROD");
-        } else {
-            wbnb = vm.envAddress("WBNB_TESTNET");
-            pwbnb = vm.envAddress("PWBNB_TESTNET");
-        }
-        vm.startBroadcast(deployerPrivateKey);
+        address wbnb = vm.envAddress("WBNB");
+        address pwbnb = vm.envAddress("PWBNB");
+        vm.startBroadcast(deployer);
         
         IPool pool = IPool(IPoolAddressesProvider(provider).getPool());
         new ProtectedNativeTokenGateway(wbnb, pwbnb, pool);

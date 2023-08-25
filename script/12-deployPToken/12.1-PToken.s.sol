@@ -6,10 +6,10 @@ import "../../src/periphery/pToken/ProtectedERC20.sol";
 
 contract DeployProtectedERC20 is Script {
     function run() external {
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-        address token = vm.envAddress("USDC");
+        address deployer = vm.envAddress("Deployer");
+        address token = vm.envAddress("USDT");
         //address token = vm.envAddress("USDT");
-        vm.startBroadcast(deployerPrivateKey);
+        vm.startBroadcast(deployer);
         string memory name = IERC20Metadata(token).name();
         string memory symbol = IERC20Metadata(token).symbol();
         new ProtectedERC20(token, name, symbol);

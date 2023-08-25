@@ -9,13 +9,13 @@ import "../../src/core/interfaces/IPoolAddressesProvider.sol";
 import "../../src/core/protocol/libraries/types/ConfiguratorInputTypes.sol";
 contract InitReserve is Script {
     function run() external {
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+        address deployer = vm.envAddress("Deployer");
         address provider = vm.envAddress("PoolAddressesProvider");
         address treasury = vm.envAddress("Treasury");
         address aTokenImpl = vm.envAddress("ATokenImpl");
         address sdTokenImpl = vm.envAddress("sdTokenImpl");
         address vdTokenImpl = vm.envAddress("vdTokenImpl");
-        vm.startBroadcast(deployerPrivateKey);
+        vm.startBroadcast(deployer);
         IPoolConfigurator configurator = IPoolConfigurator(IPoolAddressesProvider(provider).getPoolConfigurator());
         bytes32 incentivesControllerId = 0x703c2c8634bed68d98c029c18f310e7f7ec0e5d6342c590190b3cb8b3ba54532;
         address incentivesController = IPoolAddressesProvider(provider).getAddress(incentivesControllerId);
