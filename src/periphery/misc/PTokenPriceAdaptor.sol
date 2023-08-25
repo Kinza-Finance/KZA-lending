@@ -2,7 +2,6 @@
 pragma solidity ^0.8.10;
 
 import {IEACAggregatorProxy} from './interfaces/IEACAggregatorProxy.sol';
-import {IwbETH} from './interfaces/IwbETH.sol';
 
 contract PTokenPriceAdaptor {
   uint8 public immutable DECIMALS;
