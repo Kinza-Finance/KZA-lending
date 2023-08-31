@@ -1,4 +1,4 @@
-export env=mainnet
+export env=opbnb-testnet
 # dump deployment into env for foundry
 jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' deployment/${env}.json > .env
 # dump reserve config if needed; for initilization of new reserve
