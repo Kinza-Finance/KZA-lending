@@ -3,8 +3,7 @@ pragma solidity 0.8.10;
 
 import {IERC20} from '../../dependencies/openzeppelin/contracts/IERC20.sol';
 import {GPv2SafeERC20} from '../../dependencies/gnosis/contracts/GPv2SafeERC20.sol';
-import {IMasterMagpie} from '../../interfaces/IMasterMagpie.sol';
-import {IWombatHelper} from '../../interfaces/IWombatHelper.sol';
+import {IMasterWombat} from '../../interfaces/IMasterWombat.sol';
 import {IEmissionAdmin} from '../../interfaces/IEmissionAdmin.sol';
 import {IPool} from '../../interfaces/IPool.sol';
 import {AToken} from './AToken.sol';
@@ -14,10 +13,10 @@ import {AToken} from './AToken.sol';
  *          stake on an external gauge; rewards are claimed to the Atoken proxy
  *          and distributed upon the discretion of an admin
  */
-contract ATokenMagpieStaker is AToken {
+contract ATokenWombatStaker is AToken {
   using GPv2SafeERC20 for IERC20;
-  IMasterMagpie public _masterMagpie;
-  IWombatHelper public _wombatHelper;
+  uint256 public _pid;
+  IMasterWombat public _masterWombat;
   // manage emission on internal EmissionManager
   address public _emissionAdmin;
 
@@ -32,18 +31,17 @@ contract ATokenMagpieStaker is AToken {
     // Intentionally left blank
   }
 
-  function updateMasterMagpie(address masterMagpie) external onlyPoolAdmin {
-    // this is fine since it's a proxy
-    require(address(_masterMagpie) == address(0), "masterMagpie can only be set once");
-    _masterMagpie = IMasterMagpie(masterMagpie);
+  function setPid(uint256 pid) external onlyPoolAdmin() {
+    // it's safe to use pid==0 as an unitialized check,
+    // we are not gonna integrate pid = 0 which is staking of WOM
+    require(pid == 0, "pid is already set");
+    _pid = pid;
   }
-  function updateWombatHelper(address wombatHelper) external onlyPoolAdmin {
-    // poolHelper can be updated
-    // require(address(_wombatHelper) == address(0), "wombatHelper can only be set once");
-    address wombatStaking = IWombatHelper(wombatHelper).wombatStaking();
-    // wombatHerlp::depositLP would trigger wombatStaking which pull LP token from this contract
-    IERC20(_underlyingAsset).approve(wombatStaking, type(uint256).max);
-    _wombatHelper = IWombatHelper(wombatHelper);
+  function updateMasterWombat(address masterWombat) external onlyPoolAdmin {
+    // this is fine since it's a proxy
+    require(address(_masterWombat) == address(0), "masterMagpie can only be set once");
+    IERC20(_underlyingAsset).approve(masterWombat, type(uint256).max);
+    _masterWombat = IMasterWombat(masterWombat);
   }
 
   function updateEmissionAdmin(address emissionAdmin) external onlyPoolAdmin {
@@ -95,7 +93,7 @@ contract ATokenMagpieStaker is AToken {
     uint256 index
   ) external virtual override onlyPool {
     address stakingToken = _underlyingAsset;
-    _masterMagpie.withdraw(stakingToken, amount);
+    _masterWombat.withdraw(pid, amount);
     _burnScaled(from, receiverOfUnderlying, amount, index);
     if (receiverOfUnderlying != address(this)) {
       IERC20(_underlyingAsset).safeTransfer(receiverOfUnderlying, amount);
