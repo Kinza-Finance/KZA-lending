@@ -29,3 +29,9 @@ chapel = { key = "${CHAPEL_ETHERSCAN_API_KEY}", chain=97, url="https://api-testn
 [default.rpc_endpoints]
 bsc = "https://bsc-dataseed1.binance.org/"
 chapel = "https://data-seed-prebsc-1-s1.binance.org:8545/"
+
+[profile.wombat]
+test = 'test/ATokenStaker/WombatStaker'
+
+[profile.magpie]
+test = 'test/ATokenStaker/MagpieStaker'
