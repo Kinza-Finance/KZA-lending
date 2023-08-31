@@ -40,7 +40,7 @@ contract ATokenMagpieStaker is AToken {
   function updateWombatHelper(address wombatHelper) external onlyPoolAdmin {
     // this is fine the contract is quite immutable
     require(address(_wombatHelper) == address(0), "wombatHelper can only be set once");
-    address wombatStaking = _wombatHelper.wombatStaking();
+    address wombatStaking = IWombatHelper(wombatHelper).wombatStaking();
     // wombatHerlp::depositLP would trigger wombatStaking which pull LP token from this contract
     IERC20(_underlyingAsset).approve(wombatStaking, type(uint256).max);
     _wombatHelper = IWombatHelper(wombatHelper);
