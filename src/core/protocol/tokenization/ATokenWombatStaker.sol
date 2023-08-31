@@ -34,7 +34,7 @@ contract ATokenWombatStaker is AToken {
   function setPid(uint256 pid) external onlyPoolAdmin() {
     // it's safe to use pid==0 as an unitialized check,
     // we are not gonna integrate pid = 0 which is staking of WOM
-    require(pid == 0, "pid is already set");
+    require(_pid == 0, "pid is already set");
     _pid = pid;
   }
   function updateMasterWombat(address masterWombat) external onlyPoolAdmin {
@@ -49,10 +49,10 @@ contract ATokenWombatStaker is AToken {
   }
 
   function multiClaim() public onlyPoolAdmin {
-    address[] memory stakingTokens = new address[](1);
-    stakingTokens[0] = _underlyingAsset;
+    uint256[] memory pids = new uint256[](1);
+    pids[0] = _pid;
     /// @dev that is no return data from multiclaim; also masterMagpie is a proxy.
-    _masterMagpie.multiClaim(stakingTokens);
+    _masterWombat.multiClaim(pids);
     emit StakingRewardClaimed();
   }
 
@@ -82,7 +82,7 @@ contract ATokenWombatStaker is AToken {
   ) external virtual override onlyPool returns (bool) {
     // helper takes our LP, call wombat staking,
     // then stake the wombat stakingToken on magpie itself
-    _wombatHelper.depositLP(amount);
+    _masterWombat.deposit(_pid, amount);
     return _mintScaled(caller, onBehalfOf, amount, index);
   }
 
@@ -93,7 +93,7 @@ contract ATokenWombatStaker is AToken {
     uint256 index
   ) external virtual override onlyPool {
     address stakingToken = _underlyingAsset;
-    _masterWombat.withdraw(pid, amount);
+    _masterWombat.withdraw(_pid, amount);
     _burnScaled(from, receiverOfUnderlying, amount, index);
     if (receiverOfUnderlying != address(this)) {
       IERC20(_underlyingAsset).safeTransfer(receiverOfUnderlying, amount);

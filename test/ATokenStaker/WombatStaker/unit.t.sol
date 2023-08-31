@@ -1,5 +1,5 @@
 
-import {ATokenMagpieStakerBaseTest} from "./ATokenWombatStakerBaseTest.t.sol";
+import {ATokenWombatStakerBaseTest} from "./ATokenWombatStakerBaseTest.t.sol";
 import {IERC20} from "../../../src/core/dependencies/openzeppelin/contracts/IERC20.sol";
 import {ADDRESSES_PROVIDER, POOLDATA_PROVIDER, ACL_MANAGER, POOL, POOL_CONFIGURATOR, EMISSION_MANAGER, 
         ATOKENIMPL, SDTOKENIMPL, VDTOKENIMPL, TREASURY, POOL_ADMIN,

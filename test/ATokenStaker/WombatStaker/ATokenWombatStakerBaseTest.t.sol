@@ -6,6 +6,7 @@ import {IPoolAddressesProvider} from "../../../src/core/interfaces/IPoolAddresse
 import {IPool} from "../../../src/core/interfaces/IPool.sol";
 import {IACLManager} from '../../../src/core/interfaces/IACLManager.sol';
 import {IAaveIncentivesController} from '../../../src/core/interfaces/IAaveIncentivesController.sol';
+import {IMasterWombat} from '../../../src/core/interfaces/IMasterWombat.sol';
 import {AToken} from "../../../src/core/protocol/tokenization/AToken.sol";
 import {ATokenWombatStaker} from "../../../src/core/protocol/tokenization/ATokenWombatStaker.sol";
 import {ZeroReserveInterestRateStrategy} from "../../../src/core/misc/ZeroReserveInterestRateStrategy.sol";
@@ -31,11 +32,13 @@ contract ATokenWombatStakerBaseTest is BaseTest {
         // configure riskParameter
         configuraRiskParameterForReserve(underlying);
         vm.startPrank(POOL_ADMIN);
-        // thewombat stakerAToken require setting up 1.) wombat master for deposit/withdraw
-        // 2.) emissionAdmin for sending over reward
+        // thewombat stakerAToken require setting up 
+        // 1.) wombat master, 2.) pid for deposit/withdraw
+        // 3.) emissionAdmin for sending over reward
         ATokenProxyStaker.updateMasterWombat(MASTER_WOMBAT);
+        uint256 pid = IMasterWombat(MASTER_WOMBAT).getAssetPid(underlying);
+        ATokenProxyStaker.setPid(pid);
         // ATokenProxyStaker.updateEmissionAdmin();
-        
     }
 
     // return aTokenProxy
@@ -71,7 +74,7 @@ contract ATokenWombatStakerBaseTest is BaseTest {
     }
 
     function deployATokenStakerImpl() internal returns(address) {
-            ATokenMagpieStaker aTokenImpl = new ATokenWombatStaker(pool);
+            ATokenWombatStaker aTokenImpl = new ATokenWombatStaker(pool);
             aTokenImpl.initialize(
             pool,
             address(0), // treasury

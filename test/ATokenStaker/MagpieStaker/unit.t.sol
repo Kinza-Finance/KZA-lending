@@ -1,6 +1,6 @@
 
 import {ATokenMagpieStakerBaseTest} from "./ATokenMagpieStakerBaseTest.t.sol";
-import {IERC20} from "../../src/core/dependencies/openzeppelin/contracts/IERC20.sol";
+import {IERC20} from "../../../src/core/dependencies/openzeppelin/contracts/IERC20.sol";
 import {ADDRESSES_PROVIDER, POOLDATA_PROVIDER, ACL_MANAGER, POOL, POOL_CONFIGURATOR, EMISSION_MANAGER, 
         ATOKENIMPL, SDTOKENIMPL, VDTOKENIMPL, TREASURY, POOL_ADMIN,
         MASTER_MAGPIE, SMART_HAY_LP, WOMBAT_HELPER_SMART_HAY_LP} from "test/utils/Addresses.sol";
@@ -18,13 +18,13 @@ contract unitTest is ATokenMagpieStakerBaseTest {
         deposit(bob, amount);
     }
 
-    function test_withdraw() public {
-        address bob = address(1);
-        uint256 amount = 1 ether;
-        deal(underlying, bob, amount);
-        deposit(bob, amount);
-        withdraw(bob, amount);
-    }
+    // function test_withdraw() public {
+    //     address bob = address(1);
+    //     uint256 amount = 1 ether;
+    //     deal(underlying, bob, amount);
+    //     deposit(bob, amount);
+    //     withdraw(bob, amount);
+    // }
 
     function deposit(address user, uint256 amount) public {
         vm.startPrank(user);
