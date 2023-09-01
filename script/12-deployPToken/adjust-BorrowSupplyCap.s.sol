@@ -16,7 +16,7 @@ contract setDebtCeiling is Script {
 
         IPoolConfigurator configurator = IPoolConfigurator(IPoolAddressesProvider(provider).getPoolConfigurator());
         string[] memory addressToAdjust = new string[](1);
-        addressToAdjust[0] = "USDT";
+        addressToAdjust[0] = "USDC";
         for (uint256 j; j < addressToAdjust.length; j++) {
             uint256 newBorrowCap = vm.envUint(string(abi.encodePacked(addressToAdjust[j], "_borrowCap"))); // nominal, 2 decimals
             uint256 newSupplyCap = vm.envUint(string(abi.encodePacked(addressToAdjust[j], "_supplyCap"))); // nominal, 2 decimals

@@ -17,8 +17,8 @@ contract setDebtCeiling is Script {
         IPoolConfigurator configurator = IPoolConfigurator(IPoolAddressesProvider(provider).getPoolConfigurator());
         IPoolDataProvider.TokenData[] memory reserves = IPoolDataProvider(dataprovider).getAllReservesTokens();
         string[] memory addressToAdd = new string[](2);
-        addressToAdd[0] = "PUSDT";
-        addressToAdd[1] = "USDT";
+        addressToAdd[0] = "PUSDC";
+        addressToAdd[1] = "USDC";
         uint256 newDebtCeiling;
         address token;
         for (uint256 j; j < addressToAdd.length; j++) {
