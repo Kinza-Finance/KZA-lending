@@ -5,9 +5,11 @@ import "../../../src/core/dependencies/openzeppelin/contracts/IERC20Detailed.sol
 import {IPoolAddressesProvider} from "../../../src/core/interfaces/IPoolAddressesProvider.sol";
 import {IPool} from "../../../src/core/interfaces/IPool.sol";
 import {IACLManager} from '../../../src/core/interfaces/IACLManager.sol';
+import {IAaveOracle} from '../../../src/core/interfaces/IAaveOracle.sol';
 import {IAaveIncentivesController} from '../../../src/core/interfaces/IAaveIncentivesController.sol';
 import {IMasterWombat} from '../../../src/core/interfaces/IMasterWombat.sol';
 import {AToken} from "../../../src/core/protocol/tokenization/AToken.sol";
+import {GenericLPFallbackOracle} from "../../../src/core/misc/wombatOracle/GenericLPFallbackOracle.sol";
 import {ATokenWombatStaker} from "../../../src/core/protocol/tokenization/ATokenWombatStaker.sol";
 import {ZeroReserveInterestRateStrategy} from "../../../src/core/misc/ZeroReserveInterestRateStrategy.sol";
 import {PoolConfigurator} from "../../../src/core/protocol/pool/PoolConfigurator.sol";
@@ -16,8 +18,8 @@ import {ConfiguratorInputTypes} from '../../../src/core/protocol/libraries/types
 import {ReservesSetupHelper} from "../../../src/core/deployments/ReservesSetupHelper.sol";
 
 import {ADDRESSES_PROVIDER, POOLDATA_PROVIDER, ACL_MANAGER, POOL, POOL_CONFIGURATOR, EMISSION_MANAGER, 
-        ATOKENIMPL, SDTOKENIMPL, VDTOKENIMPL, TREASURY, POOL_ADMIN,
-        MASTER_WOMBAT, SMART_HAY_LP, WOMBAT_HELPER_SMART_HAY_LP} from "test/utils/Addresses.sol";
+        ATOKENIMPL, SDTOKENIMPL, VDTOKENIMPL, TREASURY, POOL_ADMIN, ORACLE,
+        MASTER_WOMBAT, SMART_HAY_LP} from "test/utils/Addresses.sol";
 
 contract ATokenWombatStakerBaseTest is BaseTest {
     address internal underlying = SMART_HAY_LP;
@@ -26,6 +28,9 @@ contract ATokenWombatStakerBaseTest is BaseTest {
     function setUp() public virtual override(BaseTest) {
         BaseTest.setUp();
         emissionAdmin = new EmissionAdminAndDirectTransferStrategy(pool, emissionManager);
+        //setup oracle 
+        GenericLPFallbackOracle LPOracle = new GenericLPFallbackOracle();
+        setUpOracle(address(LPOracle), underlying);
         // deploy reserve, get ATokenProxy
         address aTokenProxy = deployReserveForATokenStaker();
         ATokenProxyStaker = ATokenWombatStaker(aTokenProxy);
@@ -33,11 +38,9 @@ contract ATokenWombatStakerBaseTest is BaseTest {
         configuraRiskParameterForReserve(underlying);
         vm.startPrank(POOL_ADMIN);
         // thewombat stakerAToken require setting up 
-        // 1.) wombat master, 2.) pid for deposit/withdraw
-        // 3.) emissionAdmin for sending over reward
+        // 1.) wombat master
+        // 2.) emissionAdmin for sending over reward
         ATokenProxyStaker.updateMasterWombat(MASTER_WOMBAT);
-        uint256 pid = IMasterWombat(MASTER_WOMBAT).getAssetPid(underlying);
-        ATokenProxyStaker.setPid(pid);
         // ATokenProxyStaker.updateEmissionAdmin();
     }
 
@@ -112,6 +115,15 @@ contract ATokenWombatStakerBaseTest is BaseTest {
         helper.configureReserves(PoolConfigurator(address(configurator)), inputs);
         //remove helper from pool admin
         aclManager.removePoolAdmin(address(helper));
+    }
+
+    function setUpOracle(address source, address asset) internal {
+        address[] memory assets = new address[](1);
+        address[] memory sources = new address[](1);
+        assets[0] = asset;
+        sources[0] = address(source);
+        vm.startPrank(POOL_ADMIN);
+        IAaveOracle(oracle).setAssetSources(assets, sources);
     }
        
 }
