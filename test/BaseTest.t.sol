@@ -5,6 +5,7 @@ pragma solidity > 0.8.0;
 import { Test } from "forge-std/Test.sol";
 import {IPoolAddressesProvider} from "../../src/core/interfaces/IPoolAddressesProvider.sol";
 import {IPool} from "../../src/core/interfaces/IPool.sol";
+import {IAaveOracle} from "../../src/core/interfaces/IAaveOracle.sol";
 import {IACLManager} from '../../src/core/interfaces/IACLManager.sol';
 import {IAaveIncentivesController} from '../../src/core/interfaces/IAaveIncentivesController.sol';
 import {IEmissionManager} from "../../src/periphery/rewards/interfaces/IEmissionManager.sol";
@@ -14,8 +15,8 @@ import {IPoolDataProvider} from '../../src/core/interfaces/IPoolDataProvider.sol
 import {ReservesSetupHelper} from "../../src/core/deployments/ReservesSetupHelper.sol";
 
 import {ADDRESSES_PROVIDER, POOLDATA_PROVIDER, ACL_MANAGER, POOL, POOL_CONFIGURATOR, EMISSION_MANAGER, 
-        ATOKENIMPL, SDTOKENIMPL, VDTOKENIMPL, TREASURY, POOL_ADMIN, RESERVES_SETUP_HELPER,
-        MASTER_MAGPIE, SMART_HAY_LP, WOMBAT_HELPER_SMART_HAY_LP} from "test/utils/Addresses.sol";
+        ATOKENIMPL, SDTOKENIMPL, VDTOKENIMPL, TREASURY, POOL_ADMIN, RESERVES_SETUP_HELPER, ORACLE, 
+        MASTER_MAGPIE, SMART_HAY_LP} from "test/utils/Addresses.sol";
 
 contract BaseTest is Test {
     // if forking is required at specific block, set this in sub-contract's setup before calling parent
@@ -27,6 +28,7 @@ contract BaseTest is Test {
     IEmissionManager internal emissionManager = IEmissionManager(EMISSION_MANAGER);
     ReservesSetupHelper internal helper = ReservesSetupHelper(RESERVES_SETUP_HELPER);
     IACLManager internal aclManager = IACLManager(ACL_MANAGER);
+    IAaveOracle internal oracle = IAaveOracle(ORACLE);
     function setUp() public virtual {
             fork();
         }

@@ -31,17 +31,12 @@ contract ATokenWombatStaker is AToken {
     // Intentionally left blank
   }
 
-  function setPid(uint256 pid) external onlyPoolAdmin() {
-    // it's safe to use pid==0 as an unitialized check,
-    // we are not gonna integrate pid = 0 which is staking of WOM
-    require(_pid == 0, "pid is already set");
-    _pid = pid;
-  }
   function updateMasterWombat(address masterWombat) external onlyPoolAdmin {
     // this is fine since it's a proxy
     require(address(_masterWombat) == address(0), "masterMagpie can only be set once");
     IERC20(_underlyingAsset).approve(masterWombat, type(uint256).max);
     _masterWombat = IMasterWombat(masterWombat);
+    _pid = _masterWombat.getAssetPid(_underlyingAsset);
   }
 
   function updateEmissionAdmin(address emissionAdmin) external onlyPoolAdmin {
