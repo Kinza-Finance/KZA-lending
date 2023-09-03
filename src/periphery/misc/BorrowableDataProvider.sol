@@ -32,15 +32,16 @@ contract BorrowableDataProvider {
   }
   
 
-  function getUserMaxBorrowables(address user, address[] memory assets) public view returns(uint256[] memory borrowables){
-        if (assets.length > 0) {
-            borrowables = new uint256[](assets.length);
+  function getUserMaxBorrowables(address user, address[] memory assets) public view returns(uint256[] memory){
+    if (assets.length > 0) {
+        uint256[] memory borrowables = new uint256[](assets.length);
             for (uint i;i < assets.length; i++) {
                 borrowables[i] = getUserMaxBorrowable(user, assets[i]);
             }
-        } 
+        return borrowables;
+        }      
+    }
         
-  }
   // main function to call when fetching the max borrowable for a user for a particular asset
   function getUserMaxBorrowable(address user, address asset) public view returns(uint256){
         // if user is in isolation, but asset is not borrowable for isolatedMode
