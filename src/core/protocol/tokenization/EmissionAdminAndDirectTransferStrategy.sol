@@ -59,20 +59,19 @@ contract EmissionAdminAndDirectTransferStrategy is Ownable {
         REWARD_PERIOD = newRewardPeriod;
     }
 
-    function _updateEmissionManager(address _token, address[] memory _reward, uint256[] memory _amount) internal {
-        uint88[] memory rates = new uint88[](_amount.length);
-        address[] memory rewards = new address[](_reward.length);
-        for (uint i; i < _reward.length;) {
-            require(lastRewardDistributionEnd[_token][rewards[i]] <= block.timestamp);
-            uint256 _rate = _amount[i] / REWARD_PERIOD;
-            rates[i] = toUint88(_rate);
-            emissionManager.setDistributionEnd(_token, rewards[i],  uint32(block.timestamp + REWARD_PERIOD));
-            lastRewardDistributionEnd[_token][rewards[i]] = block.timestamp + REWARD_PERIOD;
+    function _updateEmissionManager(address token, address[] memory rewards, uint256[] memory amounts) internal {
+        uint88[] memory rates = new uint88[](amounts.length);
+        for (uint i; i < rewards.length;) {
+            require(lastRewardDistributionEnd[token][rewards[i]] <= block.timestamp);
+            uint256 rate = amounts[i] / REWARD_PERIOD;
+            rates[i] = toUint88(rate);
+            emissionManager.setDistributionEnd(token, rewards[i],  uint32(block.timestamp + REWARD_PERIOD));
+            lastRewardDistributionEnd[token][rewards[i]] = block.timestamp + REWARD_PERIOD;
             unchecked {
                 i++;
             }
         }
-        emissionManager.setEmissionPerSecond(_token, rewards, rates);
+        emissionManager.setEmissionPerSecond(token, rewards, rates);
     }
     function _isATokenProxy() view private returns (bool) {
         // mutual confirmation

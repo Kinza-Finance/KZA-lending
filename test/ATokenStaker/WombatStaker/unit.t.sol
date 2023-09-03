@@ -1,9 +1,9 @@
 
 import {ATokenWombatStakerBaseTest} from "./ATokenWombatStakerBaseTest.t.sol";
 import {IERC20} from "../../../src/core/dependencies/openzeppelin/contracts/IERC20.sol";
-import {USDC, ADDRESSES_PROVIDER, POOLDATA_PROVIDER, ACL_MANAGER, POOL, POOL_CONFIGURATOR, EMISSION_MANAGER, 
+import {ADDRESSES_PROVIDER, POOLDATA_PROVIDER, ACL_MANAGER, POOL, POOL_CONFIGURATOR, EMISSION_MANAGER, 
         ATOKENIMPL, SDTOKENIMPL, VDTOKENIMPL, TREASURY, POOL_ADMIN, HAY_AGGREGATOR, 
-        MASTER_WOMBAT, SMART_HAY_LP, LIQUIDATION_ADAPTOR} from "test/utils/Addresses.sol";
+        MASTER_WOMBAT, SMART_HAY_LP} from "test/utils/Addresses.sol";
 
 contract unitTest is ATokenWombatStakerBaseTest {
 
@@ -71,59 +71,5 @@ contract unitTest is ATokenWombatStakerBaseTest {
         turnOnFlashloan();
         deposit(bob, collateralAmount, underlying);
         flashloan(bob, collateralAmount, underlying, 'ATokenStaker does not allow flashloan or borrow');
-    }
-
-    function deposit(address user, uint256 amount, address underlying) public {
-        vm.startPrank(user);
-        deal(underlying, user, amount);
-        (address ATokenProxyAddress,,) = dataProvider.getReserveTokensAddresses(underlying);
-        uint256 before_aToken = IERC20(ATokenProxyAddress).balanceOf(user);
-        uint256 before_underlying = IERC20(underlying).balanceOf(user);
-        IERC20(underlying).approve(address(pool), amount);
-        pool.deposit(underlying, amount, user, 0);
-        assertEq(IERC20(ATokenProxyAddress).balanceOf(user), before_aToken + amount);
-        assertEq(IERC20(underlying).balanceOf(user), before_underlying - amount);
-    }
-
-    function withdraw(address user, uint256 amount, address underlying) public {
-        vm.startPrank(user);
-        (address ATokenProxyAddress,,) = dataProvider.getReserveTokensAddresses(underlying);
-        uint256 before_aToken = IERC20(ATokenProxyAddress).balanceOf(user);
-        uint256 before_underlying = IERC20(underlying).balanceOf(user);
-        pool.withdraw(underlying, amount, user);
-        assertEq(IERC20(ATokenProxyAddress).balanceOf(user), before_aToken - amount);
-        assertEq(IERC20(underlying).balanceOf(user), before_underlying + amount);
-    }
-
-
-    function borrow(address user, uint256 amount, address underlying, string memory errorMsg) public {
-         vm.startPrank(user);
-         vm.expectRevert(abi.encodePacked(errorMsg));
-         // 2 = variable mode, 0 = no referral
-         pool.borrow(underlying, amount, 2, 0, user);
-    }
-
-    function flashloan(address user, uint256 amount, address underlying, string memory errorMsg) public {
-        vm.startPrank(user);
-         vm.expectRevert(abi.encodePacked(errorMsg));
-         // 2 = variable mode, 0 = no referral
-         // no param, 0 = no referral
-         // receiver needs to be a contract
-         pool.flashLoanSimple(LIQUIDATION_ADAPTOR, underlying, amount, "", 0);
-    }
-
-    function prepUSDC(address user, uint256 collateral_amount) public {
-        // deposit USDC to have some collateral power
-        deposit(user, collateral_amount, USDC);
-    }
-
-    function turnOnBorrow() public {
-        vm.startPrank(POOL_ADMIN);
-        configurator.setReserveBorrowing(underlying, true);
-    }
-
-    function turnOnFlashloan() public {
-        vm.startPrank(POOL_ADMIN);
-        configurator.setReserveFlashLoaning(underlying, true);
     }
 }

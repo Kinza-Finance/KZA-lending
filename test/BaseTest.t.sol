@@ -21,6 +21,8 @@ import {ADDRESSES_PROVIDER, POOLDATA_PROVIDER, ACL_MANAGER, POOL, POOL_CONFIGURA
 contract BaseTest is Test {
     // if forking is required at specific block, set this in sub-contract's setup before calling parent
     uint256 internal forkBlock;
+    // the fork id to roll if needed
+    uint256 internal mainnetFork;
     IPoolConfigurator internal configurator = IPoolConfigurator(POOL_CONFIGURATOR);
     IPool internal pool = IPool(POOL);
     IPoolAddressesProvider internal provider = IPoolAddressesProvider(ADDRESSES_PROVIDER);
@@ -35,7 +37,7 @@ contract BaseTest is Test {
 
     function fork() internal {
         // BEFORE WE DO ANYTHING, FORK!!
-        uint256 mainnetFork;
+        //uint256 mainnetFork;
         if (forkBlock == 0) {
             mainnetFork = vm.createFork(vm.envString("BSC_RPC_URL"));
         } else {
