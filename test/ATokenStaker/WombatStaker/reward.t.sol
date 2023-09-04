@@ -52,6 +52,31 @@ contract rewardTest is ATokenWombatStakerBaseTest {
         assertGt(claimable, 0);
     }
 
+    // test if reward are split fairly
+    function test_splitReward() public {
+        // set up a depositor
+        address bob = address(1);
+        uint256 bob_amount = 1e18;
+        address alice = address(2);
+        uint256 alice_amount = 2e18;
+        deposit(bob, bob_amount, address(underlying));
+        deposit(alice, alice_amount, address(underlying));
+        // passage of time
+        uint256 TimeToPass = 1 days;
+        vm.warp(TimeToPass + block.timestamp);
+        // distribute 
+        sendToEmissionManager();
+        // assert the user has non-zero claimable
+        uint256 TimeToPassForRewardToAccrue = 1 days;
+        vm.warp(TimeToPassForRewardToAccrue + block.timestamp);
+        address[] memory assets = new address[](1);
+        assets[0] = address(ATokenProxyStaker);
+        uint256 bob_claimable = emissionManager.getRewardsController().getUserRewards(assets, bob, address(rewardToken));
+        uint256 alice_claimable = emissionManager.getRewardsController().getUserRewards(assets, alice, address(rewardToken));
+        assertEq(bob_claimable * alice_amount / bob_amount, alice_claimable);
+
+    }
+
     function configReward() internal {
         RewardsDataTypes.RewardsConfigInput[] memory config = new RewardsDataTypes.RewardsConfigInput[](1);
         config[0].asset = address(ATokenProxyStaker);
