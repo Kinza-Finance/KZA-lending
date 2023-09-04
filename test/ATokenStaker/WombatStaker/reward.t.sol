@@ -9,11 +9,6 @@ import {IEACAggregatorProxy} from '../../../src/periphery/misc/interfaces/IEACAg
 import {MOCK_WOM_ORACLE, WOM, POOL_ADMIN, EMISSION_MANAGER_ADMIN} from "test/utils/Addresses.sol";
 
 contract rewardTest is ATokenWombatStakerBaseTest {
-    // since we want to test reward emission, a historical block is pinned
-    // such that we can write test with some passage of time.
-    // make sure to connect to an archive node to enable this feature (ideally through ganache to enable forking)
-    // public BSC rpc like the binance ones does not work
-    // use a very recent block to work around this if only full node is accessible
     uint256 internal _forkBlock = 31_400_000;
 
     IERC20 internal rewardToken = IERC20(WOM);
