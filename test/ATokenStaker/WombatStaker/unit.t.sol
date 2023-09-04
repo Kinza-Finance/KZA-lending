@@ -30,7 +30,7 @@ contract unitTest is ATokenWombatStakerBaseTest {
         uint256 borrow_amount = 100;
         prepUSDC(bob, collateralAmount);
         //when borrow is disabled
-        borrow(bob, borrow_amount, underlying, '30');
+        borrowExpectFail(bob, borrow_amount, underlying, '30');
     }
     function test_borrowWhenBorrowEnabled() public {
         address bob = address(1);
@@ -41,7 +41,7 @@ contract unitTest is ATokenWombatStakerBaseTest {
         prepUSDC(bob, collateralAmount);
         turnOnBorrow();
         //when borrow is enabled, but price is 0 so borrow is reverted by devision of zero
-        borrow(bob, borrow_amount, underlying, '');
+        borrowExpectFail(bob, borrow_amount, underlying, '');
     }
 
     function test_borrowWhenBorrowEnabledNonZeroPrice() public {
@@ -54,7 +54,7 @@ contract unitTest is ATokenWombatStakerBaseTest {
         turnOnBorrow();
         setUpOracle(HAY_AGGREGATOR, underlying);
         //when borrow is enabled, price is non-zero borrow is reverted by AToken
-        borrow(bob, borrow_amount, underlying, 'ATokenStaker does not allow flashloan or borrow');
+        borrowExpectFail(bob, borrow_amount, underlying, 'ATokenStaker does not allow flashloan or borrow');
     }
 
 

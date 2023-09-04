@@ -149,7 +149,7 @@ contract ATokenWombatStakerBaseTest is BaseTest {
     }
 
 
-    function borrow(address user, uint256 amount, address underlying, string memory errorMsg) internal {
+    function borrowExpectFail(address user, uint256 amount, address underlying, string memory errorMsg) internal {
          vm.startPrank(user);
          vm.expectRevert(abi.encodePacked(errorMsg));
          // 2 = variable mode, 0 = no referral
