@@ -51,7 +51,9 @@ contract rewardTest is ATokenWombatStakerBaseTest {
         // assert the user has non-zero claimable
         uint256 TimeToPassForRewardToAccrue = 1 days;
         vm.warp(TimeToPassForRewardToAccrue + block.timestamp);
-        uint256 claimable = emissionManager.getRewardsController().getUserAccruedRewards(bob, address(rewardToken));
+        address[] memory assets = new address[](1);
+        assets[0] = address(ATokenProxyStaker);
+        uint256 claimable = emissionManager.getRewardsController().getUserRewards(assets, bob, address(rewardToken));
         assertGt(claimable, 0);
     }
 
