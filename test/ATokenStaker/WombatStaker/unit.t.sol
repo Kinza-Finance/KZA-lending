@@ -73,12 +73,12 @@ contract unitTest is ATokenWombatStakerBaseTest {
         flashloanRevert(bob, collateralAmount, underlying, 'ATokenStaker does not allow flashloan or borrow');
     }
 
-    function test_enableAsCollateralRevert() public {
+    function test_enableCollateral() public {
         address bob = address(1);
         uint256 collateralAmount = 100 * 1e18;
         deposit(bob, collateralAmount, underlying);
         // 62 is ltv is 0
-        turnOnCollateralExpectRevert(bob, underlying, '62');
+        turnOnCollateral(bob, underlying);
     }
 
     function test_disableAsCollateral() public {
