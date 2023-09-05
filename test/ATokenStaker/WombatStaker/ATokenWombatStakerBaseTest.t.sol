@@ -18,18 +18,18 @@ import {ConfiguratorInputTypes} from '../../../src/core/protocol/libraries/types
 import {ReservesSetupHelper} from "../../../src/core/deployments/ReservesSetupHelper.sol";
 
 import {USDC, ADDRESSES_PROVIDER, POOLDATA_PROVIDER, ACL_MANAGER, POOL, POOL_CONFIGURATOR, EMISSION_MANAGER, 
-        ATOKENIMPL, SDTOKENIMPL, VDTOKENIMPL, TREASURY, POOL_ADMIN, ORACLE,
-        MASTER_WOMBAT, SMART_HAY_LP, LIQUIDATION_ADAPTOR} from "test/utils/Addresses.sol";
+        ATOKENIMPL, SDTOKENIMPL, VDTOKENIMPL, TREASURY, POOL_ADMIN, ORACLE, HAY_AGGREGATOR, HAY,
+        MASTER_WOMBAT, SMART_HAY_LP, LIQUIDATION_ADAPTOR, RANDOM} from "test/utils/Addresses.sol";
 
 contract ATokenWombatStakerBaseTest is BaseTest {
     address internal underlying = SMART_HAY_LP;
     ATokenWombatStaker internal ATokenProxyStaker;
     EmissionAdminAndDirectTransferStrategy internal emissionAdmin;
+    uint8 internal eModeCategoryId = 2;
     function setUp() public virtual override(BaseTest) {
         BaseTest.setUp();
         //setup oracle 
-        GenericLPFallbackOracle LPOracle = new GenericLPFallbackOracle();
-        setUpOracle(address(LPOracle), underlying);
+        setUpOracleThroughFallback();
         // deploy reserve, get ATokenProxy
         address aTokenProxy = deployReserveForATokenStaker();
         ATokenProxyStaker = ATokenWombatStaker(aTokenProxy);
@@ -42,6 +42,9 @@ contract ATokenWombatStakerBaseTest is BaseTest {
         ATokenProxyStaker.updateMasterWombat(MASTER_WOMBAT);
         emissionAdmin = new EmissionAdminAndDirectTransferStrategy(pool, emissionManager);
         ATokenProxyStaker.updateEmissionAdmin(address(emissionAdmin));
+        // add emode, setup oracle specific to the emode
+        setUpEmodeAndEmodeOracle();
+        addAssetIntoEmode();
     }
 
     // return aTokenProxy
@@ -102,9 +105,9 @@ contract ATokenWombatStakerBaseTest is BaseTest {
         ReservesSetupHelper.ConfigureReserveInput[] memory inputs = new ReservesSetupHelper.ConfigureReserveInput[](1);
         inputs[0] = ReservesSetupHelper.ConfigureReserveInput(
                 underlying,
-                0, // baseLTV
-                0, // liquidationThreshold
-                0, // liquidationBonus
+                100, // baseLTV
+                100, // liquidationThreshold
+                10100, // liquidationBonus
                 1500, // reserveFactor
                 1, //borrowCap
                 2000000, //supplyCap
@@ -117,12 +120,47 @@ contract ATokenWombatStakerBaseTest is BaseTest {
         aclManager.removePoolAdmin(address(helper));
     }
 
+    function setUpOracleThroughFallback() internal {
+        GenericLPFallbackOracle LPFallbackOracle = new GenericLPFallbackOracle();
+        vm.startPrank(POOL_ADMIN);
+        IAaveOracle(oracle).setFallbackOracle(address(LPFallbackOracle));
+    }
+
+    function setUpEmodeAndEmodeOracle() internal {
+        // use categoryId as a magicNumber for emodeOralce asset
+        // @TODO read from eModeCategoryId and convert to address
+        address eModePriceAsset = address(2);
+        uint16 ltv = 9700;
+        uint16 liquidationThreshold = 9750;
+        uint16 liquidationBonus = 10100;
+        // each eMode category may or may not have a custom oracle to override the individual assets price oracles
+        // use HAY oracle for now
+        address EmodeOracle = HAY_AGGREGATOR;
+        string memory label = "wombat LP Emode";
+
+        vm.startPrank(POOL_ADMIN);
+        configurator.setEModeCategory(eModeCategoryId, ltv, liquidationThreshold, liquidationBonus, eModePriceAsset, label);
+        // then set oracle
+        address[] memory assets = new address[](1);
+        address[] memory sources = new address[](1);
+        
+        assets[0] = eModePriceAsset;
+        sources[0] = EmodeOracle;
+        IAaveOracle(oracle).setAssetSources(assets, sources);
+    }
+
+    function addAssetIntoEmode() internal {
+        vm.startPrank(POOL_ADMIN);
+        configurator.setAssetEModeCategory(underlying, eModeCategoryId);
+        configurator.setAssetEModeCategory(HAY, eModeCategoryId);
+    }
+
     function setUpOracle(address source, address asset) internal {
         address[] memory assets = new address[](1);
         address[] memory sources = new address[](1);
         assets[0] = asset;
-        sources[0] = address(source);
-        vm.startPrank(POOL_ADMIN);
+        sources[0] = source;
+        vm.prank(POOL_ADMIN);
         IAaveOracle(oracle).setAssetSources(assets, sources);
     }
 
@@ -149,6 +187,12 @@ contract ATokenWombatStakerBaseTest is BaseTest {
     }
 
 
+    function borrow(address user, uint256 amount, address underlying) internal {
+         vm.startPrank(user);
+         // 2 = variable mode, 0 = no referral
+         pool.borrow(underlying, amount, 2, 0, user);
+    }
+
     function borrowExpectFail(address user, uint256 amount, address underlying, string memory errorMsg) internal {
          vm.startPrank(user);
          vm.expectRevert(abi.encodePacked(errorMsg));
@@ -156,7 +200,14 @@ contract ATokenWombatStakerBaseTest is BaseTest {
          pool.borrow(underlying, amount, 2, 0, user);
     }
 
-    function flashloan(address user, uint256 amount, address underlying, string memory errorMsg) internal {
+    function flashloan(address user, address dest, uint256 amount, address underlying) internal {
+        vm.startPrank(user);
+         // 2 = variable mode, 0 = no referral
+         // no param, 0 = no referral
+         // receiver needs to be a contract
+        pool.flashLoanSimple(dest, underlying, amount, "", 0);
+    }
+    function flashloanRevert(address user, uint256 amount, address underlying, string memory errorMsg) internal {
         vm.startPrank(user);
          vm.expectRevert(abi.encodePacked(errorMsg));
          // 2 = variable mode, 0 = no referral
@@ -200,5 +251,31 @@ contract ATokenWombatStakerBaseTest is BaseTest {
         vm.prank(user);
         pool.setUserUseReserveAsCollateral(collateral, false);
     }
-       
+
+    function turnOnEmode(address user) internal {
+        vm.prank(user);
+        pool.setUserEMode(eModeCategoryId);
+    }
+
+    function turnOffEmode(address user) internal {
+        vm.prank(user);
+        pool.setUserEMode(0);
+    }
+    
+    function liquidate(address user, address debtAsset, address collateralAsset, uint256 debtToCover) internal {
+        address liuqidator = RANDOM;
+        deal(debtAsset, liuqidator, debtToCover);
+        IERC20(debtAsset).approve(address(pool), debtToCover);
+        bool receiveAToken = false;
+        pool.liquidationCall(collateralAsset, debtAsset, user, debtToCover, receiveAToken);
+    }
+
+    function liquidateRevert(address user, address debtAsset, address collateralAsset, uint256 debtToCover) internal {
+        address liuqidator = RANDOM;
+        deal(debtAsset, liuqidator, debtToCover);
+        IERC20(debtAsset).approve(address(pool), debtToCover);
+        bool receiveAToken = false;
+        vm.expectRevert();
+        pool.liquidationCall(collateralAsset, debtAsset, user, debtToCover, receiveAToken);
+    }
 }

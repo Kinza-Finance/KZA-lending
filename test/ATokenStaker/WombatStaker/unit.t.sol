@@ -2,8 +2,8 @@
 import {ATokenWombatStakerBaseTest} from "./ATokenWombatStakerBaseTest.t.sol";
 import {IERC20} from "../../../src/core/dependencies/openzeppelin/contracts/IERC20.sol";
 import {ADDRESSES_PROVIDER, POOLDATA_PROVIDER, ACL_MANAGER, POOL, POOL_CONFIGURATOR, EMISSION_MANAGER, 
-        ATOKENIMPL, SDTOKENIMPL, VDTOKENIMPL, TREASURY, POOL_ADMIN, HAY_AGGREGATOR, 
-        MASTER_WOMBAT, SMART_HAY_LP} from "test/utils/Addresses.sol";
+        ATOKENIMPL, SDTOKENIMPL, VDTOKENIMPL, TREASURY, POOL_ADMIN, HAY_AGGREGATOR, HAY, 
+        MASTER_WOMBAT, SMART_HAY_LP, LIQUIDATION_ADAPTOR} from "test/utils/Addresses.sol";
 
 contract unitTest is ATokenWombatStakerBaseTest {
 
@@ -40,8 +40,7 @@ contract unitTest is ATokenWombatStakerBaseTest {
         deposit(bob, borrow_amount, underlying);
         prepUSDC(bob, collateralAmount);
         turnOnBorrow();
-        //when borrow is enabled, but price is 0 so borrow is reverted by devision of zero
-        borrowExpectFail(bob, borrow_amount, underlying, '');
+        borrowExpectFail(bob, borrow_amount, underlying, 'ATokenStaker does not allow flashloan or borrow');
     }
 
     function test_borrowWhenBorrowEnabledNonZeroPrice() public {
@@ -52,6 +51,7 @@ contract unitTest is ATokenWombatStakerBaseTest {
         deposit(bob, borrow_amount, underlying);
         prepUSDC(bob, collateralAmount);
         turnOnBorrow();
+        // this is a set-up to test the error, in mainnet we wont set price for LP
         setUpOracle(HAY_AGGREGATOR, underlying);
         //when borrow is enabled, price is non-zero borrow is reverted by AToken
         borrowExpectFail(bob, borrow_amount, underlying, 'ATokenStaker does not allow flashloan or borrow');
@@ -62,7 +62,7 @@ contract unitTest is ATokenWombatStakerBaseTest {
         address bob = address(1);
         uint256 collateralAmount = 100 * 1e18;
         deposit(bob, collateralAmount, underlying);
-        flashloan(bob, collateralAmount, underlying, '91');
+        flashloanRevert(bob, collateralAmount, underlying, '91');
     }
 
      function test_flashloanWhenEnabled() public {
@@ -70,7 +70,7 @@ contract unitTest is ATokenWombatStakerBaseTest {
         uint256 collateralAmount = 100 * 1e18;
         turnOnFlashloan();
         deposit(bob, collateralAmount, underlying);
-        flashloan(bob, collateralAmount, underlying, 'ATokenStaker does not allow flashloan or borrow');
+        flashloanRevert(bob, collateralAmount, underlying, 'ATokenStaker does not allow flashloan or borrow');
     }
 
     function test_enableAsCollateralRevert() public {
@@ -87,4 +87,80 @@ contract unitTest is ATokenWombatStakerBaseTest {
         deposit(bob, collateralAmount, underlying);
         turnOffCollateral(bob, underlying);
     }
+
+    // liquidate
+    function test_liquidateRevertOutsideEmode() public {
+        address bob = address(1);
+        uint256 collateralAmount = 100 * 1e18;
+        deposit(bob, collateralAmount, underlying);
+        turnOnCollateral(bob, underlying);
+        // now setup a bad debt
+        prepUSDC(bob, 1e18);
+        address debtAsset = HAY;
+        borrow(bob, 6e17, debtAsset);
+        // pass 100y
+        vm.warp(36500 days);
+        // verify health factor < 1;
+        (,,,,, uint256 healthFactor) = pool.getUserAccountData(bob);
+        assertLt(healthFactor, 1e18);
+        // attempt to liquidate half of original debt
+        liquidateRevert(bob, debtAsset, underlying, 3e17);
+
+    }
+    function test_liquidateInsideEmode() public {
+        address bob = address(1);
+        uint256 collateralAmount = 100 * 1e18;
+        deposit(bob, collateralAmount, underlying);
+        turnOnEmode(bob);
+        turnOnCollateral(bob, underlying);
+        address debtAsset = HAY;
+        uint256 debtAmount = collateralAmount / 2;
+        borrow(bob, debtAmount, debtAsset);
+        // pass 100y
+        vm.warp(36500 days);
+        // verify health factor < 1;
+        (,,,,, uint256 healthFactor) = pool.getUserAccountData(bob);
+        assertLt(healthFactor, 1e18);
+        // attempt to liquidate half of original debt
+        liquidate(bob, debtAsset, underlying, debtAmount / 2);
+        // assert some collateral are seize
+        assertLt(IERC20(ATokenProxyStaker).balanceOf(bob), collateralAmount);
+
+    }
+    // testEmode
+    function test_enableEmode() public {
+        address bob = address(1);
+        uint256 collateralAmount = 100 * 1e18;
+        deposit(bob, collateralAmount, underlying);
+        turnOnEmode(bob);
+    }
+
+    function test_disableEmode() public {
+        address bob = address(1);
+        uint256 collateralAmount = 100 * 1e18;
+        deposit(bob, collateralAmount, underlying);
+        turnOnEmode(bob);
+        turnOffEmode(bob);
+    }
+
+    function test_borrowWithEmode() public {
+        address bob = address(1);
+        uint256 collateralAmount = 100 * 1e18;
+        deposit(bob, collateralAmount, underlying);
+        turnOnEmode(bob);
+        turnOnCollateral(bob, underlying);
+        // borrow
+        uint256 borrowAmount = collateralAmount / 2;
+        borrow(bob, borrowAmount, HAY);
+    }
+
+    function test_flashLoanRevertWithEmode() public {
+        address bob = address(1);
+        uint256 collateralAmount = 100 * 1e18;
+        deposit(bob, collateralAmount, underlying);
+        turnOnEmode(bob);
+        turnOnCollateral(bob, underlying);
+        flashloanRevert(bob, collateralAmount, underlying, '91');
+    }
+
 }
