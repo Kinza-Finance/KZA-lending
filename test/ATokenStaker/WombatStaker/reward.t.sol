@@ -7,6 +7,7 @@ import {RewardsDataTypes} from '../../../src/periphery/rewards/libraries/Rewards
 import {ITransferStrategyBase} from '../../../src/periphery/rewards/interfaces/ITransferStrategyBase.sol';
 import {IEACAggregatorProxy} from '../../../src/periphery/misc/interfaces/IEACAggregatorProxy.sol';
 import {MOCK_WOM_ORACLE, WOM, POOL_ADMIN, EMISSION_MANAGER_ADMIN} from "test/utils/Addresses.sol";
+import {IMasterWombat} from '../../../src/core/interfaces/IMasterWombat.sol';
 
 contract rewardTest is ATokenWombatStakerBaseTest {
     uint256 internal _forkBlock = 31_400_000;
@@ -30,7 +31,7 @@ contract rewardTest is ATokenWombatStakerBaseTest {
         deposit(bob, amount, address(underlying));
         uint256 TimeToPass = 1 days;
         vm.warp(TimeToPass + block.timestamp);
-        claimWithReward();
+        claimRewardFromMasterWombat();
     }
 
     function test_distribute() public {
@@ -41,6 +42,15 @@ contract rewardTest is ATokenWombatStakerBaseTest {
         // passage of time
         uint256 TimeToPass = 1 days;
         vm.warp(TimeToPass + block.timestamp);
+
+        (address ATokenProxyAddress,,) = dataProvider.getReserveTokensAddresses(underlying);
+
+        uint256 beforeReward = IERC20(rewardToken).balanceOf(ATokenProxyAddress);
+        IMasterWombat masterWombat = ATokenProxyStaker._masterWombat();
+        (uint256 pendingReward,,,) = masterWombat.pendingTokens(ATokenProxyStaker._pid(), ATokenProxyAddress);
+        uint256 totalReward = pendingReward + beforeReward;
+        // console2.log("totalReward", totalReward);
+
         // distribute 
         sendToEmissionManager();
         // assert the user has non-zero claimable
@@ -49,7 +59,7 @@ contract rewardTest is ATokenWombatStakerBaseTest {
         address[] memory assets = new address[](1);
         assets[0] = address(ATokenProxyStaker);
         uint256 claimable = emissionManager.getRewardsController().getUserRewards(assets, bob, address(rewardToken));
-        assertGt(claimable, 0);
+        assertEq(claimable, totalReward / emissionAdmin.REWARD_PERIOD() * TimeToPassForRewardToAccrue);
     }
 
     // test if reward are split fairly
@@ -88,7 +98,8 @@ contract rewardTest is ATokenWombatStakerBaseTest {
         emissionManager.setEmissionAdmin(address(rewardToken), EMISSION_MANAGER_ADMIN);
         emissionManager.configureAssets(config);
     }
-    function claimWithReward() internal {
+
+    function claimRewardFromMasterWombat() internal {
         address aToken = address(ATokenProxyStaker);
         vm.startPrank(POOL_ADMIN);
         uint256 beforeReward = rewardToken.balanceOf(aToken);
