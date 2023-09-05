@@ -14,7 +14,8 @@ contract fuzzingTest is ATokenWombatStakerBaseTest {
          address user,
          uint256 amount
     ) external {
-        if (user == address(0)) {
+        (address ATokenProxyAddress,,) = dataProvider.getReserveTokensAddresses(underlying);
+        if (user == address(0) || user == ATokenProxyAddress) {
             user = address(1);
         }
         ( ,uint256 supplyCap) = dataProvider.getReserveCaps(underlying);
@@ -23,7 +24,6 @@ contract fuzzingTest is ATokenWombatStakerBaseTest {
         vm.startPrank(user);
         IERC20(underlying).approve(address(pool), amount);
         pool.deposit(underlying, amount, user, 0);
-        (address ATokenProxyAddress,,) = dataProvider.getReserveTokensAddresses(underlying);
         assertEq(IERC20(ATokenProxyAddress).balanceOf(user), amount);
     }
 
@@ -31,10 +31,10 @@ contract fuzzingTest is ATokenWombatStakerBaseTest {
          address user,
          uint256 amount
     ) external {
-        if (user == address(0)) {
+        (address ATokenProxyAddress,,) = dataProvider.getReserveTokensAddresses(underlying);
+        if (user == address(0) || user == ATokenProxyAddress) {
             user = address(1);
         }
-
         // we are fuzzing withdraw here so just max deposit for a user
         ( ,uint256 supplyCap) = dataProvider.getReserveCaps(underlying);
         uint256 maxDposit = supplyCap * 1e18; 

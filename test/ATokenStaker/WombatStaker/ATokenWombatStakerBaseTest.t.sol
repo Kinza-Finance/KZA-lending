@@ -102,11 +102,11 @@ contract ATokenWombatStakerBaseTest is BaseTest {
         ReservesSetupHelper.ConfigureReserveInput[] memory inputs = new ReservesSetupHelper.ConfigureReserveInput[](1);
         inputs[0] = ReservesSetupHelper.ConfigureReserveInput(
                 underlying,
-                8000, // baseLTV
-                9000, // liquidationThreshold
-                10800, // liquidationBonus
+                0, // baseLTV
+                0, // liquidationThreshold
+                0, // liquidationBonus
                 1500, // reserveFactor
-                1000000, //borrowCap
+                1, //borrowCap
                 2000000, //supplyCap
                 false, //stableBorrowingEnabled
                 false, //borrowingEnabled
@@ -170,6 +170,10 @@ contract ATokenWombatStakerBaseTest is BaseTest {
         deposit(user, collateral_amount, USDC);
     }
 
+    function setUpPositiveLTV() internal {
+        vm.prank(POOL_ADMIN);
+        configurator.configureReserveAsCollateral(underlying, 70, 80, 10100);
+    }
     function turnOnBorrow() internal {
         vm.startPrank(POOL_ADMIN);
         configurator.setReserveBorrowing(underlying, true);
@@ -178,6 +182,23 @@ contract ATokenWombatStakerBaseTest is BaseTest {
     function turnOnFlashloan() internal {
         vm.startPrank(POOL_ADMIN);
         configurator.setReserveFlashLoaning(underlying, true);
+    }
+
+
+    function turnOnCollateral(address user, address collateral) internal {
+        vm.prank(user);
+        pool.setUserUseReserveAsCollateral(collateral, true);
+    }
+
+    function turnOnCollateralExpectRevert(address user, address collateral, string memory errorMsg) internal {
+        vm.prank(user);
+        vm.expectRevert(abi.encodePacked(errorMsg));
+        pool.setUserUseReserveAsCollateral(collateral, true);
+    }
+
+    function turnOffCollateral(address user, address collateral) internal {
+        vm.prank(user);
+        pool.setUserUseReserveAsCollateral(collateral, false);
     }
        
 }
