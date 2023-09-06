@@ -21,7 +21,7 @@ contract rewardTest is ATokenWombatStakerBaseTest {
         configReward();
         vm.startPrank(EMISSION_MANAGER_ADMIN);
         emissionManager.setEmissionAdmin(address(rewardToken), address(emissionAdmin));
-        vm.prank(POOL_ADMIN);
+        vm.startPrank(POOL_ADMIN);
         emissionAdmin.toggleATokenWhitelist(IAToken(ATokenProxyStaker));
     }
 
@@ -111,7 +111,7 @@ contract rewardTest is ATokenWombatStakerBaseTest {
     function sendToEmissionManager() internal {
         address[] memory rewards = new address[](1);
         rewards[0] = address(rewardToken);
-        vm.prank(POOL_ADMIN);
+        vm.startPrank(POOL_ADMIN);
         ATokenProxyStaker.sendEmission(rewards);
     }
 }
