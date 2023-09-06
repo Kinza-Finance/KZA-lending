@@ -45,19 +45,23 @@ contract rewardTest is ATokenWombatStakerBaseTest {
 
         (address ATokenProxyAddress,,) = dataProvider.getReserveTokensAddresses(underlying);
 
-        uint256 beforeReward = IERC20(rewardToken).balanceOf(ATokenProxyAddress);
+        uint256 beforeReward = rewardToken.balanceOf(ATokenProxyAddress);
         IMasterWombat masterWombat = ATokenProxyStaker._masterWombat();
         (uint256 pendingReward,,,) = masterWombat.pendingTokens(ATokenProxyStaker._pid(), ATokenProxyAddress);
         uint256 totalReward = pendingReward + beforeReward;
         // console2.log("totalReward", totalReward);
 
+        address[] memory assets = new address[](1);
+        assets[0] = address(ATokenProxyStaker);
+        uint256 claimableBefore = emissionManager.getRewardsController().getUserRewards(assets, bob, address(rewardToken));
+        assertEq(claimableBefore, 0);
+
         // distribute 
         sendToEmissionManager();
+        // console2.log('REWARD_PERIOD', emissionAdmin.REWARD_PERIOD());
         // assert the user has non-zero claimable
         uint256 TimeToPassForRewardToAccrue = 1 days;
         vm.warp(TimeToPassForRewardToAccrue + block.timestamp);
-        address[] memory assets = new address[](1);
-        assets[0] = address(ATokenProxyStaker);
         uint256 claimable = emissionManager.getRewardsController().getUserRewards(assets, bob, address(rewardToken));
         assertEq(claimable, totalReward / emissionAdmin.REWARD_PERIOD() * TimeToPassForRewardToAccrue);
     }

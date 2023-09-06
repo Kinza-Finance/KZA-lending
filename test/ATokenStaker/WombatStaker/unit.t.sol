@@ -171,6 +171,17 @@ contract unitTest is ATokenWombatStakerBaseTest {
         turnOffEmode(bob);
     }
 
+    function test_borrowOther() public {
+        address bob = address(1);
+        uint256 collateralAmount = 100 * 1e18;
+        deposit(bob, collateralAmount, underlying);
+        turnOnCollateral(bob, underlying);
+        // borrow
+        uint256 borrowAmount = 100;
+        // borrow(bob, borrowAmount, HAY);
+        borrowExpectFail(bob, borrowAmount, HAY, '34');
+    }
+
     function test_borrowWithEmode() public {
         address bob = address(1);
         uint256 collateralAmount = 100 * 1e18;
@@ -180,6 +191,12 @@ contract unitTest is ATokenWombatStakerBaseTest {
         // borrow
         uint256 borrowAmount = collateralAmount / 2;
         borrow(bob, borrowAmount, HAY);
+
+        // same prices, emode liquidationThreshold = 9750
+        uint256 calcHealthFactor = collateralAmount * 9750 * 1e18 / 10000 / borrowAmount;
+        // console2.log('calcHealthFactor', calcHealthFactor);
+        (,,,,, uint256 healthFactor) = pool.getUserAccountData(bob);
+        assertEq(healthFactor, calcHealthFactor);
     }
 
     function test_flashLoanRevertWithEmode() public {
