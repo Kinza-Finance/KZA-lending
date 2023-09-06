@@ -160,7 +160,7 @@ contract ATokenWombatStakerBaseTest is BaseTest {
         address[] memory sources = new address[](1);
         assets[0] = asset;
         sources[0] = source;
-        vm.prank(POOL_ADMIN);
+        vm.startPrank(POOL_ADMIN);
         IAaveOracle(oracle).setAssetSources(assets, sources);
     }
 
@@ -222,7 +222,7 @@ contract ATokenWombatStakerBaseTest is BaseTest {
     }
 
     function setUpPositiveLTV() internal {
-        vm.prank(POOL_ADMIN);
+        vm.startPrank(POOL_ADMIN);
         configurator.configureReserveAsCollateral(underlying, 70, 80, 10100);
     }
     function turnOnBorrow() internal {
@@ -237,28 +237,28 @@ contract ATokenWombatStakerBaseTest is BaseTest {
 
 
     function turnOnCollateral(address user, address collateral) internal {
-        vm.prank(user);
+        vm.startPrank(user);
         pool.setUserUseReserveAsCollateral(collateral, true);
     }
 
     function turnOnCollateralExpectRevert(address user, address collateral, string memory errorMsg) internal {
-        vm.prank(user);
+        vm.startPrank(user);
         vm.expectRevert(abi.encodePacked(errorMsg));
         pool.setUserUseReserveAsCollateral(collateral, true);
     }
 
     function turnOffCollateral(address user, address collateral) internal {
-        vm.prank(user);
+        vm.startPrank(user);
         pool.setUserUseReserveAsCollateral(collateral, false);
     }
 
     function turnOnEmode(address user) internal {
-        vm.prank(user);
+        vm.startPrank(user);
         pool.setUserEMode(eModeCategoryId);
     }
 
     function turnOffEmode(address user) internal {
-        vm.prank(user);
+        vm.startPrank(user);
         pool.setUserEMode(0);
     }
     
@@ -277,5 +277,20 @@ contract ATokenWombatStakerBaseTest is BaseTest {
         bool receiveAToken = false;
         vm.expectRevert();
         pool.liquidationCall(collateralAsset, debtAsset, user, debtToCover, receiveAToken);
+    }
+
+
+    function transferAToken(address from, address to, uint256 amount, address ATokenProxy) internal {
+        uint256 before = IERC20(ATokenProxy).balanceOf(to);
+        vm.startPrank(from);
+        IERC20(ATokenProxy).transfer(to, amount);
+        assertEq(before + amount, IERC20(ATokenProxy).balanceOf(to));
+    }
+
+    function transferATokenRevert(address from, address to, uint256 amount, address ATokenProxy, string memory errorMsg) internal {
+        uint256 before = IERC20(ATokenProxy).balanceOf(to);
+        vm.startPrank(from);
+        vm.expectRevert();
+        IERC20(ATokenProxy).transfer(to, amount);
     }
 }

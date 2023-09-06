@@ -24,6 +24,14 @@ contract unitTest is ATokenWombatStakerBaseTest {
         withdraw(bob, amount, underlying);
     }
 
+    function test_transfer() public {
+        address bob = address(1);
+        address alice = address(2);
+        uint256 amount = 1 ether;
+        deposit(bob, amount, underlying);
+        transferAToken(bob, alice, amount, address(ATokenProxyStaker));
+    }
+
     function test_borrowWhenBorrowDisabled() public {
         address bob = address(1);
         uint256 collateralAmount = 100_000;
@@ -77,7 +85,6 @@ contract unitTest is ATokenWombatStakerBaseTest {
         address bob = address(1);
         uint256 collateralAmount = 100 * 1e18;
         deposit(bob, collateralAmount, underlying);
-        // 62 is ltv is 0
         turnOnCollateral(bob, underlying);
     }
 
@@ -125,8 +132,29 @@ contract unitTest is ATokenWombatStakerBaseTest {
         liquidate(bob, debtAsset, underlying, debtAmount / 2);
         // assert some collateral are seize
         assertLt(IERC20(ATokenProxyStaker).balanceOf(bob), collateralAmount);
-
     }
+
+    function test_transferInsideEmode() public {
+        address bob = address(1);
+        address alice = address(2);
+        uint256 amount = 1 ether;
+        deposit(bob, amount, underlying);
+        turnOnEmode(bob);
+        transferAToken(bob, alice, amount, address(ATokenProxyStaker));
+    }
+
+    function test_transferInsideEmodeRevert() public {
+        address bob = address(1);
+        address alice = address(2);
+        uint256 collateralAmount = 1 ether;
+        deposit(bob, collateralAmount, underlying);
+        turnOnEmode(bob);
+        address debtAsset = HAY;
+        uint256 debtAmount = collateralAmount / 2;
+        borrow(bob, debtAmount, debtAsset);
+        transferATokenRevert(bob, alice, collateralAmount, address(ATokenProxyStaker), "");
+    }
+
     // testEmode
     function test_enableEmode() public {
         address bob = address(1);
