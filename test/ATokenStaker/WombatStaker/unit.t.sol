@@ -193,7 +193,7 @@ contract unitTest is ATokenWombatStakerBaseTest {
         borrow(bob, borrowAmount, HAY);
 
         // same prices, emode liquidationThreshold = 9750
-        uint256 calcHealthFactor = collateralAmount * 9750 * 1e18 / 10000 / borrowAmount;
+        uint256 calcHealthFactor = collateralAmount * liquidationThreshold * 1e18 / 10000 / borrowAmount;
         // console2.log('calcHealthFactor', calcHealthFactor);
         (,,,,, uint256 healthFactor) = pool.getUserAccountData(bob);
         assertEq(healthFactor, calcHealthFactor);

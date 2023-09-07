@@ -10,6 +10,7 @@ import {IAaveIncentivesController} from '../../../src/core/interfaces/IAaveIncen
 import {IMasterWombat} from '../../../src/core/interfaces/IMasterWombat.sol';
 import {AToken} from "../../../src/core/protocol/tokenization/AToken.sol";
 import {GenericLPFallbackOracle} from "../../../src/core/misc/wombatOracle/GenericLPFallbackOracle.sol";
+import {SmartHayPoolOracle} from "../../../src/core/misc/wombatOracle/SmartHayPoolOracle.sol";
 import {ATokenWombatStaker} from "../../../src/core/protocol/tokenization/ATokenWombatStaker.sol";
 import {ZeroReserveInterestRateStrategy} from "../../../src/core/misc/ZeroReserveInterestRateStrategy.sol";
 import {PoolConfigurator} from "../../../src/core/protocol/pool/PoolConfigurator.sol";
@@ -19,13 +20,24 @@ import {ReservesSetupHelper} from "../../../src/core/deployments/ReservesSetupHe
 
 import {USDC, ADDRESSES_PROVIDER, POOLDATA_PROVIDER, ACL_MANAGER, POOL, POOL_CONFIGURATOR, EMISSION_MANAGER, 
         ATOKENIMPL, SDTOKENIMPL, VDTOKENIMPL, TREASURY, POOL_ADMIN, ORACLE, HAY_AGGREGATOR, HAY,
-        MASTER_WOMBAT, SMART_HAY_LP, LIQUIDATION_ADAPTOR, RANDOM} from "test/utils/Addresses.sol";
+        MASTER_WOMBAT, SMART_HAY_LP, LIQUIDATION_ADAPTOR, RANDOM,
+        USDC_AGGREGATOR, USDT_AGGREGATOR, USDC, USDT} from "test/utils/Addresses.sol";
 
 contract ATokenWombatStakerBaseTest is BaseTest {
     address internal underlying = SMART_HAY_LP;
     ATokenWombatStaker internal ATokenProxyStaker;
     EmissionAdminAndDirectTransferStrategy internal emissionAdmin;
     uint8 internal eModeCategoryId = 2;
+    // use categoryId as a magicNumber for emodeOralce asset
+    // @TODO read from eModeCategoryId and convert to address
+    address internal eModePriceAsset = address(2);
+    uint16 internal ltv = 9700;
+    uint16 internal liquidationThreshold = 9750;
+    uint16 internal liquidationBonus = 10100;
+    // each eMode category may or may not have a custom oracle to override the individual assets price oracles
+    // use HAY oracle for now
+    address internal EmodeOracle;
+    string internal label = "wombat LP Emode";
     function setUp() public virtual override(BaseTest) {
         BaseTest.setUp();
         //setup oracle 
@@ -43,6 +55,9 @@ contract ATokenWombatStakerBaseTest is BaseTest {
         emissionAdmin = new EmissionAdminAndDirectTransferStrategy(pool, emissionManager);
         ATokenProxyStaker.updateEmissionAdmin(address(emissionAdmin));
         // add emode, setup oracle specific to the emode
+        EmodeOracle = address(new SmartHayPoolOracle(
+            USDC_AGGREGATOR, USDT_AGGREGATOR, HAY_AGGREGATOR, USDC, USDT, HAY 
+        ));
         setUpEmodeAndEmodeOracle();
         addAssetIntoEmode();
     }
@@ -127,16 +142,7 @@ contract ATokenWombatStakerBaseTest is BaseTest {
     }
 
     function setUpEmodeAndEmodeOracle() internal {
-        // use categoryId as a magicNumber for emodeOralce asset
-        // @TODO read from eModeCategoryId and convert to address
-        address eModePriceAsset = address(2);
-        uint16 ltv = 9700;
-        uint16 liquidationThreshold = 9750;
-        uint16 liquidationBonus = 10100;
-        // each eMode category may or may not have a custom oracle to override the individual assets price oracles
-        // use HAY oracle for now
-        address EmodeOracle = HAY_AGGREGATOR;
-        string memory label = "wombat LP Emode";
+        
 
         vm.startPrank(POOL_ADMIN);
         configurator.setEModeCategory(eModeCategoryId, ltv, liquidationThreshold, liquidationBonus, eModePriceAsset, label);
