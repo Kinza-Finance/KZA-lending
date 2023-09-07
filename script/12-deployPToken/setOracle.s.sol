@@ -8,9 +8,9 @@ import "../../src/periphery/misc/PTokenPriceAdaptor.sol";
 contract InitBinanceOracle is Script {
     function run() external {
         address deployer = vm.envAddress("Deployer");
-        address asset = vm.envAddress("PUSDC");
-        address dependentAsset = vm.envAddress("USDC");
-        address aggregator = vm.envAddress("USDC_AGGREGATOR");
+        address asset = vm.envAddress("PWBNB");
+        address dependentAsset = vm.envAddress("WBNB");
+        address aggregator = vm.envAddress("WBNB_AGGREGATOR");
         address oracle = vm.envAddress("Oracle");
 
         vm.startBroadcast(deployer);

@@ -23,7 +23,7 @@ contract setupRiskParameter is Script {
         PoolConfigurator configurator = PoolConfigurator(IPoolAddressesProvider(provider).getPoolConfigurator());
         ReservesSetupHelper.ConfigureReserveInput[] memory inputs = new ReservesSetupHelper.ConfigureReserveInput[](1);
         string[] memory tokens = new string[](1);
-        tokens[0] = "PUSDC";
+        tokens[0] = "PWBNB";
 
         address token;
         for (uint256 i; i < tokens.length; i++) {
