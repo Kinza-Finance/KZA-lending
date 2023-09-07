@@ -21,7 +21,7 @@ contract InitReserve is Script {
         address incentivesController = IPoolAddressesProvider(provider).getAddress(incentivesControllerId);
 
         string[] memory tokens = new string[](1);
-        tokens[0] = "PUSDC";
+        tokens[0] = "PWBNB";
 
         ConfiguratorInputTypes.InitReserveInput[] memory inputs = new ConfiguratorInputTypes.InitReserveInput[](1);
 
