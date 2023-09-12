@@ -43,7 +43,7 @@ contract WombatLeverageHelper {
     // and loop the needed borrowedAmount by re-depositing back the lp
     // the final health factor may vary from the targetHF
     // since the deposited LP might be different depends on wombat
-    function loop(address borrowableProvider, uint256 targetHF, address lpAddr, uint256 amount, uint8 emodeCategory) external returns(uint256) {
+    function loop(address borrowableProvider, uint256 targetHF, address lpAddr, uint256 amount, uint8 emodeCategory, bool isFirstDeposit) external returns(uint256) {
         require(targetHF > 1e18 && amount > 0, "targetHF or deposit amount invalid");
         address underlying = IAsset(lpAddr).underlyingToken();
         uint256 pid = masterWombat.getAssetPid(lpAddr);
@@ -56,6 +56,10 @@ contract WombatLeverageHelper {
         // all borrow would be deposited to pool at the end
         if (IERC20(lpAddr).allowance(address(pool), address(this)) < borrowTotal) {
             IERC20(lpAddr).approve(address(pool), type(uint256).max);
+        }
+        if (isFirstDeposit) {
+            IERC20(underlying).transferFrom(msg.sender, address(this), amount);
+            pool.deposit(underlying, amount, msg.sender, 0);
         }
         uint256 borrowed;
         while(borrowed < borrowTotal) {

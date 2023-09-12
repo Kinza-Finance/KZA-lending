@@ -26,15 +26,29 @@ contract leverageTest is ATokenWombatStakerBaseTest {
         address bob = address(1);
         deposit(bob, depositAmount, underlying);
         turnOnEmode(bob);
-        loop(bob, targetHF, depositAmount);
+        bool isFirstDeposit = false;
+        loop(bob, targetHF, depositAmount, isFirstDeposit);
     }
 
-    function loop(address user, uint256 targetHF, uint256 depositAmount) public {
+    function test_loopAsFirstDeposit() public {
+        uint256 targetHF = 1.2 * 1e18;
+        uint256 depositAmount = 100 * 1e18;
+        address bob = address(1);
+        turnOnEmode(bob);
+        deal(HAY, bob, depositAmount);
+        vm.startPrank(bob);
+        IERC20(HAY).approve(address(pool), depositAmount);
+        bool isFirstDeposit = true;
+        loop(bob, targetHF, depositAmount, isFirstDeposit);
+
+    }
+
+    function loop(address user, uint256 targetHF, uint256 depositAmount, bool isFirstDeposit) public {
         vm.startPrank(user);
         // check variableDebt of the underlying asset is indeed the borrowed.
         (,,address vDebtProxy) = IPoolDataProvider(POOLDATA_PROVIDER).getReserveTokensAddresses(HAY);
         uint256 debtBefore = IERC20(vDebtProxy).balanceOf(user);
-        uint256 borrowed = levHelper.loop(BORROWABLE_DATA_PROVIDER, targetHF, underlying, depositAmount, eModeCategoryId);
+        uint256 borrowed = levHelper.loop(BORROWABLE_DATA_PROVIDER, targetHF, underlying, depositAmount, eModeCategoryId, isFirstDeposit);
         assertEq(debtBefore + borrowed, IERC20(vDebtProxy).balanceOf(user));
     }
 }
