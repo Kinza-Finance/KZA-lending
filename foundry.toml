@@ -12,7 +12,7 @@ remappings = [
 solc-version = "0.8.10"
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config
 libraries = [
-    "src/core/protocol/libraries/logic/SupplyLogic.sol:SupplyLogic:0x763B2a4EbA91c3667a74Ba87A7142be3282FC1C2",
+    "src/core/protocol/libraries/logic/SupplyLogic.sol:SupplyLogic:0x1ab9B6edEc490a7F3545284fd383B8Ed98C21176",
     "src/core/protocol/libraries/logic/BorrowLogic.sol:BorrowLogic:0xa6265a8cE6F89610d3f97851abcf7F8203B006FB",
     "src/core/protocol/libraries/logic/LiquidationLogic.sol:LiquidationLogic:0x54C33c8669D52Bb0cd6682dB419483a1e86D8e67",
     "src/core/protocol/libraries/logic/EModeLogic.sol:EModeLogic:0xC8CB15Bc73B7f5f95Af33AEce738bC9B62Cb28D9",
