@@ -12,7 +12,7 @@ contract InitReserve is Script {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address provider = vm.envAddress("PoolAddressesProvider");
         address treasury = vm.envAddress("Treasury");
-        address aTokenImpl = vm.envAddress("ATokenImpl");
+        address aTokenImpl = vm.envAddress("ATokenWombatStakerImpl");
         address sdTokenImpl = vm.envAddress("sdTokenImpl");
         address vdTokenImpl = vm.envAddress("vdTokenImpl");
         address interestRateStrategyAddress = vm.envAddress("ZeroInterestRateStrategy");
