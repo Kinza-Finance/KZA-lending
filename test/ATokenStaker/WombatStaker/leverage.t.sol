@@ -37,7 +37,7 @@ contract leverageTest is ATokenWombatStakerBaseTest {
         turnOnEmode(bob);
         deal(HAY, bob, depositAmount);
         vm.startPrank(bob);
-        IERC20(HAY).approve(address(pool), depositAmount);
+        IERC20(HAY).approve(address(levHelper), depositAmount);
         bool isFirstDeposit = true;
         loop(bob, targetHF, depositAmount, isFirstDeposit);
 
