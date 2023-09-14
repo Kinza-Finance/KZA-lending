@@ -28,9 +28,6 @@ contract ATokenWombatStakerBaseTest is BaseTest {
     ATokenWombatStaker internal ATokenProxyStaker;
     EmissionAdminAndDirectTransferStrategy internal emissionAdmin;
     uint8 internal eModeCategoryId = 2;
-    // use categoryId as a magicNumber for emodeOralce asset
-    // @TODO read from eModeCategoryId and convert to address
-    address internal eModePriceAsset = address(2);
     uint16 internal ltv = 9700;
     uint16 internal liquidationThreshold = 9750;
     uint16 internal liquidationBonus = 10100;
@@ -58,7 +55,7 @@ contract ATokenWombatStakerBaseTest is BaseTest {
         EmodeOracle = address(new SmartHayPoolOracle(
             USDC_AGGREGATOR, USDT_AGGREGATOR, HAY_AGGREGATOR, USDC, USDT, HAY 
         ));
-        setUpEmodeAndEmodeOracle();
+        setUpEmodeAndOracle();
         addAssetIntoEmode();
         turnOnOpenForEveryone();
     }
@@ -142,16 +139,16 @@ contract ATokenWombatStakerBaseTest is BaseTest {
         IAaveOracle(oracle).setFallbackOracle(address(LPFallbackOracle));
     }
 
-    function setUpEmodeAndEmodeOracle() internal {
+    function setUpEmodeAndOracle() internal {
         
 
         vm.startPrank(POOL_ADMIN);
-        configurator.setEModeCategory(eModeCategoryId, ltv, liquidationThreshold, liquidationBonus, eModePriceAsset, label);
+        configurator.setEModeCategory(eModeCategoryId, ltv, liquidationThreshold, liquidationBonus, address(0), label);
         // then set oracle
         address[] memory assets = new address[](1);
         address[] memory sources = new address[](1);
         
-        assets[0] = eModePriceAsset;
+        assets[0] = underlying;
         sources[0] = EmodeOracle;
         IAaveOracle(oracle).setAssetSources(assets, sources);
     }
@@ -286,6 +283,15 @@ contract ATokenWombatStakerBaseTest is BaseTest {
         pool.liquidationCall(collateralAsset, debtAsset, user, debtToCover, receiveAToken);
     }
 
+    function liquidateRevertWith46(address user, address debtAsset, address collateralAsset, uint256 debtToCover) internal {
+        address liuqidator = RANDOM;
+        deal(debtAsset, liuqidator, debtToCover);
+        IERC20(debtAsset).approve(address(pool), debtToCover);
+        bool receiveAToken = false;
+        vm.expectRevert(abi.encodePacked("46"));
+        pool.liquidationCall(collateralAsset, debtAsset, user, debtToCover, receiveAToken);
+    }
+
 
     function transferAToken(address from, address to, uint256 amount, address ATokenProxy) internal {
         uint256 before = IERC20(ATokenProxy).balanceOf(to);
@@ -304,5 +310,10 @@ contract ATokenWombatStakerBaseTest is BaseTest {
     function turnOnOpenForEveryone() internal {
         vm.startPrank(POOL_ADMIN);
         ATokenProxyStaker.toogleOpenForEveryone(true);
+    }
+
+    function setReserveAsZeroLTV() internal {
+        vm.startPrank(POOL_ADMIN);
+        configurator.configureReserveAsCollateral(underlying, 0, 0, 0);
     }
 }
