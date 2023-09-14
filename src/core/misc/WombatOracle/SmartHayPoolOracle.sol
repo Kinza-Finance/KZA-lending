@@ -9,7 +9,9 @@ contract SmartHayPoolOracle {
     AggregatorInterface public usdcAggregator;
     AggregatorInterface public usdtAggregator;
     AggregatorInterface public hayAggregator;
-    address[3] private dependentAssets;
+    address public usdc;
+    address public usdt;
+    address public hay;
 
     // dependent on other internal aggregator.
     constructor(address _usdcAggregator, address _usdtAggregator, address _hayAggregator,
@@ -17,9 +19,9 @@ contract SmartHayPoolOracle {
         usdcAggregator = AggregatorInterface(_usdcAggregator);
         usdtAggregator = AggregatorInterface(_usdtAggregator);
         hayAggregator = AggregatorInterface(_hayAggregator);
-        dependentAssets[0] = _usdc;
-        dependentAssets[1] = _usdt;
-        dependentAssets[2] = _hay;
+        usdc = _usdc;
+        usdt = _usdt;
+        hay = _hay;
     }
 
 
@@ -62,9 +64,14 @@ contract SmartHayPoolOracle {
 
     function getSubTokens() external view returns (address[] memory) {
         address[] memory _dependentAssets = new address[](3);
-        _dependentAssets[0] = dependentAssets[0];
-        _dependentAssets[1] = dependentAssets[1];
-        _dependentAssets[2] = dependentAssets[2];
+        _dependentAssets[0] = usdc;
+        _dependentAssets[1] = usdt;
+        _dependentAssets[2] = hay;
         return _dependentAssets;
+  }
+
+  function getTokenType() public pure returns(uint256) {
+    // for subgraph purpose
+    return 2;
   }
 }

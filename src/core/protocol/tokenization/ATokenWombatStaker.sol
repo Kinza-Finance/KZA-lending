@@ -49,7 +49,7 @@ contract ATokenWombatStaker is AToken {
   }
   function updateMasterWombat(address masterWombat) external onlyPoolAdmin {
     // this is fine since it's a proxy
-    require(address(_masterWombat) == address(0), "masterMagpie can only be set once");
+    require(address(_masterWombat) == address(0), "master can only be set once");
     IERC20(_underlyingAsset).approve(masterWombat, type(uint256).max);
     _masterWombat = IMasterWombat(masterWombat);
     _pid = _masterWombat.getAssetPid(_underlyingAsset);
