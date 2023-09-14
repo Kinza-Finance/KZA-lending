@@ -22,7 +22,7 @@ contract setUpEmode is Script {
         uint16 liquidationBonus = 10100;
         // since wombat LP collected so little fee, we use the underlying price directlys
         address eModeAssetToFetchPrice = vm.envAddress(string(abi.encodePacked(token)));
-        string memory label = string(abi.encodePacked("SMART_LP_", token));
+        string memory label = string(abi.encodePacked("WOMBAT SMART_LP_", token));
         configurator.setEModeCategory(categoryId, ltv, liquidationThreshold, liquidationBonus, eModeAssetToFetchPrice, label);    
         string[] memory addressToAdd = new string[](2);
         addressToAdd[0] = token;
