@@ -33,9 +33,25 @@ contract poolUpgradeTest is ATokenWombatStakerBaseTest {
         turnOnCollateral(bob, underlying);
     }
 
-    function setReserveAsZeroLTV() internal {
-        vm.startPrank(POOL_ADMIN);
-        configurator.configureReserveAsCollateral(underlying, 0, 0, 0);
+    function test_liquidateRevertOutsideEmodeAfterProxyUpgrade() public {
+        setReserveAsZeroLTV();
+        address bob = address(1);
+        uint256 collateralAmount = 100 * 1e18;
+        deposit(bob, collateralAmount, underlying);
+        turnOnCollateral(bob, underlying);
+        // now setup a bad debt
+        prepUSDC(bob, 1e18);
+        address debtAsset = HAY;
+        borrow(bob, 6e17, debtAsset);
+        // pass 100y
+        vm.warp(36500 days);
+        // verify health factor < 1;
+        (,,,,, uint256 healthFactor) = pool.getUserAccountData(bob);
+        assertLt(healthFactor, 1e18);
+        // attempt to liquidate half of original debt
+        liquidateRevertWith46(bob, debtAsset, underlying, 3e17);
+
     }
+    
 
 }
