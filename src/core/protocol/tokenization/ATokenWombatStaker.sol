@@ -19,8 +19,11 @@ contract ATokenWombatStaker is AToken {
   IMasterWombat public _masterWombat;
   // manage emission on internal EmissionManager
   address public _emissionAdmin;
-
+  mapping(address => bool) public whitelist;
+  bool public isOpenForEveryone;
   event StakingRewardClaimed();
+  event OpenForEveryoneChanged(bool newValue);
+  event WhitelistChanged(address dest, bool newValue);
   /**
    * @dev Constructor.
    * @param pool The address of the Pool contract
@@ -31,9 +34,22 @@ contract ATokenWombatStaker is AToken {
     // Intentionally left blank
   }
 
+  modifier isWhitelistedOrOpen(address caller) {
+    require (isOpenForEveryone || whitelist[caller], "access controlled");
+    _;
+  }
+  function toogleOpenForEveryone(bool newOpenForEveryone) external onlyPoolAdmin {
+    isOpenForEveryone = newOpenForEveryone;
+    emit OpenForEveryoneChanged(newOpenForEveryone);
+  }
+
+  function toggleWhitelist(address dest, bool newValue) external onlyPoolAdmin {
+    whitelist[dest] = newValue;
+    emit WhitelistChanged(dest, newValue);
+  }
   function updateMasterWombat(address masterWombat) external onlyPoolAdmin {
     // this is fine since it's a proxy
-    require(address(_masterWombat) == address(0), "masterMagpie can only be set once");
+    require(address(_masterWombat) == address(0), "master can only be set once");
     IERC20(_underlyingAsset).approve(masterWombat, type(uint256).max);
     _masterWombat = IMasterWombat(masterWombat);
     _pid = _masterWombat.getAssetPid(_underlyingAsset);
@@ -74,7 +90,7 @@ contract ATokenWombatStaker is AToken {
     address onBehalfOf,
     uint256 amount,
     uint256 index
-  ) external virtual override onlyPool returns (bool) {
+  ) external virtual override onlyPool isWhitelistedOrOpen(caller) returns (bool) {
     // helper takes our LP, call wombat staking,
     // then stake the wombat stakingToken on magpie itself
     _masterWombat.deposit(_pid, amount);

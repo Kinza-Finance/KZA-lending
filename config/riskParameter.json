@@ -78,4 +78,14 @@
     "WBETH_stableBorrowingEnabled": "false",
     "WBETH_borrowingEnabled": "true",
     "WBETH_flashLoanEnabled": "true",
+
+    "SMART_LP_HAY_baseLTV": "0",
+    "SMART_LP_HAY_liquidationThreshold": "0",
+    "SMART_LP_HAY_liquidationBonus": "0",
+    "SMART_LP_HAY_reserveFactor": "1500",
+    "SMART_LP_HAY_borrowCap": "1",
+    "SMART_LP_HAY_supplyCap": "1000",
+    "SMART_LP_HAY_stableBorrowingEnabled": "false",
+    "SMART_LP_HAY_borrowingEnabled": "false",
+    "SMART_LP_HAY_flashLoanEnabled": "false"
 }

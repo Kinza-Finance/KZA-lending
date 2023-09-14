@@ -32,15 +32,15 @@ contract setupRiskParameter is Script {
 
             inputs[i] = ReservesSetupHelper.ConfigureReserveInput(
                 token,
-                vm.envUint(string(abi.encodePacked(tokens[i], "_BASE_LTV"))),
-                vm.envUint(string(abi.encodePacked(tokens[i], "_BASE_LIQUDATION_THRESHOLD"))),
-                vm.envUint(string(abi.encodePacked(tokens[i], "_BASE_LIQUDATION_BONUS"))),
-                vm.envUint(string(abi.encodePacked(tokens[i], "_RESERVE_FACTOR"))),
-                vm.envUint(string(abi.encodePacked(tokens[i], "_BORROW_CAP"))),
-                vm.envUint(string(abi.encodePacked(tokens[i], "_SUPPLY_CAP"))),
-                vm.envBool(string(abi.encodePacked(tokens[i], "_STABLE_BORROWING_ENABLED"))),
-                vm.envBool(string(abi.encodePacked(tokens[i], "_BORROWING_ENABLED"))),
-                vm.envBool(string(abi.encodePacked(tokens[i], "_FLASHLOAN_ENABLED")))
+                vm.envUint(string(abi.encodePacked(tokens[i], "_baseLTV"))),
+                vm.envUint(string(abi.encodePacked(tokens[i], "_liquidationThreshold"))),
+                vm.envUint(string(abi.encodePacked(tokens[i], "_liquidationBonus"))),
+                vm.envUint(string(abi.encodePacked(tokens[i], "_reserveFactor"))),
+                vm.envUint(string(abi.encodePacked(tokens[i], "_borrowCap"))),
+                vm.envUint(string(abi.encodePacked(tokens[i], "_supplyCap"))),
+                vm.envBool(string(abi.encodePacked(tokens[i], "_stableBorrowingEnabled"))),
+                vm.envBool(string(abi.encodePacked(tokens[i], "_borrowingEnabled"))),
+                vm.envBool(string(abi.encodePacked(tokens[i], "_flashLoanEnabled")))
                 );
         }
 
