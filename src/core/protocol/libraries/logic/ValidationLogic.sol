@@ -711,13 +711,12 @@ library ValidationLogic {
     DataTypes.UserConfigurationMap storage userConfig,
     DataTypes.ReserveConfigurationMap memory reserveConfig
   ) internal view returns (bool) {
-    return true;
-    // if (!userConfig.isUsingAsCollateralAny()) {
-    //   return true;
-    // }
-    // (bool isolationModeActive, , ) = userConfig.getIsolationModeState(reservesData, reservesList);
+    if (!userConfig.isUsingAsCollateralAny()) {
+      return true;
+    }
+    (bool isolationModeActive, , ) = userConfig.getIsolationModeState(reservesData, reservesList);
 
-    // return (!isolationModeActive && reserveConfig.getDebtCeiling() == 0);
+    return (!isolationModeActive && reserveConfig.getDebtCeiling() == 0);
   }
 
   /**

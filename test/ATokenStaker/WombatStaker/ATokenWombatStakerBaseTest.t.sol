@@ -60,6 +60,7 @@ contract ATokenWombatStakerBaseTest is BaseTest {
         ));
         setUpEmodeAndEmodeOracle();
         addAssetIntoEmode();
+        turnOnOpenForEveryone();
     }
 
     // return aTokenProxy
@@ -298,5 +299,10 @@ contract ATokenWombatStakerBaseTest is BaseTest {
         vm.startPrank(from);
         vm.expectRevert();
         IERC20(ATokenProxy).transfer(to, amount);
+    }
+
+    function turnOnOpenForEveryone() internal {
+        vm.startPrank(POOL_ADMIN);
+        ATokenProxyStaker.toogleOpenForEveryone(true);
     }
 }
