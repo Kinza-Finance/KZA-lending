@@ -13,12 +13,13 @@ import {ADDRESSES_PROVIDER, POOLDATA_PROVIDER, ACL_MANAGER, POOL, POOL_CONFIGURA
         SMART_HAY_POOL, SMART_HAY_LP, LIQUIDATION_ADAPTOR, BORROWABLE_DATA_PROVIDER} from "test/utils/Addresses.sol";
 
 contract leverageTest is ATokenWombatStakerBaseTest {
+    uint256 internal slippage = 10;
     WombatLeverageHelper internal levHelper;
     ICreditDelegationToken internal vDebtUnderlyingToken;
     function setUp() public virtual override(ATokenWombatStakerBaseTest) {
         ATokenWombatStakerBaseTest.setUp();
         levHelper = new WombatLeverageHelper(
-            ADDRESSES_PROVIDER, SMART_HAY_POOL
+            ADDRESSES_PROVIDER
         );
         (,,address vDebtProxy) = dataProvider.getReserveTokensAddresses(HAY);
         vDebtUnderlyingToken = ICreditDelegationToken(vDebtProxy);
@@ -90,9 +91,9 @@ contract leverageTest is ATokenWombatStakerBaseTest {
         uint256 debtBefore = IERC20(vDebtProxy).balanceOf(user);
         uint256 borrowed;
         if (isUnderlying) {
-            borrowed = levHelper.depositUnderlyingAndLoop(BORROWABLE_DATA_PROVIDER, targetHF, underlying, depositAmount, eModeCategoryId);
+            borrowed = levHelper.depositUnderlyingAndLoop(BORROWABLE_DATA_PROVIDER, SMART_HAY_POOL, targetHF, underlying, depositAmount, eModeCategoryId, slippage);
         } else {
-            borrowed = levHelper.depositLpAndLoop(BORROWABLE_DATA_PROVIDER, targetHF, underlying, depositAmount, eModeCategoryId);
+            borrowed = levHelper.depositLpAndLoop(BORROWABLE_DATA_PROVIDER, SMART_HAY_POOL, targetHF, underlying, depositAmount, eModeCategoryId, slippage);
         }
         assertEq(debtBefore + borrowed, IERC20(vDebtProxy).balanceOf(user));
     }

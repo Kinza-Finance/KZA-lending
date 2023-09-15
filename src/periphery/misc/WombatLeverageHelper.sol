@@ -23,12 +23,10 @@ contract WombatLeverageHelper {
     // return from borrowable provider is 10 ** 8;
     uint256 constant public BORROWABLE_MULTIPLIER = 10 ** 10;
     IPoolAddressesProvider immutable public provider;
-    IWombatPool public wombatPool;
-    IPool public pool;
-    constructor(address _provider, address _wombatPool) {
+    IPool immutable public pool;
+    constructor(address _provider) {
         provider = IPoolAddressesProvider(_provider);
         pool = IPool(IPoolAddressesProvider(_provider).getPool());
-        wombatPool = IWombatPool(_wombatPool);
     }
 
     // LP and underlying is assumed to be 1:1  
@@ -46,48 +44,51 @@ contract WombatLeverageHelper {
         return 1e18 * depositAmount * lpPrice * emodeLiqT / (depositRatio * underlyingPrice) / 10000;
     }
 
-    function calculateTargetedHF(uint256 targetedBorrow, address lpAddr, uint256 depositAmount, uint8 emodeCategory) public view returns(uint256) {
+    function calculateTarsgetedHF(uint256 targetedBorrow, address lpAddr, uint256 depositAmount, uint8 emodeCategory) public view returns(uint256) {
         address underlying = IAsset(lpAddr).underlyingToken();
         (uint256 underlyingPrice, uint256 lpPrice) = getPrice(underlying, lpAddr);
         uint256 emodeLiqT = uint256(pool.getEModeCategoryData(emodeCategory).liquidationThreshold);
-        return 1e18 * (targetBorrow + depositAmount) * emodeLiqT * lpPrice / (targetBorrow * underlyingPrice);
+        return 1e18 * (targetedBorrow + depositAmount) * emodeLiqT * lpPrice / (targetedBorrow * underlyingPrice);
     }
 
-    function depositUnderlyingAndLoop(address borrowableProvider, uint256 targetHF, address lpAddr, uint256 amount, uint8 emodeCategory) external returns (uint256) {
+    function depositUnderlyingAndLoop(address borrowableProvider, address wombatPool, uint256 targetHF, address lpAddr, uint256 amount, uint8 emodeCategory, uint256 slippage) external returns (uint256) {
         address underlying = IAsset(lpAddr).underlyingToken();
         (uint256 underlyingPrice, uint256 lpPrice) = getPrice(underlying, lpAddr);
         IERC20(underlying).transferFrom(msg.sender, address(this), amount);
         // initial approval
-        _checkWombatAllowance(underlying);
+        _checkWombatAllowance(underlying, wombatPool);
         _checkPoolAllowance(lpAddr);
-        wombatPool.deposit(
+        require(slippage <= 10000, "slippage too big");
+        IWombatPool(wombatPool).deposit(
             underlying,
             amount,
             // apply 10 bp slippage for minLiq,
             // with ref to relative lpPrice and underlyingPrice
-            amount * lpPrice * 9990 / underlyingPrice / 10000,
+            amount * lpPrice * (10000 - slippage) / underlyingPrice / 10000,
             address(this),
             block.timestamp,
             false
             );
         uint256 lpCollected = IERC20(lpAddr).balanceOf(address(this));
         pool.deposit(lpAddr, lpCollected, msg.sender, 0);
-        return _loop(borrowableProvider, targetHF, lpAddr, amount, emodeCategory);
+        return _loop(borrowableProvider, wombatPool, targetHF, lpAddr, amount, emodeCategory, slippage);
     }
 
-    function depositLpAndLoop(address borrowableProvider, uint256 targetHF, address lpAddr, uint256 amount, uint8 emodeCategory) external returns (uint256) {
+    function depositLpAndLoop(address borrowableProvider, address wombatPool, uint256 targetHF, address lpAddr, uint256 amount, uint8 emodeCategory, uint256 slippage) external returns (uint256) {
+        require(slippage <= 10000, "slippage too big");
         address underlying = IAsset(lpAddr).underlyingToken();
         IERC20(lpAddr).transferFrom(msg.sender, address(this), amount);
-        _checkWombatAllowance(underlying);
+        _checkWombatAllowance(underlying, wombatPool);
         _checkPoolAllowance(lpAddr);
         pool.deposit(lpAddr, amount, msg.sender, 0);
-        return _loop(borrowableProvider, targetHF, lpAddr, amount, emodeCategory);
+        return _loop(borrowableProvider, wombatPool, targetHF, lpAddr, amount, emodeCategory, slippage);
     }
     // this function just leverage by borrowing underlying for the user
     // and loop the needed borrowedAmount by re-depositing back the lp
     // the final health factor may vary from the targetHF
     // since the deposited LP might be different depends on wombat
-    function _loop(address borrowableProvider, uint256 targetHF, address lpAddr, uint256 amount, uint8 emodeCategory) internal returns(uint256) {
+    function _loop(address borrowableProvider, address wombatPool, uint256 targetHF, address lpAddr, uint256 amount, uint8 emodeCategory, uint256 slippage) internal returns(uint256) {
+        
         require(targetHF > 1e18 && amount > 0, "targetHF or deposit amount invalid");
         address underlying = IAsset(lpAddr).underlyingToken();
         (uint256 underlyingPrice, uint256 lpPrice) = getPrice(underlying, lpAddr);
@@ -110,12 +111,12 @@ contract WombatLeverageHelper {
             // 2 = variable interest rate, 0 = referral code
             pool.borrow(underlying, toBorrow, 2, 0, msg.sender);
             // convert to LP on wombat
-            wombatPool.deposit(
+            IWombatPool(wombatPool).deposit(
             underlying,
             toBorrow,
             // apply 10 bp slippage for minLiq,
             // with ref to relative lpPrice and underlyingPrice
-            toBorrow * lpPrice * 9990 / underlyingPrice / 10000,
+            toBorrow * lpPrice * (10000 - slippage) / underlyingPrice / 10000,
             address(this),
             block.timestamp,
             false
@@ -142,9 +143,9 @@ contract WombatLeverageHelper {
         }
    }
 
-   function _checkWombatAllowance(address underlying) internal {
-        if (IERC20(underlying).allowance(address(wombatPool), address(this)) == 0) {
-            IERC20(underlying).approve(address(wombatPool), type(uint256).max);
+   function _checkWombatAllowance(address underlying, address wombatPool) internal {
+        if (IERC20(underlying).allowance(wombatPool, address(this)) == 0) {
+            IERC20(underlying).approve(wombatPool, type(uint256).max);
         }
    }
 
