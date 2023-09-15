@@ -83,6 +83,15 @@ contract WombatLeverageHelper {
         pool.deposit(lpAddr, amount, msg.sender, 0);
         return _loop(borrowableProvider, wombatPool, targetHF, lpAddr, amount, emodeCategory, slippage);
     }
+
+    // assume the user already deposited the LP or have some collateral power
+    function Loop(address borrowableProvider, address wombatPool, uint256 targetHF, address lpAddr, uint256 amount, uint8 emodeCategory, uint256 slippage) external returns (uint256) {
+        require(slippage <= 10000, "slippage too big");
+        address underlying = IAsset(lpAddr).underlyingToken();
+        _checkWombatAllowance(underlying, wombatPool);
+        _checkPoolAllowance(lpAddr);
+        return _loop(borrowableProvider, wombatPool, targetHF, lpAddr, amount, emodeCategory, slippage);
+    }
     // this function just leverage by borrowing underlying for the user
     // and loop the needed borrowedAmount by re-depositing back the lp
     // the final health factor may vary from the targetHF
