@@ -23,3 +23,5 @@ echo "PoolV2=$PoolV2" >> ".env"
 forge script script/13-addLPMarket/13.6-upgradePoolImpl.s.sol --rpc-url $RPC_URL --broadcast --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY -vvvv
 
 forge script script/13-addLPMarket/13.7-deployEmissionAdmin.s.sol --rpc-url $RPC_URL --broadcast --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY -vvvv
+forge script script/13-addLPMarket/13.8-setupATokenStakerProxy.s.sol --rpc-url $RPC_URL --broadcast --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY -vvvv
+forge script script/13-addLPMarket/13.9-deployLeverageHelper.s.sol --rpc-url $RPC_URL --broadcast --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY -vvvv
