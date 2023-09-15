@@ -20,6 +20,8 @@ interface IAsset  {
 }
 
 contract WombatLeverageHelper {
+    // return from borrowable provider is 10 ** 8;
+    uint256 constant public BORROWABLE_MULTIPLIER = 10 ** 10;
     IPoolAddressesProvider immutable public provider;
     IWombatPool public wombatPool;
     IPool public pool;
@@ -29,6 +31,8 @@ contract WombatLeverageHelper {
         wombatPool = IWombatPool(_wombatPool);
     }
 
+    // LP and underlying is assumed to be 1:1  
+    // in reality it depends on the conversion ratio on wombatPool
     function calculateUnderlyingBorrow(uint256 targetHF, address lpAddr, uint256 depositAmount, uint8 emodeCategory) public view returns(uint256) {
         address underlying = IAsset(lpAddr).underlyingToken();
         (uint256 underlyingPrice, uint256 lpPrice) = getPrice(underlying, lpAddr);
@@ -40,7 +44,13 @@ contract WombatLeverageHelper {
         // after refactor: the constant part => depositRatio.
         uint256 depositRatio = targetHF - 1e18 * lpPrice * emodeLiqT / underlyingPrice / 10000;
         return 1e18 * depositAmount * lpPrice * emodeLiqT / (depositRatio * underlyingPrice) / 10000;
+    }
 
+    function calculateTargetedHF(uint256 targetedBorrow, address lpAddr, uint256 depositAmount, uint8 emodeCategory) public view returns(uint256) {
+        address underlying = IAsset(lpAddr).underlyingToken();
+        (uint256 underlyingPrice, uint256 lpPrice) = getPrice(underlying, lpAddr);
+        uint256 emodeLiqT = uint256(pool.getEModeCategoryData(emodeCategory).liquidationThreshold);
+        return 1e18 * (targetBorrow + depositAmount) * emodeLiqT * lpPrice / (targetBorrow * underlyingPrice);
     }
 
     function depositUnderlyingAndLoop(address borrowableProvider, uint256 targetHF, address lpAddr, uint256 amount, uint8 emodeCategory) external returns (uint256) {
@@ -86,7 +96,8 @@ contract WombatLeverageHelper {
         while(borrowed < borrowTotal) {
             // start borrow
             uint256 diff = borrowTotal - borrowed;
-            uint256 toBorrow = IBorrowableProvider(borrowableProvider).getUserMaxBorrowable(msg.sender, address(underlying));
+            // the return is 10 * 8 from borrowableProvider
+            uint256 toBorrow = BORROWABLE_MULTIPLIER * IBorrowableProvider(borrowableProvider).getUserMaxBorrowable(msg.sender, underlying);
             if (toBorrow == 0) {
                 // somehow the user can not borrow anymore
                 // can be due to other existing borrow, or debt ceiling/available in the protocol

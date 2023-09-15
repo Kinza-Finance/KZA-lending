@@ -316,4 +316,13 @@ contract ATokenWombatStakerBaseTest is BaseTest {
         vm.startPrank(POOL_ADMIN);
         configurator.configureReserveAsCollateral(underlying, 0, 0, 0);
     }
+    
+    function getPrice(address underlying, address lp) public view returns(uint256, uint256) {
+        IAaveOracle oracle = IAaveOracle(provider.getPriceOracle());
+        address[] memory assets = new address[](2);
+        assets[0] = underlying;
+        assets[1] = lp;
+        uint256[] memory prices = oracle.getAssetsPrices(assets);
+        return (prices[0], prices[1]);
+  }
 }
