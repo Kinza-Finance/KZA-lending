@@ -312,6 +312,11 @@ contract ATokenWombatStakerBaseTest is BaseTest {
         ATokenProxyStaker.toogleOpenForEveryone(true);
     }
 
+    function toggleEmergency() internal {
+        vm.startPrank(POOL_ADMIN);
+        ATokenProxyStaker.toggleEmergencyWithdraw();
+    }
+
     function setReserveAsZeroLTV() internal {
         vm.startPrank(POOL_ADMIN);
         configurator.configureReserveAsCollateral(underlying, 0, 0, 0);

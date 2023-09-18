@@ -7,6 +7,7 @@ interface IMasterWombat {
     function withdraw(uint256 pid, uint256 amount) external;
     function getAssetPid(address asset) external view returns (uint256);
     function poolInfo(uint256 pid) external view returns (address, address, uint40, uint128, uint128, uint104, uint104, uint40);
+    function userInfo(uint256 pid, address user) external view returns (uint128, uint128, uint128, uint128);
     function pendingTokens(
         uint256 _pid,
         address _user

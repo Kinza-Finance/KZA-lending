@@ -208,4 +208,42 @@ contract unitTest is ATokenWombatStakerBaseTest {
         flashloanRevert(bob, collateralAmount, underlying, '91');
     }
 
+    function test_toggleEmergencyAround() public {
+        address bob = address(1);
+        uint256 collateralAmount = 100 * 1e18;
+        deposit(bob, collateralAmount, underlying);
+        toggleEmergency();
+        toggleEmergency();
+        withdraw(bob, collateralAmount, underlying);
+    }
+
+    function test_toggleEmergencyAround2() public {
+        toggleEmergency();
+        toggleEmergency();
+        address bob = address(1);
+        uint256 collateralAmount = 100 * 1e18;
+        deposit(bob, collateralAmount, underlying);
+        withdraw(bob, collateralAmount, underlying);
+    }
+    function test_depositRevertWhenEmergency() public {
+        toggleEmergency();
+        address bob = address(1);
+        uint256 collateralAmount = 100 * 1e18;
+        vm.startPrank(bob);
+        deal(underlying, bob, collateralAmount);
+        (address ATokenProxyAddress,,) = dataProvider.getReserveTokensAddresses(underlying);
+        uint256 before_aToken = IERC20(ATokenProxyAddress).balanceOf(bob);
+        uint256 before_underlying = IERC20(underlying).balanceOf(bob);
+        IERC20(underlying).approve(address(pool), collateralAmount);
+        vm.expectRevert(abi.encodePacked("deposit is paused due to emergency"));
+        pool.deposit(underlying, collateralAmount, bob, 0);
+    }
+
+    function test_withdrawWhenEmergency() public {address bob = address(1);
+        uint256 collateralAmount = 100 * 1e18;
+        deposit(bob, collateralAmount, underlying);
+        toggleEmergency();
+        withdraw(bob, collateralAmount, underlying);
+    }
+
 }

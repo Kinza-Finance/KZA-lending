@@ -21,9 +21,11 @@ contract ATokenWombatStaker is AToken {
   address public _emissionAdmin;
   mapping(address => bool) public whitelist;
   bool public isOpenForEveryone;
+  bool public isInEmergency;
   event StakingRewardClaimed();
   event OpenForEveryoneChanged(bool newValue);
   event WhitelistChanged(address dest, bool newValue);
+  event EmergencyStateChanged(bool newValue);
   /**
    * @dev Constructor.
    * @param pool The address of the Pool contract
@@ -38,6 +40,23 @@ contract ATokenWombatStaker is AToken {
     require (isOpenForEveryone || whitelist[caller], "access controlled");
     _;
   }
+
+  // withdraw all LP from the masterWombat
+  function toggleEmergencyWithdraw() external onlyPoolAdmin {
+    if (isInEmergency) {
+      uint256 amount = IERC20(_underlyingAsset).balanceOf(address(this));
+      _masterWombat.deposit(_pid, amount);
+      isInEmergency = false;
+      emit EmergencyStateChanged(false);
+    } else {
+      (uint128 amount,,,) = _masterWombat.userInfo(_pid, address(this));
+      _masterWombat.withdraw(_pid, uint256(amount));
+      isInEmergency = true;
+      emit EmergencyStateChanged(true);
+    }
+    
+  }
+
   function toogleOpenForEveryone(bool newOpenForEveryone) external onlyPoolAdmin {
     isOpenForEveryone = newOpenForEveryone;
     emit OpenForEveryoneChanged(newOpenForEveryone);
@@ -93,6 +112,7 @@ contract ATokenWombatStaker is AToken {
   ) external virtual override onlyPool isWhitelistedOrOpen(caller) returns (bool) {
     // helper takes our LP, call wombat staking,
     // then stake the wombat stakingToken on magpie itself
+    require(!isInEmergency, "deposit is paused due to emergency");
     _masterWombat.deposit(_pid, amount);
     return _mintScaled(caller, onBehalfOf, amount, index);
   }
@@ -104,7 +124,11 @@ contract ATokenWombatStaker is AToken {
     uint256 index
   ) external virtual override onlyPool {
     address stakingToken = _underlyingAsset;
-    _masterWombat.withdraw(_pid, amount);
+    // in normal operation, user need to withdraw from masterWombat
+    // if in emergency, LP should already be withdrawn from the masterWombat
+    if (!isInEmergency) {
+      _masterWombat.withdraw(_pid, amount);
+    }
     _burnScaled(from, receiverOfUnderlying, amount, index);
     if (receiverOfUnderlying != address(this)) {
       IERC20(_underlyingAsset).safeTransfer(receiverOfUnderlying, amount);
