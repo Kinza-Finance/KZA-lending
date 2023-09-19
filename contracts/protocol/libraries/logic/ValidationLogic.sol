@@ -239,6 +239,7 @@ library ValidationLogic {
       })
     );
 
+    require(vars.userCollateralInBaseCurrency != 0, Errors.COLLATERAL_BALANCE_IS_ZERO);
     require(vars.currentLtv != 0, Errors.LTV_VALIDATION_FAILED);
 
     require(
