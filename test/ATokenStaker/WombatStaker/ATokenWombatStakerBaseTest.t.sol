@@ -9,7 +9,6 @@ import {IAaveOracle} from '../../../src/core/interfaces/IAaveOracle.sol';
 import {IAaveIncentivesController} from '../../../src/core/interfaces/IAaveIncentivesController.sol';
 import {IMasterWombat} from '../../../src/core/interfaces/IMasterWombat.sol';
 import {AToken} from "../../../src/core/protocol/tokenization/AToken.sol";
-import {GenericLPFallbackOracle} from "../../../src/core/misc/wombatOracle/GenericLPFallbackOracle.sol";
 import {SmartHayPoolOracle} from "../../../src/core/misc/wombatOracle/SmartHayPoolOracle.sol";
 import {ATokenWombatStaker} from "../../../src/core/protocol/tokenization/ATokenWombatStaker.sol";
 import {ZeroReserveInterestRateStrategy} from "../../../src/core/misc/ZeroReserveInterestRateStrategy.sol";
@@ -33,12 +32,10 @@ contract ATokenWombatStakerBaseTest is BaseTest {
     uint16 internal liquidationBonus = 10100;
     // each eMode category may or may not have a custom oracle to override the individual assets price oracles
     // use HAY oracle for now
-    address internal EmodeOracle;
+    address internal LpOracle;
     string internal label = "wombat LP Emode";
     function setUp() public virtual override(BaseTest) {
         BaseTest.setUp();
-        //setup oracle 
-        setUpOracleThroughFallback();
         // deploy reserve, get ATokenProxy
         address aTokenProxy = deployReserveForATokenStaker();
         ATokenProxyStaker = ATokenWombatStaker(aTokenProxy);
@@ -52,7 +49,7 @@ contract ATokenWombatStakerBaseTest is BaseTest {
         emissionAdmin = new EmissionAdminAndDirectTransferStrategy(pool, emissionManager);
         ATokenProxyStaker.updateEmissionAdmin(address(emissionAdmin));
         // add emode, setup oracle specific to the emode
-        EmodeOracle = address(new SmartHayPoolOracle(
+        LpOracle = address(new SmartHayPoolOracle(
             USDC_AGGREGATOR, USDT_AGGREGATOR, HAY_AGGREGATOR, USDC, USDT, HAY 
         ));
         setUpEmodeAndOracle();
@@ -118,9 +115,9 @@ contract ATokenWombatStakerBaseTest is BaseTest {
         ReservesSetupHelper.ConfigureReserveInput[] memory inputs = new ReservesSetupHelper.ConfigureReserveInput[](1);
         inputs[0] = ReservesSetupHelper.ConfigureReserveInput(
                 underlying,
-                100, // baseLTV
-                100, // liquidationThreshold
-                10100, // liquidationBonus
+                0, // baseLTV
+                0, // liquidationThreshold
+                0, // liquidationBonus
                 1500, // reserveFactor
                 1, //borrowCap
                 2000000, //supplyCap
@@ -133,15 +130,13 @@ contract ATokenWombatStakerBaseTest is BaseTest {
         aclManager.removePoolAdmin(address(helper));
     }
 
-    function setUpOracleThroughFallback() internal {
-        GenericLPFallbackOracle LPFallbackOracle = new GenericLPFallbackOracle();
-        vm.startPrank(POOL_ADMIN);
-        IAaveOracle(oracle).setFallbackOracle(address(LPFallbackOracle));
-    }
+    // function setUpOracleThroughFallback() internal {
+    //     GenericLPFallbackOracle LPFallbackOracle = new GenericLPFallbackOracle();
+    //     vm.startPrank(POOL_ADMIN);
+    //     IAaveOracle(oracle).setFallbackOracle(address(LPFallbackOracle));
+    // }
 
     function setUpEmodeAndOracle() internal {
-        
-
         vm.startPrank(POOL_ADMIN);
         configurator.setEModeCategory(eModeCategoryId, ltv, liquidationThreshold, liquidationBonus, address(0), label);
         // then set oracle
@@ -149,8 +144,11 @@ contract ATokenWombatStakerBaseTest is BaseTest {
         address[] memory sources = new address[](1);
         
         assets[0] = underlying;
-        sources[0] = EmodeOracle;
+        sources[0] = LpOracle;
         IAaveOracle(oracle).setAssetSources(assets, sources);
+        uint256[] memory price = new uint256[](1);
+        price = IAaveOracle(oracle).getAssetsPrices(assets);
+        assertGt(price[0], 0);
     }
 
     function addAssetIntoEmode() internal {

@@ -1,14 +1,56 @@
 
 import {ATokenWombatStakerBaseTest} from "./ATokenWombatStakerBaseTest.t.sol";
 import {IERC20} from "../../../src/core/dependencies/openzeppelin/contracts/IERC20.sol";
-import {ADDRESSES_PROVIDER, POOLDATA_PROVIDER, ACL_MANAGER, POOL, POOL_CONFIGURATOR, EMISSION_MANAGER, 
-        ATOKENIMPL, SDTOKENIMPL, VDTOKENIMPL, TREASURY, POOL_ADMIN, HAY_AGGREGATOR, HAY, 
-        MASTER_WOMBAT, SMART_HAY_LP, LIQUIDATION_ADAPTOR} from "test/utils/Addresses.sol";
+import {ValidationLogic} from "../../../src/core/protocol/libraries/logic/ValidationLogic.sol";
+import {IPoolAddressesProvider} from "../../../src/core/interfaces/IPoolAddressesProvider.sol";
+import {Pool} from "../../../src/core/protocol/pool/Pool.sol";
 
-contract unitTest is ATokenWombatStakerBaseTest {
+import {TIMELOCK, ADDRESSES_PROVIDER, POOLDATA_PROVIDER, ACL_MANAGER, POOL, POOL_CONFIGURATOR, EMISSION_MANAGER, 
+        ATOKENIMPL, SDTOKENIMPL, VDTOKENIMPL, TREASURY, POOL_ADMIN, HAY_AGGREGATOR, HAY, 
+        MASTER_WOMBAT, SMART_HAY_LP, LIQUIDATION_ADAPTOR, BORROWABLE_DATA_PROVIDER} from "test/utils/Addresses.sol";
+
+// @dev disable linked lib in foundry.toml, since forge test would inherit those setting
+// https://book.getfoundry.sh/reference/forge/forge-build?highlight=link#linker-options
+contract poolUpgradeUnitTest is ATokenWombatStakerBaseTest {
 
     function setUp() public virtual override(ATokenWombatStakerBaseTest) {
         ATokenWombatStakerBaseTest.setUp();
+        // deploy new pool impl with new validationLogic
+        
+        Pool poolV2 = new Pool(IPoolAddressesProvider(ADDRESSES_PROVIDER));
+        poolV2.initialize(IPoolAddressesProvider(ADDRESSES_PROVIDER));
+        // upgrade
+        vm.startPrank(TIMELOCK);
+        provider.setPoolImpl(address(poolV2));
+        assertEq(Pool(address(pool)).POOL_REVISION(), 0x2);
+    }
+
+    function test_enableCollateralWithZeroLTV() public {
+        setReserveAsZeroLTV();
+        address bob = address(1);
+        turnOnEmode(bob);
+        deposit(bob, 1e18, underlying);
+        turnOnCollateral(bob, underlying);
+    }
+
+    function test_liquidateRevertOutsideEmodeAfterProxyUpgrade() public {
+        setReserveAsZeroLTV();
+        address bob = address(1);
+        uint256 collateralAmount = 100 * 1e18;
+        deposit(bob, collateralAmount, underlying);
+        turnOnCollateral(bob, underlying);
+        // now setup a bad debt
+        prepUSDC(bob, 1e18);
+        address debtAsset = HAY;
+        borrow(bob, 6e17, debtAsset);
+        // pass 100y
+        vm.warp(36500 days);
+        // verify health factor < 1;
+        (,,,,, uint256 healthFactor) = pool.getUserAccountData(bob);
+        assertLt(healthFactor, 1e18);
+        // attempt to liquidate half of original debt
+        liquidateRevertWith46(bob, debtAsset, underlying, 3e17);
+
     }
 
     function test_deposit() public {
@@ -48,20 +90,6 @@ contract unitTest is ATokenWombatStakerBaseTest {
         deposit(bob, borrow_amount, underlying);
         prepUSDC(bob, collateralAmount);
         turnOnBorrow();
-        borrowExpectFail(bob, borrow_amount, underlying, 'ATokenStaker does not allow flashloan or borrow');
-    }
-
-    function test_borrowWhenBorrowEnabledNonZeroPrice() public {
-        address bob = address(1);
-        uint256 collateralAmount = 100_000 * 1e18;
-        uint256 borrow_amount = 100 * 1e18;
-        // have a deposit first, so there is reserve available
-        deposit(bob, borrow_amount, underlying);
-        prepUSDC(bob, collateralAmount);
-        turnOnBorrow();
-        // this is a set-up to test the error, in mainnet we wont set price for LP
-        setUpOracle(HAY_AGGREGATOR, underlying);
-        //when borrow is enabled, price is non-zero borrow is reverted by AToken
         borrowExpectFail(bob, borrow_amount, underlying, 'ATokenStaker does not allow flashloan or borrow');
     }
 
@@ -179,9 +207,16 @@ contract unitTest is ATokenWombatStakerBaseTest {
         // borrow
         uint256 borrowAmount = 100;
         // borrow(bob, borrowAmount, HAY);
-        borrowExpectFail(bob, borrowAmount, HAY, '34');
+        borrowExpectFail(bob, borrowAmount, HAY, '');
     }
-
+     function test_borrowWithEmode() public {
+        address bob = address(1);
+        uint256 collateralAmount = 100 * 1e18;
+        deposit(bob, collateralAmount, underlying);
+        turnOnEmode(bob);
+        turnOnCollateral(bob, underlying);
+        
+     }
     function test_borrowWithEmode() public {
         address bob = address(1);
         uint256 collateralAmount = 100 * 1e18;
@@ -245,5 +280,6 @@ contract unitTest is ATokenWombatStakerBaseTest {
         toggleEmergency();
         withdraw(bob, collateralAmount, underlying);
     }
+    
 
 }
