@@ -70,7 +70,7 @@ contract ProtectedNativeTokenGateway is Ownable {
     // transfer aPToken from msg.sender to this contract
     apWBNB.transferFrom(msg.sender, address(this), amountToWithdraw);
     // withdraw aPToken to pToken
-    uint256 withdrawnAmount = POOL.withdraw(address(apWBNB), amountToWithdraw, address(this));
+    uint256 withdrawnAmount = POOL.withdraw(address(pWBNB), amountToWithdraw, address(this));
     // withdraw the pToken to wToken first
     pWBNB.withdrawTo(address(this), withdrawnAmount);
     // withdraw the wToken to native token
