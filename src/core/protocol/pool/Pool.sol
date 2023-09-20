@@ -229,6 +229,7 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
       _reserves,
       _reservesList,
       _eModeCategories,
+      _reserveBlacklistBitmap,
       _usersConfig[onBehalfOf],
       DataTypes.ExecuteBorrowParams({
         asset: asset,
@@ -417,6 +418,7 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
       _reserves,
       _reservesList,
       _eModeCategories,
+      _reserveBlacklistBitmap,
       _usersConfig[onBehalfOf],
       flashParams
     );
@@ -670,6 +672,13 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
     // category 0 is reserved for volatile heterogeneous assets and it's always disabled
     require(id != 0, Errors.EMODE_CATEGORY_RESERVED);
     _eModeCategories[id] = category;
+  }
+
+  function configureReserveBlacklistBitmap(
+    uint16 reserveIndex,
+    uint128 reserveBlackListBitmap
+  ) external virtual override onlyPoolConfigurator {
+    _reserveBlacklistBitmap[reserveIndex] =  reserveBlackListBitmap;
   }
 
   /// @inheritdoc IPool

@@ -68,6 +68,7 @@ library BorrowLogic {
     mapping(address => DataTypes.ReserveData) storage reservesData,
     mapping(uint256 => address) storage reservesList,
     mapping(uint8 => DataTypes.EModeCategory) storage eModeCategories,
+    mapping(uint16 => uint128) storage reserveBlacklistBitmap,
     DataTypes.UserConfigurationMap storage userConfig,
     DataTypes.ExecuteBorrowParams memory params
   ) public {
@@ -86,6 +87,7 @@ library BorrowLogic {
       reservesData,
       reservesList,
       eModeCategories,
+      reserveBlacklistBitmap,
       DataTypes.ValidateBorrowParams({
         reserveCache: reserveCache,
         userConfig: userConfig,

@@ -19,6 +19,7 @@ import {WadRayMath} from '../math/WadRayMath.sol';
 import {PercentageMath} from '../math/PercentageMath.sol';
 import {DataTypes} from '../types/DataTypes.sol';
 import {ReserveLogic} from './ReserveLogic.sol';
+import {BitmapLogic} from './BitmapLogic.sol';
 import {GenericLogic} from './GenericLogic.sol';
 import {SafeCast} from '../../../dependencies/openzeppelin/contracts/SafeCast.sol';
 import {IncentivizedERC20} from '../../tokenization/base/IncentivizedERC20.sol';
@@ -134,18 +135,29 @@ library ValidationLogic {
    * @param reservesData The state of all the reserves
    * @param reservesList The addresses of all the active reserves
    * @param eModeCategories The configuration of all the efficiency mode categories
+   * @param reserveBlacklistBitmap The configuration of all the reserveBlacklistBitmap
    * @param params Additional params needed for the validation
    */
   function validateBorrow(
     mapping(address => DataTypes.ReserveData) storage reservesData,
     mapping(uint256 => address) storage reservesList,
     mapping(uint8 => DataTypes.EModeCategory) storage eModeCategories,
+    mapping(uint16 => uint128) storage reserveBlacklistBitmap,
     DataTypes.ValidateBorrowParams memory params
   ) internal view {
+    // reserveIndex for the asset to borrow
+    uint16 id = reservesData[params.asset].id;
+    bool canBorrow = BitmapLogic.isAssetBorrowable(
+      reservesList,
+      reserveBlacklistBitmap,
+      id,
+      params.userConfig,
+      params.reservesCount
+    );
+    require(canBorrow, Errors.COLLATERAL_BLACKLIST_VIOLATION);
     require(params.amount != 0, Errors.INVALID_AMOUNT);
 
     ValidateBorrowLocalVars memory vars;
-
     (
       vars.isActive,
       vars.isFrozen,
@@ -218,7 +230,7 @@ library ValidationLogic {
       );
       vars.eModePriceSource = eModeCategories[params.userEModeCategory].priceSource;
     }
-
+    
     (
       vars.userCollateralInBaseCurrency,
       vars.userDebtInBaseCurrency,

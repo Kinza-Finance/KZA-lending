@@ -468,6 +468,15 @@ contract PoolConfigurator is VersionedInitializable, IPoolConfigurator {
     );
   }
 
+  function setReserveBlacklistBitmap(
+    uint256 reserveIndex, 
+    uint128 reserveBlacklistBitmap
+    ) external override onlyRiskOrPoolAdmins {
+    require(reserveIndex < ReserveConfiguration.MAX_RESERVES_COUNT, Errors.INVALID_RESERVE_INDEX);
+    _pool.configureReserveBlacklistBitmap(uint16(reserveIndex), reserveBlacklistBitmap);
+    emit ReserveBlacklistBitmapChanged(uint16(reserveIndex), reserveBlacklistBitmap);
+  }
+
   function _checkNoSuppliers(address asset) internal view {
     (, uint256 accruedToTreasury, uint256 totalATokens, , , , , , , , , ) = IPoolDataProvider(
       _addressesProvider.getPoolDataProvider()
