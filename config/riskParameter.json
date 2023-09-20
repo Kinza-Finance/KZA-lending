@@ -126,7 +126,7 @@
     "PBTCB_liquidationBonus": "10800",
     "PBTCB_reserveFactor": "1500",
     "PBTCB_borrowCap": "800",
-    "PBTCB_supplyCap": "1600",
+    "PBTCB_supplyCap": "1000",
     "PBTCB_stableBorrowingEnabled": "false",
     "PBTCB_borrowingEnabled": "false",
     "PBTCB_flashLoanEnabled": "false"
