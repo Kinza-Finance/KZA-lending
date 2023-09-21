@@ -688,6 +688,12 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
     return _reserveBlacklistBitmap[reserveIndex] & (1 << assetToBorrowIndex) == 0;
   }
 
+  function getReserveBitmap(
+    uint16 reserveIndex
+  ) external view virtual override returns(uint128) {
+    return _reserveBlacklistBitmap[reserveIndex];
+  }
+
   /// @inheritdoc IPool
   function getEModeCategoryData(
     uint8 id

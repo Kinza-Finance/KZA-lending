@@ -741,4 +741,8 @@ interface IPool {
     uint16 reserveIndex,
     uint16 assetToBorrowIndex
   ) external view returns(bool);
+
+  function getReserveBitmap(
+    uint16 reserveIndex
+  ) external view returns(uint128);
 }
