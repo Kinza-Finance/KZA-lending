@@ -685,7 +685,7 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
     uint16 reserveIndex,
     uint16 assetToBorrowIndex
   ) external view virtual override returns(bool) {
-    return _reserveBlacklistBitmap[reserveIndex] & (1 << assetToBorrowIndex) > 0;
+    return _reserveBlacklistBitmap[reserveIndex] & (1 << assetToBorrowIndex) == 0;
   }
 
   /// @inheritdoc IPool

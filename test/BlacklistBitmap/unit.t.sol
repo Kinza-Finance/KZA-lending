@@ -16,6 +16,15 @@ contract blacklistBitmapUpgradeUnitTest is BitmapUpgradeBaseTest {
         
     }
 
+    function test_blockUSDCViewBorrowable() public {
+        uint16 reserveIndex = pool.getReserveData(USDC).id;
+        setUpBlacklistForReserve(reserveIndex, type(uint128).max);
+        uint256 reservesCount = pool.getReservesList().length;
+        for (uint256 i; i < reservesCount; i++) {
+            assertEq(false, pool.getReserveBorrowable(reserveIndex, uint16(i)));
+        }
+        
+    }
     function test_blockUSDCFromBorrowing() public {
         // every asset gets blocked
         uint16 reserveIndex = pool.getReserveData(USDC).id;
