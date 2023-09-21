@@ -39,7 +39,7 @@ import {PoolStorage} from './PoolStorage.sol';
 contract Pool is VersionedInitializable, PoolStorage, IPool {
   using ReserveLogic for DataTypes.ReserveData;
 
-  uint256 public constant POOL_REVISION = 0x2;
+  uint256 public constant POOL_REVISION = 0x8;
   IPoolAddressesProvider public immutable ADDRESSES_PROVIDER;
 
   /**
@@ -679,6 +679,13 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
     uint128 reserveBlackListBitmap
   ) external virtual override onlyPoolConfigurator {
     _reserveBlacklistBitmap[reserveIndex] =  reserveBlackListBitmap;
+  }
+
+  function getReserveBorrowable(
+    uint16 reserveIndex,
+    uint16 assetToBorrowIndex
+  ) external view virtual override returns(bool) {
+    return _reserveBlacklistBitmap[reserveIndex] & (1 << assetToBorrowIndex) > 0;
   }
 
   /// @inheritdoc IPool

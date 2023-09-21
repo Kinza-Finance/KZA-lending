@@ -736,4 +736,9 @@ interface IPool {
   function deposit(address asset, uint256 amount, address onBehalfOf, uint16 referralCode) external;
 
   function configureReserveBlacklistBitmap(uint16 reserveIndex, uint128 reserveBlacklistBitmap) external;
+
+  function getReserveBorrowable(
+    uint16 reserveIndex,
+    uint16 assetToBorrowIndex
+  ) external view returns(bool);
 }
