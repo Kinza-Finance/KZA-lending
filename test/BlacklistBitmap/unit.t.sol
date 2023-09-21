@@ -4,7 +4,7 @@ import {IPoolAddressesProvider} from "../../../src/core/interfaces/IPoolAddresse
 
 
 import {TIMELOCK, ADDRESSES_PROVIDER, POOLDATA_PROVIDER, ACL_MANAGER, POOL, POOL_CONFIGURATOR, EMISSION_MANAGER, 
-        ATOKENIMPL, SDTOKENIMPL, VDTOKENIMPL, TREASURY, POOL_ADMIN, HAY_AGGREGATOR, USDC, USDT, HAY,
+        ATOKENIMPL, SDTOKENIMPL, VDTOKENIMPL, TREASURY, POOL_ADMIN, HAY_AGGREGATOR, USDC, HAY,
         LIQUIDATION_ADAPTOR, BORROWABLE_DATA_PROVIDER} from "test/utils/AddressesTest.sol";
 
 // @dev disable linked lib in foundry.toml, since forge test would inherit those setting
@@ -14,6 +14,14 @@ contract blacklistBitmapUpgradeUnitTest is BitmapUpgradeBaseTest {
     function setUp() public virtual override(BitmapUpgradeBaseTest) {
         BitmapUpgradeBaseTest.setUp();
         
+    }
+
+    function test_defaultUnblocked() public {
+        uint256 amount = 1e18;
+        address user = address(1);
+        deposit(user, amount, USDC);
+        borrow(user, amount / 4, HAY);
+        borrow(user, amount / 4, USDC);
     }
 
     function test_blockUSDCViewBorrowable() public {
@@ -42,7 +50,7 @@ contract blacklistBitmapUpgradeUnitTest is BitmapUpgradeBaseTest {
         uint256 amount = 1e18;
         address user = address(1);
         deposit(user, amount, USDC);
-        borrowExpectFail(user, amount / 2, USDT, "92");
+        borrowExpectFail(user, amount / 2, HAY, "92");
     }
 
     function test_blockUSDCFromEverythingExceptBorrowingItself() public {
@@ -62,7 +70,7 @@ contract blacklistBitmapUpgradeUnitTest is BitmapUpgradeBaseTest {
         // every asset gets blocked
         uint16 USDCreserveIndex = pool.getReserveData(USDC).id;
         uint16 HAYreserveIndex = pool.getReserveData(HAY).id;
-        // only flip the bit at USDT reserveIndex
+        // only flip the bit at HAY reserveIndex
         uint256 bitmap = type(uint128).max;
         bitmap ^= 1 << HAYreserveIndex;
         setUpBlacklistForReserve(USDCreserveIndex, uint128(bitmap));

@@ -44,7 +44,20 @@ contract BitmapUpgradeBaseTest is BaseTest {
     function setUpBlacklistForReserve(uint256 reserveIndex, uint128 bitmap) internal {
         vm.startPrank(POOL_ADMIN);
         configurator.setReserveBlacklistBitmap(uint16(reserveIndex), bitmap);
+    }
 
+    function setUpBlacklistForReserveExceptOneAllowed(uint256 reserveIndex, address allowedReserve) internal {
+        uint16 allowedReserveIndex = pool.getReserveData(allowedReserve).id;
+        uint256 bitmap = type(uint128).max;
+        bitmap ^= 1 << allowedReserveIndex;
+        setUpBlacklistForReserve(reserveIndex, uint128(bitmap));
+    }
+
+    function setUpBlacklistForReserveExceptOneBlocked(uint256 reserveIndex, address blockedReserve) internal {
+        uint16 blockedReserveIndex = pool.getReserveData(blockedReserve).id;
+        uint256 bitmap = 0;
+        bitmap ^= 1 << blockedReserveIndex;
+        setUpBlacklistForReserve(reserveIndex, uint128(bitmap));
     }
 
     function deposit(address user, uint256 amount, address underlying) internal {
