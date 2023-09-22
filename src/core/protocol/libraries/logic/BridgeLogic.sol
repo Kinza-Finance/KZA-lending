@@ -52,6 +52,7 @@ library BridgeLogic {
   function executeMintUnbacked(
     mapping(address => DataTypes.ReserveData) storage reservesData,
     mapping(uint256 => address) storage reservesList,
+    mapping(uint16 => uint128) storage reserveBlacklistBitmap,
     DataTypes.UserConfigurationMap storage userConfig,
     address asset,
     uint256 amount,
@@ -89,6 +90,7 @@ library BridgeLogic {
         ValidationLogic.validateAutomaticUseAsCollateral(
           reservesData,
           reservesList,
+          reserveBlacklistBitmap,
           userConfig,
           reserveCache.reserveConfiguration,
           reserveCache.aTokenAddress

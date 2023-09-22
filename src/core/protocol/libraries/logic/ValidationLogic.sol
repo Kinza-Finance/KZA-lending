@@ -736,6 +736,7 @@ library ValidationLogic {
    * @dev This is used to ensure that isolated assets are not enabled as collateral automatically
    * @param reservesData The state of all the reserves
    * @param reservesList The addresses of all the active reserves
+   * @param reserveBlacklistBitmap The bitmap for reserve blacklist
    * @param userConfig the user configuration
    * @param reserveConfig The reserve configuration
    * @return True if the asset can be activated as collateral, false otherwise
@@ -743,10 +744,17 @@ library ValidationLogic {
   function validateAutomaticUseAsCollateral(
     mapping(address => DataTypes.ReserveData) storage reservesData,
     mapping(uint256 => address) storage reservesList,
+    mapping(uint16 => uint128) storage reserveBlacklistBitmap,
     DataTypes.UserConfigurationMap storage userConfig,
     DataTypes.ReserveConfigurationMap memory reserveConfig,
     address aTokenAddress
   ) internal view returns (bool) {
+    // if the thre is any blacklist on the given providedreserve, disable automatic collateralization
+    address asset = IAToken(aTokenAddress).UNDERLYING_ASSET_ADDRESS();
+    uint16 id = reservesData[asset].id;
+    if (reserveBlacklistBitmap[id] > 0) {
+      return false;
+    }
     if (reserveConfig.getDebtCeiling() != 0) {
       // ensures only the ISOLATED_COLLATERAL_SUPPLIER_ROLE can enable collateral as side-effect of an action
       IPoolAddressesProvider addressesProvider = IncentivizedERC20(aTokenAddress)

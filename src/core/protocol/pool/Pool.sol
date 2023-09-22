@@ -123,6 +123,7 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
     BridgeLogic.executeMintUnbacked(
       _reserves,
       _reservesList,
+      _reserveBlacklistBitmap,
       _usersConfig[onBehalfOf],
       asset,
       amount,
@@ -151,6 +152,7 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
     SupplyLogic.executeSupply(
       _reserves,
       _reservesList,
+      _reserveBlacklistBitmap,
       _usersConfig[onBehalfOf],
       DataTypes.ExecuteSupplyParams({
         asset: asset,
@@ -184,6 +186,7 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
     SupplyLogic.executeSupply(
       _reserves,
       _reservesList,
+      _reserveBlacklistBitmap,
       _usersConfig[onBehalfOf],
       DataTypes.ExecuteSupplyParams({
         asset: asset,
@@ -371,6 +374,7 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
       _reservesList,
       _usersConfig,
       _eModeCategories,
+      _reserveBlacklistBitmap,
       DataTypes.ExecuteLiquidationCallParams({
         reservesCount: _reservesCount,
         debtToCover: debtToCover,
@@ -582,6 +586,7 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
       _reservesList,
       _eModeCategories,
       _usersConfig,
+      _reserveBlacklistBitmap,
       DataTypes.FinalizeTransferParams({
         asset: asset,
         from: from,
@@ -749,6 +754,7 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
     SupplyLogic.executeSupply(
       _reserves,
       _reservesList,
+      _reserveBlacklistBitmap,
       _usersConfig[onBehalfOf],
       DataTypes.ExecuteSupplyParams({
         asset: asset,
