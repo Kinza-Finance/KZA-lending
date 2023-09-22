@@ -34,12 +34,12 @@ contract blacklistBitmapUpgradeUnitTest is BitmapUpgradeBaseTest {
         
     }
     function test_blockUSDCFromBorrowing() public {
-        // every asset gets blocked
-        uint16 reserveIndex = pool.getReserveData(USDC).id;
-        setUpBlacklistForReserve(reserveIndex, type(uint128).max);
         uint256 amount = 1e18;
         address user = address(1);
         deposit(user, amount, USDC);
+        // every asset gets blocked
+        uint16 reserveIndex = pool.getReserveData(USDC).id;
+        setUpBlacklistForReserve(reserveIndex, type(uint128).max);
         borrowExpectFail(user, amount / 2, USDC, "92");
     }
 
@@ -55,12 +55,12 @@ contract blacklistBitmapUpgradeUnitTest is BitmapUpgradeBaseTest {
     }
 
     function test_blockUSDCFromBorrowingOther() public {
-        // every asset gets blocked
-        uint16 reserveIndex = pool.getReserveData(USDC).id;
-        setUpBlacklistForReserve(reserveIndex, type(uint128).max);
         uint256 amount = 1e18;
         address user = address(1);
         deposit(user, amount, USDC);
+        // every asset gets blocked
+        uint16 reserveIndex = pool.getReserveData(USDC).id;
+        setUpBlacklistForReserve(reserveIndex, type(uint128).max);
         borrowExpectFail(user, amount / 2, HAY, "92");
     }
 
@@ -77,15 +77,15 @@ contract blacklistBitmapUpgradeUnitTest is BitmapUpgradeBaseTest {
     }
 
     function test_blockUSDCFromEverythingExceptBorrowingItself() public {
+        uint256 amount = 1e18;
+        address user = address(1);
+        deposit(user, amount, USDC);
         // every asset gets blocked
         uint16 reserveIndex = pool.getReserveData(USDC).id;
         // only flip the bit at reserveIndex
         uint256 bitmap = type(uint128).max;
         bitmap ^= 1 << reserveIndex;
         setUpBlacklistForReserve(reserveIndex, uint128(bitmap));
-        uint256 amount = 1e18;
-        address user = address(1);
-        deposit(user, amount, USDC);
         borrow(user, amount / 2, USDC);
     }
 

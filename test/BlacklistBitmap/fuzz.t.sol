@@ -16,28 +16,28 @@ contract blacklistBitmapUpgradeFuzzTest is BitmapUpgradeBaseTest {
     }
 
     function testFuzz_block1AssetRevert(uint16 reserveIndexToBlock) public {
+        address bob = address(1);
+        deposit(bob, 1e18, USDC);
         uint256 reservesCount = pool.getReservesList().length;
         vm.assume(reserveIndexToBlock < reservesCount);
         address reserveToBlock = pool.getReserveAddressById(reserveIndexToBlock);
         // hardcoding collateral as USDC since some collateral may reach certain constraint (isolated etc)
         uint16 reserveIndexCollateral = pool.getReserveData(USDC).id;
         setUpBlacklistForReserveExceptOneBlocked(reserveIndexCollateral, reserveToBlock);
-        address bob = address(1);
-        deposit(bob, 1e18, USDC);
         // borrowing a small amount, would not breach LTV requirement 
         // 92 is the expected error message for the bitmap blacklist
         borrowExpectFail(bob, 1e9, reserveToBlock, "92");
     }
 
      function testFuzz_block1AssetPass(uint16 reserveIndexToBlock) public {
+        address bob = address(1);
+        deposit(bob, 1e18, USDC);
         uint256 reservesCount = pool.getReservesList().length;
         vm.assume(reserveIndexToBlock < reservesCount);
         address reserveToBlock = pool.getReserveAddressById(reserveIndexToBlock);
         // hardcoding collateral as USDC since some collateral may reach certain constraint (isolated etc)
         uint16 reserveIndexCollateral = pool.getReserveData(USDC).id;
         setUpBlacklistForReserveExceptOneBlocked(reserveIndexCollateral, reserveToBlock);
-        address bob = address(1);
-        deposit(bob, 1e18, USDC);
         // borrowing a small amount, would not breach LTV requirement 
         // 92 is the expected error message for the bitmap blacklist
         for (uint16 i; i < reservesCount; i++) {
@@ -53,14 +53,14 @@ contract blacklistBitmapUpgradeFuzzTest is BitmapUpgradeBaseTest {
     }
 
     function testFuzz_allow1AssetRevert(uint16 reserveIndexToAllow) public {
+        address bob = address(1);
+        deposit(bob, 1e18, USDC);
         uint256 reservesCount = pool.getReservesList().length;
         vm.assume(reserveIndexToAllow < reservesCount);
         address reserveToAllow = pool.getReserveAddressById(reserveIndexToAllow);
         // hardcoding collateral as USDC since some collateral may reach certain constraint (isolated etc)
         uint16 reserveIndexCollateral = pool.getReserveData(USDC).id;
         setUpBlacklistForReserveExceptOneAllowed(reserveIndexCollateral, reserveToAllow);
-        address bob = address(1);
-        deposit(bob, 1e18, USDC);
         // borrowing a small amount, would not breach LTV requirement 
         // 92 is the expected error message for the bitmap blacklist
         for (uint16 i; i < reservesCount; i++) {
@@ -73,14 +73,14 @@ contract blacklistBitmapUpgradeFuzzTest is BitmapUpgradeBaseTest {
     }
 
     function testFuzz_allow1AssetPass(uint16 reserveIndexToAllow) public {
+        address bob = address(1);
+        deposit(bob, 1e18, USDC);
         uint256 reservesCount = pool.getReservesList().length;
         vm.assume(reserveIndexToAllow < reservesCount);
         address reserveToAllow = pool.getReserveAddressById(reserveIndexToAllow);
         // hardcoding collateral as USDC since some collateral may reach certain constraint (isolated etc)
         uint16 reserveIndexCollateral = pool.getReserveData(USDC).id;
         setUpBlacklistForReserveExceptOneAllowed(reserveIndexCollateral, reserveToAllow);
-        address bob = address(1);
-        deposit(bob, 1e18, USDC);
         (,,,,,,,,bool isActive, bool isFrozen) = dataProvider.getReserveConfigurationData(reserveToAllow);
         if (!isActive && !isFrozen) {
             borrow(bob, 1e9, reserveToAllow);
