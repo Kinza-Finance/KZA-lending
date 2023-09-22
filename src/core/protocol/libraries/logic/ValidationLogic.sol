@@ -158,6 +158,7 @@ library ValidationLogic {
     require(params.amount != 0, Errors.INVALID_AMOUNT);
 
     ValidateBorrowLocalVars memory vars;
+
     (
       vars.isActive,
       vars.isFrozen,
@@ -230,7 +231,7 @@ library ValidationLogic {
       );
       vars.eModePriceSource = eModeCategories[params.userEModeCategory].priceSource;
     }
-    
+
     (
       vars.userCollateralInBaseCurrency,
       vars.userDebtInBaseCurrency,
