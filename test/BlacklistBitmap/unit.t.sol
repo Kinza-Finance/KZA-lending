@@ -33,6 +33,26 @@ contract blacklistBitmapUpgradeUnitTest is BitmapUpgradeBaseTest {
         }
         
     }
+
+    function test_blockUSDCCollateralizaiton() public {
+        uint16 reserveIndex = pool.getReserveData(USDC).id;
+        setUpBlacklistForReserve(reserveIndex, type(uint128).max);
+        uint256 amount = 1e18;
+        address user = address(1);
+        deposit(user, amount, USDC);
+        (,,,,,,,,bool isEnabled) = dataProvider.getUserReserveData(USDC, user);
+        assertEq(false, isEnabled);
+    }
+    function test_unblockUSDCCollateralizaiton() public {
+        uint16 reserveIndex = pool.getReserveData(USDC).id;
+        setUpBlacklistForReserve(reserveIndex, type(uint128).max);
+        setUpBlacklistForReserve(reserveIndex, 0);
+        uint256 amount = 1e18;
+        address user = address(1);
+        deposit(user, amount, USDC);
+        (,,,,,,,,bool isEnabled) = dataProvider.getUserReserveData(USDC, user);
+        assertEq(true, isEnabled);
+    }
     function test_blockUSDCFromBorrowing() public {
         uint256 amount = 1e18;
         address user = address(1);

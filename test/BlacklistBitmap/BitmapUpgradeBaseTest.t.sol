@@ -60,6 +60,16 @@ contract BitmapUpgradeBaseTest is BaseTest {
         setUpBlacklistForReserve(reserveIndex, uint128(bitmap));
     }
 
+    function turnOnCollateral(address user, address collateral) internal {
+        vm.startPrank(user);
+        pool.setUserUseReserveAsCollateral(collateral, true);
+    }
+
+    function turnOffCollateral(address user, address collateral) internal {
+        vm.startPrank(user);
+        pool.setUserUseReserveAsCollateral(collateral, false);
+    }
+
     function deposit(address user, uint256 amount, address underlying) internal {
         vm.startPrank(user);
         deal(underlying, user, amount);
