@@ -43,6 +43,17 @@ contract blacklistBitmapUpgradeUnitTest is BitmapUpgradeBaseTest {
         borrowExpectFail(user, amount / 2, USDC, "92");
     }
 
+    function test_blockUSDCFromBorrowingWithExistingBorrow() public {
+        uint256 amount = 1e18;
+        address user = address(1);
+        deposit(user, amount, USDC);
+        borrow(user, amount / 4, USDC);
+        // every asset gets blocked
+        uint16 reserveIndex = pool.getReserveData(USDC).id;
+        setUpBlacklistForReserve(reserveIndex, type(uint128).max);
+        borrowExpectFail(user, amount / 4, USDC, "92");
+    }
+
     function test_blockUSDCFromBorrowingOther() public {
         // every asset gets blocked
         uint16 reserveIndex = pool.getReserveData(USDC).id;
@@ -51,6 +62,18 @@ contract blacklistBitmapUpgradeUnitTest is BitmapUpgradeBaseTest {
         address user = address(1);
         deposit(user, amount, USDC);
         borrowExpectFail(user, amount / 2, HAY, "92");
+    }
+
+    function test_blockUSDCFromBorrowingOtherWithExistingBorrow() public {
+        uint256 amount = 1e18;
+        address user = address(1);
+        deposit(user, amount, USDC);
+        borrow(user, amount / 4, HAY);
+        // every asset gets blocked
+        uint16 reserveIndex = pool.getReserveData(USDC).id;
+        setUpBlacklistForReserve(reserveIndex, type(uint128).max);
+        
+        borrowExpectFail(user, amount / 4, HAY, "92");
     }
 
     function test_blockUSDCFromEverythingExceptBorrowingItself() public {
@@ -70,13 +93,41 @@ contract blacklistBitmapUpgradeUnitTest is BitmapUpgradeBaseTest {
         // every asset gets blocked
         uint16 USDCreserveIndex = pool.getReserveData(USDC).id;
         uint16 HAYreserveIndex = pool.getReserveData(HAY).id;
+        uint256 amount = 1e18;
+        address user = address(1);
+        deposit(user, amount, USDC);
+        uint256 bitmap = type(uint128).max;
+        bitmap ^= 1 << HAYreserveIndex;
+        setUpBlacklistForReserve(USDCreserveIndex, uint128(bitmap));
+        borrow(user, amount / 2, HAY);
+    }
+
+
+    function test_multipleCollateralBlockOne() public {
+        uint256 amount = 1e18;
+        address user = address(1);
+        deposit(user, amount, USDC);
+        deposit(user, amount, HAY);
+        // block USDC
+         uint16 reserveIndex = pool.getReserveData(USDC).id;
+        uint256 bitmap = type(uint128).max;
+        setUpBlacklistForReserve(reserveIndex, uint128(bitmap));
+        borrowExpectFail(user, amount / 2 , HAY, "92");
+    }
+
+        function test_multipleCollateralblockOneFromEverythingExceptBorrowingHAY() public {
+        uint256 amount = 1e18;
+        address user = address(1);
+        deposit(user, amount, USDC);
+        deposit(user, amount, HAY);
+        // every asset gets blocked
+        uint16 USDCreserveIndex = pool.getReserveData(USDC).id;
+        uint16 HAYreserveIndex = pool.getReserveData(HAY).id;
         // only flip the bit at HAY reserveIndex
         uint256 bitmap = type(uint128).max;
         bitmap ^= 1 << HAYreserveIndex;
         setUpBlacklistForReserve(USDCreserveIndex, uint128(bitmap));
-        uint256 amount = 1e18;
-        address user = address(1);
-        deposit(user, amount, USDC);
+        setUpBlacklistForReserve(HAYreserveIndex, uint128(bitmap));
         borrow(user, amount / 2, HAY);
     }
 }
