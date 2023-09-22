@@ -18,7 +18,3 @@ echo "BridgeLogic=$BridgeLogic" >> ".env"
 forge create src/core/protocol/libraries/logic/FlashLoanLogic.sol:FlashLoanLogic --private-key $PRIVATE_KEY --rpc-url $RPC_URL --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY > log/FlashLoanLogic.txt
 FlashLoanLogic=$(grep 'Deployed to: ' log/FlashLoanLogic.txt | awk '{print $3}')
 echo "FlashLoanLogic=$FlashLoanLogic" >> ".env"
-# 1.8 PoolLogic
-forge create src/core/protocol/libraries/logic/PoolLogic.sol:PoolLogic --private-key $PRIVATE_KEY --rpc-url $RPC_URL --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY  > log/PoolLogic.txt
-PoolLogic=$(grep 'Deployed to: ' log/PoolLogic.txt | awk '{print $3}')
-echo "PoolLogic=$PoolLogic" >> ".env"
