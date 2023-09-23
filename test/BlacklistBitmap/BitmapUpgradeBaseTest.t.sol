@@ -22,7 +22,7 @@ import {PoolConfigurator} from "../../../src/core/protocol/pool/PoolConfigurator
 import {USDC, ADDRESSES_PROVIDER, POOLDATA_PROVIDER, ACL_MANAGER, POOL, POOL_CONFIGURATOR, EMISSION_MANAGER, 
         ATOKENIMPL, SDTOKENIMPL, VDTOKENIMPL, TREASURY, POOL_ADMIN, ORACLE, HAY_AGGREGATOR, HAY,
         LIQUIDATION_ADAPTOR, RANDOM,
-        USDC_AGGREGATOR, USDT_AGGREGATOR, USDC, USDT, TIMELOCK} from "test/utils/AddressesTest.sol";
+        USDC_AGGREGATOR, USDT_AGGREGATOR, USDC, USDT, TIMELOCK} from "test/utils/Addresses.sol";
 
 contract BitmapUpgradeBaseTest is BaseTest {
     function setUp() public virtual override(BaseTest) {

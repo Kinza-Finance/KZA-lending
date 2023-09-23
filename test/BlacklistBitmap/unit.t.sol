@@ -5,7 +5,7 @@ import {IPoolAddressesProvider} from "../../../src/core/interfaces/IPoolAddresse
 
 import {TIMELOCK, ADDRESSES_PROVIDER, POOLDATA_PROVIDER, ACL_MANAGER, POOL, POOL_CONFIGURATOR, EMISSION_MANAGER, 
         ATOKENIMPL, SDTOKENIMPL, VDTOKENIMPL, TREASURY, POOL_ADMIN, HAY_AGGREGATOR, USDC, HAY,
-        LIQUIDATION_ADAPTOR, BORROWABLE_DATA_PROVIDER} from "test/utils/AddressesTest.sol";
+        LIQUIDATION_ADAPTOR, BORROWABLE_DATA_PROVIDER} from "test/utils/Addresses.sol";
 
 // @dev disable linked lib in foundry.toml, since forge test would inherit those setting
 // https://book.getfoundry.sh/reference/forge/forge-build?highlight=link#linker-options

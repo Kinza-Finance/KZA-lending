@@ -16,7 +16,7 @@ import {ReservesSetupHelper} from "../../src/core/deployments/ReservesSetupHelpe
 
 import {ADDRESSES_PROVIDER, POOLDATA_PROVIDER, ACL_MANAGER, POOL, POOL_CONFIGURATOR, EMISSION_MANAGER, 
         ATOKENIMPL, SDTOKENIMPL, VDTOKENIMPL, TREASURY, POOL_ADMIN, RESERVES_SETUP_HELPER, ORACLE, 
-        SMART_HAY_LP} from "test/utils/AddressesTest.sol";
+        SMART_HAY_LP} from "test/utils/Addresses.sol";
 
 contract BaseTest is Test {
     // if forking is required at specific block, set this in sub-contract's setup before calling parent
