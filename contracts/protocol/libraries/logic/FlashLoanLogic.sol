@@ -71,7 +71,6 @@ library FlashLoanLogic {
     mapping(address => DataTypes.ReserveData) storage reservesData,
     mapping(uint256 => address) storage reservesList,
     mapping(uint8 => DataTypes.EModeCategory) storage eModeCategories,
-    mapping(uint16 => uint128) storage reserveBlacklistBitmap,
     DataTypes.UserConfigurationMap storage userConfig,
     DataTypes.FlashloanParams memory params
   ) external {
