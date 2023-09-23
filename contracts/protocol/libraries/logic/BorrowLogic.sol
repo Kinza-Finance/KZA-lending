@@ -69,7 +69,6 @@ library BorrowLogic {
     mapping(uint256 => address) storage reservesList,
     mapping(uint8 => DataTypes.EModeCategory) storage eModeCategories,
     DataTypes.UserConfigurationMap storage userConfig,
-    mapping(uint16 => uint128) storage reserveBlacklistBitmap,
     DataTypes.ExecuteBorrowParams memory params
   ) public {
     DataTypes.ReserveData storage reserve = reservesData[params.asset];
