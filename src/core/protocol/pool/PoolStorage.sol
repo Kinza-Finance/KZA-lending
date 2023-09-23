@@ -50,5 +50,5 @@ contract PoolStorage {
   uint16 internal _reservesCount;
 
   // the bitmap to defines each reserve is forbidden for borrowing other reserves
-  mapping(uint16 => uint128) internal _reserveBlacklistBitmap;
+  mapping(uint16 => uint128) internal _reservesBlacklistBitmap;
 }

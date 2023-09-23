@@ -12,8 +12,8 @@ library BitmapLogic {
     * @notice Check if an asset can be borrowable by a user
     * @param reservesList The reserveList 
     * @param reservesBlacklistBitmap The bitmap for reserve blacklist
-    * @param assetToBorrowReserveIndex reserveIndex of the asset to borrowuserConfig
-    * @param userConfig the userConfig to loop enabled collateral
+    * @param assetToBorrowReserveIndex reserveIndex of the asset to borrow
+    * @param userConfig the userConfig to loop for the enabled collateral
     * @param reservesCount the number of reserves (including dropped reserve)
     * @return True if the the borrow works, False if any collateral is not allowed for such borrow
     */
@@ -29,9 +29,10 @@ library BitmapLogic {
         return false;
         }
         uint16 i;
+        // the bit to check
+        uint256 mask = 1 << assetToBorrowReserveIndex;
         // check if the bitmap for the to-borrow asset is 0 or not 
         // for each enabled collateral
-        uint256 mask = 1 << assetToBorrowReserveIndex;
         while (i < reservesCount) {
             if (!userConfig.isUsingAsCollateral(i)) {
             unchecked {
