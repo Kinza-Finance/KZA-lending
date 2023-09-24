@@ -1,5 +1,6 @@
 import '../../core/interfaces/IPoolAddressesProvider.sol';
 import '../../core/interfaces/IPool.sol';
+import '../../core/interfaces/IPoolDataProvider.sol';
 import '../../core/interfaces/IAaveOracle.sol';
 import {IERC20} from '@aave/core-v3/contracts/dependencies/openzeppelin/contracts/IERC20.sol';
 
@@ -23,6 +24,7 @@ contract WombatLeverageHelper {
     uint256 constant public MAX_SLIPPAGE = 10000;
     IPoolAddressesProvider immutable public provider;
     IPool immutable public pool;
+    IPoolDataProvider immutable public dataProvider;
 
 
     modifier onlyPool() {
@@ -30,9 +32,10 @@ contract WombatLeverageHelper {
         _;
     }
 
-    constructor(address _provider, address _wombatPool) {
+    constructor(address _provider, address _dataProvider) {
         provider = IPoolAddressesProvider(_provider);
         pool = IPool(IPoolAddressesProvider(_provider).getPool());
+        dataProvider = IPoolDataProvider(_dataProvider);
     }
 
     function calculateToBorrowWithHF(uint256 targetHF, address lpAddr, uint256 depositAmount, uint8 emodeCategory) public view returns(uint256) {
@@ -55,20 +58,56 @@ contract WombatLeverageHelper {
         
         return targetLev * depositAmount * lpPrice / underlyingPrice / 100;
     }
-    // this
-    function borrowWithFlashLoan(address wombatPool, address lpAddr, uint256 amount, uint256 interestRateMode, uint256 slippage) external {
+
+    function transferLPAndBorrowWithFlashLoan(address wombatPool, address lpAddr, uint256 amount, uint256 borrowAmount, uint256 minLp) external returns(uint256) {
+        address underlying = IAsset(lpAddr).underlyingToken();
+        _checkWombatAllowance(wombatPool, underlying);
+        _checkPoolAllowance(lpAddr);
+        IERC20(lpAddr).transferFrom(msg.sender, address(this), amount);
+        pool.deposit(lpAddr, amount, msg.sender, 0);
+        return _borrowWithFlashLoan(wombatPool, lpAddr, underlying, borrowAmount, minLp);
+    }
+
+    function transferUnderlyingAndBorrowWithFlashLoan(address wombatPool, address lpAddr, uint256 amount, uint256 borrowAmount, uint256 minLp, uint256 slippage) external returns(uint256) {
+        address underlying = IAsset(lpAddr).underlyingToken();
+        _checkWombatAllowance(wombatPool, underlying);
+        _checkPoolAllowance(lpAddr);
+        (uint256 underlyingPrice, uint256 lpPrice) = getPrice(underlying, lpAddr);
+        IERC20(underlying).transferFrom(msg.sender, address(this), amount);
+        IWombatPool(wombatPool).deposit(
+            underlying,
+            amount,
+            // apply 10 bp slippage for minLiq,
+            // with ref to relative lpPrice and underlyingPrice
+            amount * lpPrice * (MAX_SLIPPAGE - slippage) / underlyingPrice / MAX_SLIPPAGE,
+            address(this), // receiver 
+            block.timestamp, // expiry
+            false // isStaked
+            );
+        uint256 receivedAmount = IERC20(lpAddr).balanceOf(address(this));
+        pool.deposit(lpAddr, receivedAmount, msg.sender, 0);
+        return _borrowWithFlashLoan(wombatPool, lpAddr, underlying, borrowAmount, minLp);
+    }
+
+    function borrowWithFlashLoan(address wombatPool, address lpAddr, uint256 amount, uint256 boorowAmount, uint256 minLp) external returns(uint256) {
+        address underlying = IAsset(lpAddr).underlyingToken();
+        _checkWombatAllowance(wombatPool, underlying);
+        _checkPoolAllowance(lpAddr);
+        return _borrowWithFlashLoan(wombatPool, lpAddr, underlying, boorowAmount, minLp);
+    }
+    // this function is the main entry to flashloan the udnerlying which then get deposited into wombat,
+    // the LP is then deposited back into the protocol for collateralization
+    function _borrowWithFlashLoan(address wombatPool, address lpAddr, address underlying, uint256 amount, uint256 minLp) internal returns(uint256) {
         // only 1 asset is allowed at a time, 
         // we are just leveraging the borrow feature of the multi-flasloan interface
-        require(MAX_SLIPPAGE > slippage, "SLIPPAGE TOO BIG");
-        IPoolDataProvider dataProvider = IPoolDataProvider(provider.getPoolDataProvider());
-        IPool pool = IPool(provider.getPool());
-        address underlying = IAsset(lpAddr).underlyingToken();
+        (address aToken,,) = dataProvider.getReserveTokensAddresses(underlying);
+        uint256 depositBefore = IERC20(aToken).balanceOf(msg.sender);
         address[] memory assets = new address[](1);
         uint256[] memory amounts = new uint256[](1);
         uint256[] memory interestRateModes = new uint256[](1);
         assets[0] = underlying;
         amounts[0] = amount;
-        interestRateModes[0] = interestRateMode;
+        interestRateModes[0] = 2; // 2 variable; 1 is fixed; this helper only works with variable
 
         // allow the pool to get back the flashloan + premium
         IERC20(underlying).approve(address(pool), type(uint256).max);
@@ -83,18 +122,22 @@ contract WombatLeverageHelper {
         //     bytes calldata params,
         //     uint16 referralCode
         // )
-        // depositor
         bytes memory params = abi.encode(
-           msg.sender, wombatPool, lpAddr, slippage);
+           msg.sender, wombatPool, lpAddr, underlying);
         pool.flashLoan(
-            address(this),
-            assets,
-            amounts,
-            interestRateModes,
-            msg.sender,
+            address(this), //receiver
+            assets, // assset to borrow
+            amounts, // amount to borrow
+            interestRateModes, // 2 variable, 1 fixed
+            msg.sender, // depositor / onBehalfOf
             params,
             0
         );
+        // return the amount of lp deposited as a result of the borrow
+        // so integration can be done to ensure the output is acceptable
+        uint256 deposited = IERC20(aToken).balanceOf(msg.sender) - depositBefore;
+        require(minLp <= deposited, "output less than minLP required");
+        return deposited;
     }
 
     function executeOperation(
@@ -104,17 +147,16 @@ contract WombatLeverageHelper {
     address, //initiator, which would be this address if called from borrowWithFlashLoan
     bytes memory params
   )  external onlyPool returns (bool){
-        (address depositor, address wombatPool, address lpAddr, uint256 slippage) = abi.decode(params, (address, address, uint256));
+        (address depositor, address wombatPool, address lpAddr, address underlying) = abi.decode(params, (address, address, address, address));
         (uint256 underlyingPrice, uint256 lpPrice) = getPrice(underlying, lpAddr);
         // deposit into wombat    
         _checkWombatAllowance(wombatPool, underlying);
         _checkPoolAllowance(lpAddr);
-        wombatPool.deposit(
+        uint256 borrowed = IERC20(underlying).balanceOf(address(this));
+        IWombatPool(wombatPool).deposit(
             underlying,
-            toBorrow,
-            // apply 10 bp slippage for minLiq,
-            // with ref to relative lpPrice and underlyingPrice
-            toBorrow * lpPrice * (MAX_SLIPPAGE - slippage) / underlyingPrice / MAX_SLIPPAGE,
+            borrowed,
+            0, //minOutput, this is enforced on the flashloan execution context
             address(this), // receiver 
             block.timestamp, // expiry
             false // isStaked
@@ -125,79 +167,7 @@ contract WombatLeverageHelper {
         return true;
     }
 
-    function depositUnderlyingAndLoop(address borrowableProvider, uint256 targetHF, address lpAddr, uint256 amount, uint8 emodeCategory) external returns (uint256) {
-        address underlying = IAsset(lpAddr).underlyingToken();
-        (uint256 underlyingPrice, uint256 lpPrice) = getPrice(underlying, lpAddr);
-        IERC20(underlying).transferFrom(msg.sender, address(this), amount);
-        // initial approval
-        _checkWombatAllowance(underlying);
-        _checkPoolAllowance(lpAddr);
-        wombatPool.deposit(
-            underlying,
-            amount,
-            // apply 10 bp slippage for minLiq,
-            // with ref to relative lpPrice and underlyingPrice
-            amount * lpPrice * 9990 / underlyingPrice / 10000,
-            address(this),
-            block.timestamp,
-            false
-            );
-        uint256 lpCollected = IERC20(lpAddr).balanceOf(address(this));
-        pool.deposit(lpAddr, lpCollected, msg.sender, 0);
-        return _loop(borrowableProvider, targetHF, lpAddr, amount, emodeCategory);
-    }
-
-    function depositLpAndLoop(address borrowableProvider, uint256 targetHF, address lpAddr, uint256 amount, uint8 emodeCategory) external returns (uint256) {
-        address underlying = IAsset(lpAddr).underlyingToken();
-        IERC20(lpAddr).transferFrom(msg.sender, address(this), amount);
-        _checkWombatAllowance(underlying);
-        _checkPoolAllowance(lpAddr);
-        pool.deposit(lpAddr, amount, msg.sender, 0);
-        return _loop(borrowableProvider, targetHF, lpAddr, amount, emodeCategory);
-    }
-    // this function just leverage by borrowing underlying for the user
-    // and loop the needed borrowedAmount by re-depositing back the lp
-    // the final health factor may vary from the targetHF
-    // since the deposited LP might be different depends on wombat
-    function _loop(address borrowableProvider, uint256 targetHF, address lpAddr, uint256 amount, uint8 emodeCategory) internal returns(uint256) {
-        require(targetHF > 1e18 && amount > 0, "targetHF or deposit amount invalid");
-        address underlying = IAsset(lpAddr).underlyingToken();
-        (uint256 underlyingPrice, uint256 lpPrice) = getPrice(underlying, lpAddr);
-        uint256 borrowTotal = calculateToBorrowWithHF(targetHF, lpAddr, amount,  emodeCategory);
-        uint256 borrowed;
-        while(borrowed < borrowTotal) {
-            // start borrow
-            uint256 diff = borrowTotal - borrowed;
-            uint256 toBorrow = IBorrowableProvider(borrowableProvider).getUserMaxBorrowable(msg.sender, address(underlying));
-            if (toBorrow == 0) {
-                // somehow the user can not borrow anymore
-                // can be due to other existing borrow, or debt ceiling/available in the protocol
-                break;
-            }
-            if (toBorrow > diff) {
-                toBorrow = diff;
-            }
-            borrowed += toBorrow;
-            // 2 = variable interest rate, 0 = referral code
-            pool.borrow(underlying, toBorrow, 2, 0, msg.sender);
-            // convert to LP on wombat
-            wombatPool.deposit(
-            underlying,
-            toBorrow,
-            // apply 10 bp slippage for minLiq,
-            // with ref to relative lpPrice and underlyingPrice
-            toBorrow * lpPrice * 9990 / underlyingPrice / 10000,
-            address(this),
-            block.timestamp,
-            false
-            );
-            // deposit the LP into pool
-            uint256 amount = IERC20(lpAddr).balanceOf(address(this));
-            pool.deposit(lpAddr, amount, msg.sender, 0);
-        }
-        return borrowed;
-    }
-
+    
     function getPrice(address underlying, address lp) public view returns(uint256, uint256) {
         IAaveOracle oracle = IAaveOracle(provider.getPriceOracle());
         address[] memory assets = new address[](2);
