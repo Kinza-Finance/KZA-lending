@@ -2,6 +2,7 @@
 import {ATokenWombatStakerBaseTest} from "./ATokenWombatStakerBaseTest.t.sol";
 import {IERC20} from "../../../src/core/dependencies/openzeppelin/contracts/IERC20.sol";
 import {IPoolDataProvider} from "../../../src/core/interfaces/IPoolDataProvider.sol";
+import {ICreditDelegationToken} from "../../../src/core/interfaces/ICreditDelegationToken.sol";
 import {WombatLeverageHelper} from "../../../src/periphery/misc/WombatLeverageHelper.sol";
 import {ADDRESSES_PROVIDER, POOLDATA_PROVIDER, ACL_MANAGER, POOL, POOL_CONFIGURATOR, EMISSION_MANAGER, 
         ATOKENIMPL, SDTOKENIMPL, VDTOKENIMPL, TREASURY, POOL_ADMIN, HAY_AGGREGATOR, HAY, 
@@ -34,7 +35,9 @@ contract leverageTest is ATokenWombatStakerBaseTest {
         turnOnCollateral(bob, underlying);
         // approve levHelper
         vm.startPrank(bob);
-        levHelper.borrowWithFlashLoan(SMART_HAY_POOL, underlying, depositAmount, borrowAmount, minLp);
+        (,,address vdToken) = dataProvider.getReserveTokensAddresses(HAY);
+        ICreditDelegationToken(vdToken).approveDelegation(address(levHelper), borrowAmount);
+        levHelper.borrowWithFlashLoan(SMART_HAY_POOL, underlying, borrowAmount, minLp);
     }
 
     function test_transferLpBorrowWithFlashLoan() public {
@@ -45,9 +48,12 @@ contract leverageTest is ATokenWombatStakerBaseTest {
         uint256 minLp = 0;
         deal(underlying, bob, depositAmount);
         turnOnEmode(bob);
-        // approve levHelper
         vm.startPrank(bob);
-        IERC20(underlying).approve(address(levHelper), type(uint256).max);
+        // approve levHelper to pull LP
+        IERC20(underlying).approve(address(levHelper), depositAmount);
+        (,,address vdToken) = dataProvider.getReserveTokensAddresses(HAY);
+        // approve levHelper to borrow underlying on behalf of user
+        ICreditDelegationToken(vdToken).approveDelegation(address(levHelper), borrowAmount);
         levHelper.transferLPAndBorrowWithFlashLoan(SMART_HAY_POOL, underlying, depositAmount, borrowAmount, minLp);
     }
 
@@ -59,9 +65,13 @@ contract leverageTest is ATokenWombatStakerBaseTest {
         uint256 minLp = 0;
         uint256 slippage = 100;
         deal(HAY, bob, depositAmount);
-        // approve levHelper
+        turnOnEmode(bob);
         vm.startPrank(bob);
-        IERC20(HAY).approve(address(levHelper), type(uint256).max);
+        // approve levHelper to pull underlying
+        IERC20(HAY).approve(address(levHelper), depositAmount);
+        (,,address vdToken) = dataProvider.getReserveTokensAddresses(HAY);
+        // approve levHelper to borrow underlying on behalf of user
+        ICreditDelegationToken(vdToken).approveDelegation(address(levHelper), borrowAmount);
         levHelper.transferUnderlyingAndBorrowWithFlashLoan(SMART_HAY_POOL, underlying, depositAmount, borrowAmount, minLp, slippage);
     }
 

@@ -89,7 +89,7 @@ contract WombatLeverageHelper {
         return _borrowWithFlashLoan(wombatPool, lpAddr, underlying, borrowAmount, minLp);
     }
 
-    function borrowWithFlashLoan(address wombatPool, address lpAddr, uint256 amount, uint256 boorowAmount, uint256 minLp) external returns(uint256) {
+    function borrowWithFlashLoan(address wombatPool, address lpAddr, uint256 boorowAmount, uint256 minLp) external returns(uint256) {
         address underlying = IAsset(lpAddr).underlyingToken();
         _checkWombatAllowance(wombatPool, underlying);
         _checkPoolAllowance(lpAddr);
@@ -110,7 +110,7 @@ contract WombatLeverageHelper {
         interestRateModes[0] = 2; // 2 variable; 1 is fixed; this helper only works with variable
 
         // allow the pool to get back the flashloan + premium
-        IERC20(underlying).approve(address(pool), type(uint256).max);
+        _checkPoolAllowance(underlying);
         //construct calldata to be execute in "executeOperation
         // swapData is only necessarily when route is "CUSTOM", otherwise it can be left as emptied
         // function flashLoan(
@@ -188,5 +188,6 @@ contract WombatLeverageHelper {
             IERC20(underlying).approve(address(wombatPool), type(uint256).max);
         }
    }
+   
 
 }
