@@ -18,6 +18,7 @@ contract leverageTest is ATokenWombatStakerBaseTest {
         // give levHelper FlashloanBorrower role
         vm.startPrank(POOL_ADMIN);
         aclManager.addFlashBorrower(address(levHelper));
+        levHelper.setWhitelist(SMART_HAY_POOL, true);
     }
 
     function test_leverageSetUp() public {
@@ -25,19 +26,7 @@ contract leverageTest is ATokenWombatStakerBaseTest {
     }
 
     function test_borrowWithFlashLoan() public {
-        uint256 depositAmount = 1 * 1e18;
-        uint256 borrowAmount = depositAmount * 2;
-        address bob = address(1);
-        uint256 interestRateMode = 2;
-        uint256 minLp = 0;
-        turnOnEmode(bob);
-        deposit(bob, depositAmount, underlying);
-        turnOnCollateral(bob, underlying);
-        // approve levHelper
-        vm.startPrank(bob);
-        (,,address vdToken) = dataProvider.getReserveTokensAddresses(HAY);
-        ICreditDelegationToken(vdToken).approveDelegation(address(levHelper), borrowAmount);
-        levHelper.borrowWithFlashLoan(SMART_HAY_POOL, underlying, borrowAmount, minLp);
+        borrowWithFlashLoan();
     }
 
     function test_transferLpBorrowWithFlashLoan() public {
@@ -75,5 +64,44 @@ contract leverageTest is ATokenWombatStakerBaseTest {
         levHelper.transferUnderlyingAndBorrowWithFlashLoan(SMART_HAY_POOL, underlying, depositAmount, borrowAmount, minLp, slippage);
     }
 
+
+    function test_repay() public {
+        borrowWithFlashLoan();
+        //approve pulling aToken lp;
+        (address aToken,,) = dataProvider.getReserveTokensAddresses(underlying);
+        (,,address vdToken) = dataProvider.getReserveTokensAddresses(HAY);
+        uint256 withdrawAmount = 1 * 1e18;
+        uint256 targetRepay = withdrawAmount / 2;
+        address bob = address(1);
+        uint256 beforeDeposit = IERC20(aToken).balanceOf(bob);
+        uint256 beforeDebt = IERC20(vdToken).balanceOf(bob);
+        uint256 befoerUnderlying = IERC20(HAY).balanceOf(bob);
+        vm.startPrank(bob);
+        IERC20(aToken).approve(address(levHelper), withdrawAmount);
+        levHelper.repayWithFlashLoan(SMART_HAY_POOL, underlying, withdrawAmount, targetRepay);
+        uint256 afterDeposit = IERC20(aToken).balanceOf(bob);
+        uint256 afterDebt = IERC20(vdToken).balanceOf(bob);
+        uint256 afterUnderlying = IERC20(HAY).balanceOf(bob);
+        // assertEq the withdraw amount matches
+        assertEq(beforeDeposit - afterDeposit, withdrawAmount);
+        // assertEq the required debt is repaid
+        assertEq(beforeDebt - afterDebt, targetRepay);
+    }
+
+    function borrowWithFlashLoan() internal {
+        uint256 depositAmount = 1 * 1e18;
+        uint256 borrowAmount = depositAmount * 2;
+        address bob = address(1);
+        uint256 interestRateMode = 2;
+        uint256 minLp = 0;
+        turnOnEmode(bob);
+        deposit(bob, depositAmount, underlying);
+        turnOnCollateral(bob, underlying);
+        // approve levHelperborrowWihtFlashLoan
+        vm.startPrank(bob);
+        (,,address vdToken) = dataProvider.getReserveTokensAddresses(HAY);
+        ICreditDelegationToken(vdToken).approveDelegation(address(levHelper), borrowAmount);
+        levHelper.borrowWithFlashLoan(SMART_HAY_POOL, underlying, borrowAmount, minLp);
+    }
     
 }
