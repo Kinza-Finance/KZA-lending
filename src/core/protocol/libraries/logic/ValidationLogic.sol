@@ -19,6 +19,7 @@ import {WadRayMath} from '../math/WadRayMath.sol';
 import {PercentageMath} from '../math/PercentageMath.sol';
 import {DataTypes} from '../types/DataTypes.sol';
 import {ReserveLogic} from './ReserveLogic.sol';
+import {BitmapLogic} from './BitmapLogic.sol';
 import {GenericLogic} from './GenericLogic.sol';
 import {SafeCast} from '../../../dependencies/openzeppelin/contracts/SafeCast.sol';
 import {IncentivizedERC20} from '../../tokenization/base/IncentivizedERC20.sol';
@@ -134,14 +135,27 @@ library ValidationLogic {
    * @param reservesData The state of all the reserves
    * @param reservesList The addresses of all the active reserves
    * @param eModeCategories The configuration of all the efficiency mode categories
+   * @param reservesBlacklistBitmap The configuration of all the reservesBlacklistBitmap
    * @param params Additional params needed for the validation
    */
   function validateBorrow(
     mapping(address => DataTypes.ReserveData) storage reservesData,
     mapping(uint256 => address) storage reservesList,
     mapping(uint8 => DataTypes.EModeCategory) storage eModeCategories,
+    mapping(uint16 => uint128) storage reservesBlacklistBitmap,
     DataTypes.ValidateBorrowParams memory params
   ) internal view {
+    // reserveIndex for the asset to borrow
+    uint16 id = reservesData[params.asset].id;
+    bool canBorrow = BitmapLogic.isAssetBorrowable(
+      reservesList,
+      reservesBlacklistBitmap,
+      id,
+      params.userConfig,
+      params.reservesCount
+    );
+    // reevrt if a user has provided any collateral that is blacklisted against the to-be bororwed asset
+    require(canBorrow, Errors.COLLATERAL_BLACKLIST_VIOLATION);
     require(params.amount != 0, Errors.INVALID_AMOUNT);
 
     ValidateBorrowLocalVars memory vars;
@@ -728,6 +742,7 @@ library ValidationLogic {
    * @dev This is used to ensure that isolated assets are not enabled as collateral automatically
    * @param reservesData The state of all the reserves
    * @param reservesList The addresses of all the active reserves
+   * @param reserveBlacklistBitmap The bitmap for reserve blacklist
    * @param userConfig the user configuration
    * @param reserveConfig The reserve configuration
    * @return True if the asset can be activated as collateral, false otherwise
@@ -735,10 +750,17 @@ library ValidationLogic {
   function validateAutomaticUseAsCollateral(
     mapping(address => DataTypes.ReserveData) storage reservesData,
     mapping(uint256 => address) storage reservesList,
+    mapping(uint16 => uint128) storage reserveBlacklistBitmap,
     DataTypes.UserConfigurationMap storage userConfig,
     DataTypes.ReserveConfigurationMap memory reserveConfig,
     address aTokenAddress
   ) internal view returns (bool) {
+    // if the thre is any blacklist on the given provided reserve, disable automatic collateralization
+    address asset = IAToken(aTokenAddress).UNDERLYING_ASSET_ADDRESS();
+    uint16 id = reservesData[asset].id;
+    if (reserveBlacklistBitmap[id] > 0) {
+      return false;
+    }
     if (reserveConfig.getDebtCeiling() != 0) {
       // ensures only the ISOLATED_COLLATERAL_SUPPLIER_ROLE can enable collateral as side-effect of an action
       IPoolAddressesProvider addressesProvider = IncentivizedERC20(aTokenAddress)

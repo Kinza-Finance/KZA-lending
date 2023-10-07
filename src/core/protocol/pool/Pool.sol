@@ -39,7 +39,7 @@ import {PoolStorage} from './PoolStorage.sol';
 contract Pool is VersionedInitializable, PoolStorage, IPool {
   using ReserveLogic for DataTypes.ReserveData;
 
-  uint256 public constant POOL_REVISION = 0x2;
+  uint256 public constant POOL_REVISION = 0x9;
   IPoolAddressesProvider public immutable ADDRESSES_PROVIDER;
 
   /**
@@ -123,6 +123,7 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
     BridgeLogic.executeMintUnbacked(
       _reserves,
       _reservesList,
+      _reservesBlacklistBitmap,
       _usersConfig[onBehalfOf],
       asset,
       amount,
@@ -151,6 +152,7 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
     SupplyLogic.executeSupply(
       _reserves,
       _reservesList,
+      _reservesBlacklistBitmap,
       _usersConfig[onBehalfOf],
       DataTypes.ExecuteSupplyParams({
         asset: asset,
@@ -184,6 +186,7 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
     SupplyLogic.executeSupply(
       _reserves,
       _reservesList,
+      _reservesBlacklistBitmap,
       _usersConfig[onBehalfOf],
       DataTypes.ExecuteSupplyParams({
         asset: asset,
@@ -229,6 +232,7 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
       _reserves,
       _reservesList,
       _eModeCategories,
+      _reservesBlacklistBitmap,
       _usersConfig[onBehalfOf],
       DataTypes.ExecuteBorrowParams({
         asset: asset,
@@ -370,6 +374,7 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
       _reservesList,
       _usersConfig,
       _eModeCategories,
+      _reservesBlacklistBitmap,
       DataTypes.ExecuteLiquidationCallParams({
         reservesCount: _reservesCount,
         debtToCover: debtToCover,
@@ -417,6 +422,7 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
       _reserves,
       _reservesList,
       _eModeCategories,
+      _reservesBlacklistBitmap,
       _usersConfig[onBehalfOf],
       flashParams
     );
@@ -580,6 +586,7 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
       _reservesList,
       _eModeCategories,
       _usersConfig,
+      _reservesBlacklistBitmap,
       DataTypes.FinalizeTransferParams({
         asset: asset,
         from: from,
@@ -672,6 +679,26 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
     _eModeCategories[id] = category;
   }
 
+  function configureReserveBlacklistBitmap(
+    uint16 reserveIndex,
+    uint128 reserveBlackListBitmap
+  ) external virtual override onlyPoolConfigurator {
+    _reservesBlacklistBitmap[reserveIndex] =  reserveBlackListBitmap;
+  }
+
+  function getReserveBorrowable(
+    uint16 reserveIndex,
+    uint16 assetToBorrowIndex
+  ) external view virtual override returns(bool) {
+    return _reservesBlacklistBitmap[reserveIndex] & (1 << assetToBorrowIndex) == 0;
+  }
+
+  function getReserveBitmap(
+    uint16 reserveIndex
+  ) external view virtual override returns(uint128) {
+    return _reservesBlacklistBitmap[reserveIndex];
+  }
+
   /// @inheritdoc IPool
   function getEModeCategoryData(
     uint8 id
@@ -727,6 +754,7 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
     SupplyLogic.executeSupply(
       _reserves,
       _reservesList,
+      _reservesBlacklistBitmap,
       _usersConfig[onBehalfOf],
       DataTypes.ExecuteSupplyParams({
         asset: asset,

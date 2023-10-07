@@ -97,4 +97,5 @@ library Errors {
   string public constant SILOED_BORROWING_VIOLATION = '89'; // 'User is trying to borrow multiple assets including a siloed one'
   string public constant RESERVE_DEBT_NOT_ZERO = '90'; // the total debt of the reserve needs to be 0
   string public constant FLASHLOAN_DISABLED = '91'; // FlashLoaning for this asset is disabled
+  string public constant COLLATERAL_BLACKLIST_VIOLATION = '92'; // user is trying to borrow an asset that is blacklisted given one of his collaterals
 }

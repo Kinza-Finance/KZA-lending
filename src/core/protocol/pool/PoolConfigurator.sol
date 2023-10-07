@@ -66,7 +66,7 @@ contract PoolConfigurator is VersionedInitializable, IPoolConfigurator {
     _;
   }
 
-  uint256 public constant CONFIGURATOR_REVISION = 0x1;
+  uint256 public constant CONFIGURATOR_REVISION = 0x3;
 
   /// @inheritdoc VersionedInitializable
   function getRevision() internal pure virtual override returns (uint256) {
@@ -466,6 +466,15 @@ contract PoolConfigurator is VersionedInitializable, IPoolConfigurator {
       oldFlashloanPremiumToProtocol,
       newFlashloanPremiumToProtocol
     );
+  }
+
+  function setReserveBlacklistBitmap(
+    uint256 reserveIndex, 
+    uint128 reserveBlacklistBitmap
+    ) external override onlyRiskOrPoolAdmins {
+    require(reserveIndex < ReserveConfiguration.MAX_RESERVES_COUNT, Errors.INVALID_RESERVE_INDEX);
+    _pool.configureReserveBlacklistBitmap(uint16(reserveIndex), reserveBlacklistBitmap);
+    emit ReserveBlacklistBitmapChanged(uint16(reserveIndex), reserveBlacklistBitmap);
   }
 
   function _checkNoSuppliers(address asset) internal view {

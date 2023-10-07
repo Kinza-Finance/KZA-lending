@@ -48,4 +48,7 @@ contract PoolStorage {
 
   // Maximum number of active reserves there have been in the protocol. It is the upper bound of the reserves list
   uint16 internal _reservesCount;
+
+  // the bitmap to defines each reserve is forbidden for borrowing other reserves
+  mapping(uint16 => uint128) internal _reservesBlacklistBitmap;
 }

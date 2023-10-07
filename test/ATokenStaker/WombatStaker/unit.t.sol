@@ -209,14 +209,6 @@ contract poolUpgradeUnitTest is ATokenWombatStakerBaseTest {
         // borrow(bob, borrowAmount, HAY);
         borrowExpectFail(bob, borrowAmount, HAY, '');
     }
-     function test_borrowWithEmode() public {
-        address bob = address(1);
-        uint256 collateralAmount = 100 * 1e18;
-        deposit(bob, collateralAmount, underlying);
-        turnOnEmode(bob);
-        turnOnCollateral(bob, underlying);
-        
-     }
     function test_borrowWithEmode() public {
         address bob = address(1);
         uint256 collateralAmount = 100 * 1e18;

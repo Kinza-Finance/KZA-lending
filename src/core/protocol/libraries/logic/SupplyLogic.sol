@@ -46,12 +46,14 @@ library SupplyLogic {
    * collateral.
    * @param reservesData The state of all the reserves
    * @param reservesList The addresses of all the active reserves
+   * @param reservesBlacklistBitmap The bitmap for reserve blacklist
    * @param userConfig The user configuration mapping that tracks the supplied/borrowed assets
    * @param params The additional parameters needed to execute the supply function
    */
   function executeSupply(
     mapping(address => DataTypes.ReserveData) storage reservesData,
     mapping(uint256 => address) storage reservesList,
+    mapping(uint16 => uint128) storage reservesBlacklistBitmap,
     DataTypes.UserConfigurationMap storage userConfig,
     DataTypes.ExecuteSupplyParams memory params
   ) external {
@@ -78,6 +80,7 @@ library SupplyLogic {
         ValidationLogic.validateAutomaticUseAsCollateral(
           reservesData,
           reservesList,
+          reservesBlacklistBitmap,
           userConfig,
           reserveCache.reserveConfiguration,
           reserveCache.aTokenAddress
@@ -179,6 +182,7 @@ library SupplyLogic {
     mapping(uint256 => address) storage reservesList,
     mapping(uint8 => DataTypes.EModeCategory) storage eModeCategories,
     mapping(address => DataTypes.UserConfigurationMap) storage usersConfig,
+    mapping(uint16 => uint128) storage reserveBlacklistBitmap,
     DataTypes.FinalizeTransferParams memory params
   ) external {
     DataTypes.ReserveData storage reserve = reservesData[params.asset];
@@ -216,6 +220,7 @@ library SupplyLogic {
           ValidationLogic.validateAutomaticUseAsCollateral(
             reservesData,
             reservesList,
+            reserveBlacklistBitmap,
             toConfig,
             reserve.configuration,
             reserve.aTokenAddress

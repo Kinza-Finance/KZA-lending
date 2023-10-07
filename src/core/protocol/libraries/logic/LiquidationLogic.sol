@@ -91,6 +91,7 @@ library LiquidationLogic {
    * @param reservesList The addresses of all the active reserves
    * @param usersConfig The users configuration mapping that track the supplied/borrowed assets
    * @param eModeCategories The configuration of all the efficiency mode categories
+   * @param reservesBlacklistBitmap The bitmap for reserve blacklist
    * @param params The additional parameters needed to execute the liquidation function
    */
   function executeLiquidationCall(
@@ -98,6 +99,7 @@ library LiquidationLogic {
     mapping(uint256 => address) storage reservesList,
     mapping(address => DataTypes.UserConfigurationMap) storage usersConfig,
     mapping(uint8 => DataTypes.EModeCategory) storage eModeCategories,
+    mapping(uint16 => uint128) storage reservesBlacklistBitmap,
     DataTypes.ExecuteLiquidationCallParams memory params
   ) external {
     LiquidationCallLocalVars memory vars;
@@ -194,7 +196,7 @@ library LiquidationLogic {
     );
 
     if (params.receiveAToken) {
-      _liquidateATokens(reservesData, reservesList, usersConfig, collateralReserve, params, vars);
+      _liquidateATokens(reservesData, reservesList, usersConfig, reservesBlacklistBitmap, collateralReserve, params, vars);
     } else {
       _burnCollateralATokens(collateralReserve, params, vars);
     }
@@ -279,6 +281,7 @@ library LiquidationLogic {
    * @param reservesList The addresses of all the active reserves
    * @param usersConfig The users configuration mapping that track the supplied/borrowed assets
    * @param collateralReserve The data of the collateral reserve
+   * @param reserveBlacklistBitmap The bitmap for the reserve blacklist
    * @param params The additional parameters needed to execute the liquidation function
    * @param vars The executeLiquidationCall() function local vars
    */
@@ -286,6 +289,7 @@ library LiquidationLogic {
     mapping(address => DataTypes.ReserveData) storage reservesData,
     mapping(uint256 => address) storage reservesList,
     mapping(address => DataTypes.UserConfigurationMap) storage usersConfig,
+    mapping(uint16 => uint128) storage reserveBlacklistBitmap,
     DataTypes.ReserveData storage collateralReserve,
     DataTypes.ExecuteLiquidationCallParams memory params,
     LiquidationCallLocalVars memory vars
@@ -303,6 +307,7 @@ library LiquidationLogic {
         ValidationLogic.validateAutomaticUseAsCollateral(
           reservesData,
           reservesList,
+          reserveBlacklistBitmap,
           liquidatorConfig,
           collateralReserve.configuration,
           collateralReserve.aTokenAddress
