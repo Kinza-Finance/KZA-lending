@@ -24,12 +24,9 @@ contract WalletBalanceProvider {
   using GPv2SafeERC20 for IERC20;
   using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
   address immutable public provider;
-  // address constant MOCK_ETH_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
-  address immutable WETH_ADDREASS;
 
-  constructor(address _provider, address _wethAddress) {
+  constructor(address _provider) {
     provider = _provider;
-    WETH_ADDREASS = _wethAddress;
   }
 
   /**

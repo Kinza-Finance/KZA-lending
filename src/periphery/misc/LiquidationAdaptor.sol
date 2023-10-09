@@ -56,7 +56,7 @@ contract LiquidationAdaptor is Ownable {
     // FALLBACK means the flows "try V3" first, if fails it attempts V2
     enum ROUTE {FALLBACK, V2FALLBACK, V3FALLBACK, V2CUSTOMED, V3CUSTOMED}
 
-    address constant public smartRouter = 0x13f4EA83D0bd40E75C8222255bc855a974568Dd4;
+    address constant public smartRouter = 0x678Aa4bF4E210cf2166753e054d5b7c31cc7fa86;
     address public V2Fallback;
     address public V3Fallback;
     // this struct for getting away with "stack too depp"
