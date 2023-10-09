@@ -47,10 +47,7 @@ contract WalletBalanceProvider {
       - return 0 on non-contract address
     **/
   function balanceOf(address user, address token) public view returns (uint256) {
-    if (token == WETH_ADDREASS) {
-      return user.balance; // ETH balance
-      // check if token is actually a contract
-    } else if (token.isContract()) {
+    if (token.isContract()) {
       return IERC20(token).balanceOf(user);
     }
     revert('INVALID_TOKEN');
