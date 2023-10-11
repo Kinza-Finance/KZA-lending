@@ -8,6 +8,7 @@ contract LiquidationAdaptorPancakeV3FallBack is Ownable {
     // address constant public pancakeRouter = 0x678Aa4bF4E210cf2166753e054d5b7c31cc7fa86;
     address constant public WBNB = 0x4200000000000000000000000000000000000006;
     address constant public BTC = 0x7c6b91D9Be155A6Db01f749217d76fF02A7227F2;
+    adderss constant public USDT = 0x9e5AAC1Ba1a2e6aEd6b32689DFcF62A509Ca96f3;
 
     mapping(bytes32 => bytes) public callDataMap;
 
@@ -17,11 +18,11 @@ contract LiquidationAdaptorPancakeV3FallBack is Ownable {
     constructor() {
         // BTC => BNB
         callDataMap[keccak256(abi.encode(BTC, WBNB))] = 
-        abi.encodePacked(BTC, uint24(2500), WBNB);
+        abi.encodePacked(BTC, uint24(10000), WBNB);
 
         // BNB => BTC
         callDataMap[keccak256(abi.encode(WBNB, BTC))] = 
-        abi.encodePacked(WBNB,  uint24(2500), BTC);
+        abi.encodePacked(WBNB, uint24(10000), BTC);
     }
     // path that is generalized off-chain, it's a deterministic path to go pass
     function getPath(address _tokenIn, address _tokenOut) public view returns(bytes memory) {
