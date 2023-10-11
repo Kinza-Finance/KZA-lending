@@ -10,34 +10,24 @@ import "../../src/core/interfaces/IPoolAddressesProvider.sol";
 contract setupRiskParameter is Script {
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-        bool isProd = vm.envBool("isProd");
         address provider = vm.envAddress("PoolAddressesProvider");
         address aclAddress = vm.envAddress("ACLManager");
         address helperAddr = vm.envAddress("ReservesSetupHelper");
         vm.startBroadcast(deployerPrivateKey);
-
+        //ReservesSetupHelper helper = new ReservesSetupHelper();
         ReservesSetupHelper helper = ReservesSetupHelper(helperAddr);
         //add helper to pool admin
         ACLManager acl = ACLManager(aclAddress);
         acl.addPoolAdmin(address(helper));
 
         PoolConfigurator configurator = PoolConfigurator(IPoolAddressesProvider(provider).getPoolConfigurator());
-        ReservesSetupHelper.ConfigureReserveInput[] memory inputs = new ReservesSetupHelper.ConfigureReserveInput[](6);
-        string[] memory tokens = new string[](6);
-        tokens[0] = "BUSD";
-        tokens[1] = "USDC";
-        tokens[2] = "USDT";
-        tokens[3] = "WBTC";
-        tokens[4] = "WETH";
-        tokens[5] = "WBNB";
+        ReservesSetupHelper.ConfigureReserveInput[] memory inputs = new ReservesSetupHelper.ConfigureReserveInput[](1);
+        string[] memory tokens = new string[](1);
+        tokens[0] = "WBNB";
 
         address token;
         for (uint256 i; i < tokens.length; i++) {
-            if (isProd) {
-                token = vm.envAddress(string(abi.encodePacked(tokens[i], "_PROD")));
-            } else {
-                token = vm.envAddress(string(abi.encodePacked(tokens[i], "_TESTNET")));
-            }
+            token = vm.envAddress(string(abi.encodePacked(tokens[i])));
 
             inputs[i] = ReservesSetupHelper.ConfigureReserveInput(
                 token,

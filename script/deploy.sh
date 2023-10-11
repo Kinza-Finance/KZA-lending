@@ -12,52 +12,53 @@ export VERIFIER_URL=$BSCTEST_VERIFIER_URL
 export ETHERSCAN_API_KEY=$BSCTEST_ETHERSCAN_API_KEY
 fi
 
-# # forge verify-contract \
-#     --chain-id  $chainId \
-#     --num-of-optimizations 200 \
-#     --watch \
-#     --constructor-args $(cast abi-encode "constructor(address)" $deployer) \
-#     --etherscan-api-key $ETHERSCAN_API_KEY \
-#     --compiler-version v0.8.10+commit.fc410830 \
-#     0xb62afd0f911af3ae28fb69a3eee3292b67fa8345 \
-#     src/core/protocol/configuration/PoolAddressesProviderRegistry.sol:PoolAddressesProviderRegistry
+ forge verify-contract \
+    --chain-id  $chainId \
+    --num-of-optimizations 200 \
+    --watch \
+    --constructor-args $(cast abi-encode "constructor(address)" $deployer) \
+    --verifier-url $VERIFIER_URL \
+    --etherscan-api-key $ETHERSCAN_API_KEY \
+    --compiler-version v0.8.10+commit.fc410830 \
+    0x0b8f75a54262e2b881279fec9a0c511c6991e900 \
+    src/core/protocol/pool/Pool.sol:Pool
 
 # 1 - Logics
 # 1.1 Supply Logic
-forge create src/core/protocol/libraries/logic/SupplyLogic.sol:SupplyLogic --gas-price 10 --private-key $PRIVATE_KEY --rpc-url $RPC_URL --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY  > log/SupplyLogic.txt
+forge create src/core/protocol/libraries/logic/SupplyLogic.sol:SupplyLogic --private-key $PRIVATE_KEY --rpc-url $RPC_URL --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY  > log/SupplyLogic.txt
 SupplyLogic=$(grep 'Deployed to: ' log/SupplyLogic.txt | awk '{print $3}')
 echo "SupplyLogic=$SupplyLogic" >> ".env"
 # 1.2 Borrow Logic
-forge create src/core/protocol/libraries/logic/BorrowLogic.sol:BorrowLogic --gas-price 10 --private-key $PRIVATE_KEY --rpc-url $RPC_URL --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY  > log/BorrowLogic.txt
+forge create src/core/protocol/libraries/logic/BorrowLogic.sol:BorrowLogic --private-key $PRIVATE_KEY --rpc-url $RPC_URL --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY  > log/BorrowLogic.txt
 BorrowLogic=$(grep 'Deployed to: ' log/BorrowLogic.txt | awk '{print $3}')
 echo "BorrowLogic=$BorrowLogic" >> ".env"
 # 1.3 LiquidationLogic
-forge create src/core/protocol/libraries/logic/LiquidationLogic.sol:LiquidationLogic  --gas-price 10 --private-key $PRIVATE_KEY --rpc-url $RPC_URL --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY  > log/LiquidationLogic.txt
+forge create src/core/protocol/libraries/logic/LiquidationLogic.sol:LiquidationLogic --private-key $PRIVATE_KEY --rpc-url $RPC_URL --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY  > log/LiquidationLogic.txt
 LiquidationLogic=$(grep 'Deployed to: ' log/LiquidationLogic.txt | awk '{print $3}')
 echo "LiquidationLogic=$LiquidationLogic" >> ".env"
 # 1.4 EmodeLogic
-forge create src/core/protocol/libraries/logic/EModeLogic.sol:EModeLogic --gas-price 10 --private-key $PRIVATE_KEY --rpc-url $RPC_URL --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY  > log/EModeLogic.txt
+forge create src/core/protocol/libraries/logic/EModeLogic.sol:EModeLogic --private-key $PRIVATE_KEY --rpc-url $RPC_URL --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY  > log/EModeLogic.txt
 EModeLogic=$(grep 'Deployed to: ' log/EModeLogic.txt | awk '{print $3}')
 echo "EModeLogic=$EModeLogic" >> ".env"
 # 1.5 BridgeLogic
-forge create src/core/protocol/libraries/logic/BridgeLogic.sol:BridgeLogic --gas-price 10 --private-key $PRIVATE_KEY --rpc-url $RPC_URL --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY  > log/BridgeLogic.txt
+forge create src/core/protocol/libraries/logic/BridgeLogic.sol:BridgeLogic --private-key $PRIVATE_KEY --rpc-url $RPC_URL --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY  > log/BridgeLogic.txt
 BridgeLogic=$(grep 'Deployed to: ' log/BridgeLogic.txt | awk '{print $3}')
 echo "BridgeLogic=$BridgeLogic" >> ".env"
 # 1.6 ConfiguratorLogic
-forge create src/core/protocol/libraries/logic/ConfiguratorLogic.sol:ConfiguratorLogic --gas-price 10 --private-key $PRIVATE_KEY --rpc-url $RPC_URL --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY  > log/ConfiguratorLogic.txt
+forge create src/core/protocol/libraries/logic/ConfiguratorLogic.sol:ConfiguratorLogic --private-key $PRIVATE_KEY --rpc-url $RPC_URL --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY  > log/ConfiguratorLogic.txt
 ConfiguratorLogic=$(grep 'Deployed to: ' log/ConfiguratorLogic.txt | awk '{print $3}')
 echo "ConfiguratorLogic=$ConfiguratorLogic" >> ".env"
 # 1.7 FlashLoanLogic
-forge create src/core/protocol/libraries/logic/FlashLoanLogic.sol:FlashLoanLogic --gas-price 10 --private-key $PRIVATE_KEY --rpc-url $RPC_URL --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY > log/FlashLoanLogic.txt
+forge create src/core/protocol/libraries/logic/FlashLoanLogic.sol:FlashLoanLogic --private-key $PRIVATE_KEY --rpc-url $RPC_URL --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY > log/FlashLoanLogic.txt
 FlashLoanLogic=$(grep 'Deployed to: ' log/FlashLoanLogic.txt | awk '{print $3}')
 echo "FlashLoanLogic=$FlashLoanLogic" >> ".env"
 # 1.8 PoolLogic
-forge create src/core/protocol/libraries/logic/PoolLogic.sol:PoolLogic --gas-price 10 --private-key $PRIVATE_KEY --rpc-url $RPC_URL --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY  > log/PoolLogic.txt
+forge create src/core/protocol/libraries/logic/PoolLogic.sol:PoolLogic --private-key $PRIVATE_KEY --rpc-url $RPC_URL --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY  > log/PoolLogic.txt
 PoolLogic=$(grep 'Deployed to: ' log/PoolLogic.txt | awk '{print $3}')
 echo "PoolLogic=$PoolLogic" >> ".env"
 
 # 1.1.1 - PoolAddressesProviderRegistry -- POST LOGIC
-forge script script/1.1.1-PoolAddressesProviderRegistry.s.sol --gas-price 10 --rpc-url $RPC_URL --broadcast --verify -vvvv
+forge script script/1.1.1-PoolAddressesProviderRegistry.s.sol --priority-gas-price 1 --private-key $PRIVATE_KEY --rpc-url $RPC_URL --broadcast --verify -vvvv
 #source address of PoolAddressesProviderRegistry into env variable
 PoolAddressesProviderRegistry=($(jq -r '.transactions[0].contractAddress' broadcast/1.1.1-PoolAddressesProviderRegistry.s.sol/${chainId}/run-latest.json))
 echo "\n#deployment variables\nPoolAddressesProviderRegistry=$PoolAddressesProviderRegistry" >> ".env"
@@ -100,23 +101,22 @@ forge script script/1.5-testnet/updateAggregatorSingle.s.sol --rpc-url $RPC_URL 
 # 2 Treasury Proxy
 
 # 3.1 - PoolAddressesProvider
-forge script script/3-deployMarket/3.1-PoolAddressesProvider.s.sol --priority-gas-price 1 --private-key $PRIVATE_KEY --rpc-url $RPC_URL --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY --broadcast  --verify -vvvv
+forge script script/3-deployMarket/3.1-PoolAddressesProvider.s.sol --priority-gas-price 1 --private-key $PRIVATE_KEY --rpc-url $RPC_URL --broadcast --verify -vvvv
 #source address of PoolAddressesProviderRegistry into env variable
 PoolAddressesProvider=($(jq -r '.transactions[0].contractAddress' broadcast/3.1-PoolAddressesProvider.s.sol/${chainId}/run-latest.json))
 echo "PoolAddressesProvider=$PoolAddressesProvider" >> ".env"
 # 3.2 - Set PoolAddressesProvider into registry
-forge script script/3-deployMarket/3.2-RegisterAddressProvider.s.sol --priority-gas-price 1 --rpc-url $RPC_URL --broadcast --verify -vvvv
+forge script script/3-deployMarket/3.2-RegisterAddressProvider.s.sol --priority-gas-price 1 --private-key $PRIVATE_KEY --rpc-url $RPC_URL --broadcast --verify -vvvv
 #3.3 - deploy PoolDataProvider
-forge script script/3-deployMarket/3.3-PoolDataProvider.s.sol --priority-gas-price 1 --private-key $PRIVATE_KEY --priority-gas-price 1 --rpc-url $RPC_URL --broadcast --verify -vvvv
+forge script script/3-deployMarket/3.3-PoolDataProvider.s.sol --priority-gas-price 1 --private-key $PRIVATE_KEY --rpc-url $RPC_URL --broadcast --verify -vvvv
 PoolDataProvider=($(jq -r '.transactions[0].contractAddress' broadcast/3.3-PoolDataProvider.s.sol/${chainId}/run-latest.json))
 echo "PoolDataProvider=$PoolDataProvider" >> ".env"
 #3.4 - deploy PoolImpl
 forge script script/3-deployMarket/3.4-PoolImpl.s.sol --priority-gas-price 1 --private-key $PRIVATE_KEY --rpc-url $RPC_URL --broadcast --verify -vvvv
 PoolImpl=($(jq -r '.transactions[0].contractAddress' broadcast/3.4-PoolImpl.s.sol/${chainId}/run-latest.json))
 echo "PoolImpl=$PoolImpl" >> ".env"
-
 # 3.5 - deploy configuratorImpl
-forge script script/3-deployMarket/3.5-PoolConfiguratorImpl.s.sol  --priority-gas-price 1 --private-key $PRIVATE_KEY --rpc-url $RPC_URL --broadcast --verify -vvvv
+forge script script/3-deployMarket/3.5-PoolConfiguratorImpl.s.sol --priority-gas-price 1 --private-key $PRIVATE_KEY --rpc-url $RPC_URL --broadcast --verify -vvvv
 PoolConfiguratorImpl=($(jq -r '.transactions[0].contractAddress' broadcast/3.5-PoolConfiguratorImpl.s.sol/${chainId}/run-latest.json))
 echo "PoolConfiguratorImpl=$PoolConfiguratorImpl" >> ".env"
 # 3.6 - deploy ACL Manager
@@ -127,10 +127,16 @@ echo "ACLManager=$ACLManager" >> ".env"
 forge script script/3-deployMarket/3.7-Oracle.s.sol --priority-gas-price 1 --private-key $PRIVATE_KEY --rpc-url $RPC_URL --broadcast --verify -vvvv
 Oracle=($(jq -r '.transactions[0].contractAddress' broadcast/3.7-Oracle.s.sol/${chainId}/run-latest.json))
 echo "Oracle=$Oracle" >> ".env"
+
+forge script script/3-deployMarket/3.7.5-InitialBinanceOracle.s.sol --priority-gas-price 1 --private-key $PRIVATE_KEY --rpc-url $RPC_URL --broadcast --verify -vvvv
+Oracle=($(jq -r '.transactions[0].contractAddress' broadcast/3.7-Oracle.s.sol/${chainId}/run-latest.json))
+echo "Oracle=$Oracle" >> ".env"
+
+forge script script/3-deployMarket/3.7.5-InitBinanceOracle.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 # 3.8 init oracle
 forge script script/3-deployMarket/3.8-InitOracle.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 # 3.9 init pool
-forge script script/3-deployMarket/3.9-InitPool.s.sol  --priority-gas-price 1 --private-key $PRIVATE_KEY --rpc-url $RPC_URL --broadcast --verify -vvvv
+forge script script/3-deployMarket/3.9-InitPool.s.sol --priority-gas-price 1 --private-key $PRIVATE_KEY --rpc-url $RPC_URL --broadcast --verify -vvvv
 # 3.10 init EmissionManager, RewardsController
 # address of RewardsController need to be fetched on-chain since it's a proxy
 forge script script/3-deployMarket/3.10-Incentive.s.sol --priority-gas-price 1 --private-key $PRIVATE_KEY --rpc-url $RPC_URL --broadcast --verify -vvvv
@@ -145,13 +151,13 @@ echo "sdTokenImpl=$sdTokenImpl" >> ".env"
 vdTokenImpl=($(jq -r '.transactions[2].contractAddress' broadcast/3.11-tokensImpl.s.sol/${chainId}/run-latest.json))
 echo "vdTokenImpl=$vdTokenImpl" >> ".env"
 # 3.12 init rateStrat, add all 6 tokens to reserve
-forge script script/3-deployMarket/3.12-initReserve.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+forge script script/3-deployMarket/3.12-initReserve.s.sol --priority-gas-price 1 --private-key $PRIVATE_KEY --rpc-url $RPC_URL --broadcast --verify -vvvv
 
 # 4.1 deploy mock flashloanreceiver
 forge script script/4-testnet/4.1-MockFlashloanReceiver.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 
 # 5.1 set risk parameter, some gas estimation was wrong so we bump up the limit
-forge script script/5-setUp/5.1-setupRiskParameter.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv --gas-estimate-multiplier 200
+forge script script/5-setUp/5.1-setupRiskParameter.s.sol --priority-gas-price 1 --private-key $PRIVATE_KEY --rpc-url $RPC_URL --broadcast --verify -vvvv --gas-estimate-multiplier 200
 # 5.2 set stableborrow to false (neligible since 5.1 set it aldy)
 # forge script script/5-setUp/5.2-reviewStableBorrowing.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 # 5.3 set isolation
@@ -184,15 +190,15 @@ forge script script/6-transferOwnership/6.6-setUpAToken-Helper.s.sol --rpc-url $
 
 # forge script script/1.5-testnet/updateAggregator.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 # 7.1 WalletBalanceProvider
-forge script script/7-deployRead/7.1-walletBalanceProvider.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+forge script script/7-deployRead/7.1-walletBalanceProvider.s.sol --priority-gas-price 1 --private-key $PRIVATE_KEY --rpc-url $RPC_URL --broadcast --verify -vvvv
 WalletBalanceProvider=($(jq -r '.transactions[0].contractAddress' broadcast/7.1-walletBalanceProvider.s.sol/${chainId}/run-latest.json))
 echo "WalletBalanceProvider=$WalletBalanceProvider" >> ".env"
 
-forge script script/7-deployRead/7.2-borrowableProvider.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+forge script script/7-deployRead/7.2-borrowableProvider.s.sol --priority-gas-price 1 --private-key $PRIVATE_KEY --rpc-url $RPC_URL --broadcast --verify -vvvv
 BorrowableDataProvider=($(jq -r '.transactions[0].contractAddress' broadcast/7.2-borrowableProvider.s.sol/${chainId}/run-latest.json))
 echo "BorrowableDataProvider=$BorrowableDataProvider" >> ".env"
 
-forge script script/7-deployRead/7.3-liquidationAdaptor.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+forge script script/7-deployRead/7.3-liquidationAdaptor.s.sol --priority-gas-price 1 --private-key $PRIVATE_KEY --rpc-url $RPC_URL --broadcast --verify -vvvv
 LiquidationAdaptor=($(jq -r '.transactions[0].contractAddress' broadcast/7.3-liquidationAdaptor.s.sol/${chainId}/run-latest.json))
 echo "LiquidationAdaptor=$LiquidationAdaptor" >> ".env"
 
@@ -206,7 +212,7 @@ forge script script/8-deployGateway/8.0.3-configureWBNBRiskParam.s.sol --rpc-url
 
 forge script script/8-deployGateway/8.0.4-approveAToken.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 
-forge script script/8-deployGateway/8.1-gateway.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+forge script script/8-deployGateway/8.1-gateway.s.sol --priority-gas-price 1 --private-key $PRIVATE_KEY --rpc-url $RPC_URL --broadcast --verify -vvvv
 GATEWAY=($(jq -r '.transactions[0].contractAddress' broadcast/8.1-gateway.s.sol/${chainId}/run-latest.json))
 echo "GATEWAY=$GATEWAY" >> ".env"
 

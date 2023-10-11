@@ -9,15 +9,8 @@ contract deployGateway is Script {
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address provider = vm.envAddress("PoolAddressesProvider");
-        address gov = vm.envAddress("GOV");
-        bool isProd = vm.envBool("isProd");
-        address WBNB;
-        if (isProd) {
-            WBNB = vm.envAddress("WBNB_PROD");
-        } else {
-            // since we created a testnetBNB for facuet, but need a real WBNB for testing the gateway
-            WBNB = vm.envAddress("WBNB_TESTNET_REAL");
-        }
+        address gov = 0xCCB8F7Cb8C49aB596E6F0EdDCEd3d3A6B1912c92;
+        address WBNB = 0x4200000000000000000000000000000000000006;
         
         vm.startBroadcast(deployerPrivateKey);
 
