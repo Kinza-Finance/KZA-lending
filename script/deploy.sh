@@ -195,6 +195,10 @@ forge script script/7-deployRead/7.3-liquidationAdaptor.s.sol --rpc-url $RPC_URL
 LiquidationAdaptor=($(jq -r '.transactions[0].contractAddress' broadcast/7.3-liquidationAdaptor.s.sol/${chainId}/run-latest.json))
 echo "LiquidationAdaptor=$LiquidationAdaptor" >> ".env"
 
+forge script script/7-deployRead/7.5-TVLReader.s.sol --rpc-url $RPC_URL --broadcast --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY -vvvv
+TVLReader=($(jq -r '.transactions[0].contractAddress' broadcast/7.5-TVLReader.s.sol/${chainId}/run-latest.json))
+echo "TVLReader=$TVLReader" >> ".env"
+
 forge script script/8-deployGateway/8.0.1-WBNB.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 WBNB_TESTNET_REAL=($(jq -r '.transactions[0].contractAddress' broadcast/8.0.1-WBNB.s.sol/${chainId}/run-latest.json))
 echo "WBNB_TESTNET_REAL=$WBNB_TESTNET_REAL" >> ".env"
