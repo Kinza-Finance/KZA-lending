@@ -42,8 +42,9 @@ contract BitmapUpgradeBaseTest is BaseTest {
     }
 
     function setUpBlacklistForReserve(uint256 reserveIndex, uint128 bitmap) internal {
+        address reserve = pool.getReserveAddressById(uint16(reserveIndex));
         vm.startPrank(POOL_ADMIN);
-        configurator.setReserveBlacklistBitmap(uint16(reserveIndex), bitmap);
+        configurator.setReserveBlacklistBitmap(reserve, bitmap);
     }
 
     function setUpBlacklistForReserveExceptOneAllowed(uint256 reserveIndex, address allowedReserve) internal {
@@ -62,6 +63,12 @@ contract BitmapUpgradeBaseTest is BaseTest {
 
     function turnOnCollateral(address user, address collateral) internal {
         vm.startPrank(user);
+        pool.setUserUseReserveAsCollateral(collateral, true);
+    }
+
+    function turnOnCollateralExpectFail(address user, address collateral, string memory errorMsg) internal {
+        vm.startPrank(user);
+        vm.expectRevert(abi.encodePacked(errorMsg));
         pool.setUserUseReserveAsCollateral(collateral, true);
     }
 

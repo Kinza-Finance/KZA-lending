@@ -4,7 +4,7 @@ import {IPoolAddressesProvider} from "../../../src/core/interfaces/IPoolAddresse
 
 
 import {TIMELOCK, ADDRESSES_PROVIDER, POOLDATA_PROVIDER, ACL_MANAGER, POOL, POOL_CONFIGURATOR, EMISSION_MANAGER, 
-        ATOKENIMPL, SDTOKENIMPL, VDTOKENIMPL, TREASURY, POOL_ADMIN, HAY_AGGREGATOR, USDC, HAY,
+        ATOKENIMPL, SDTOKENIMPL, VDTOKENIMPL, TREASURY, POOL_ADMIN, HAY_AGGREGATOR, USDC, HAY, ETH,
         LIQUIDATION_ADAPTOR, BORROWABLE_DATA_PROVIDER} from "test/utils/Addresses.sol";
 
 // @dev disable linked lib in foundry.toml, since forge test would inherit those setting
@@ -29,7 +29,8 @@ contract blacklistBitmapUpgradeUnitTest is BitmapUpgradeBaseTest {
         setUpBlacklistForReserve(reserveIndex, type(uint128).max);
         uint256 reservesCount = pool.getReservesList().length;
         for (uint256 i; i < reservesCount; i++) {
-            assertEq(false, pool.getReserveBorrowable(reserveIndex, uint16(i)));
+            address reserveToCheck = pool.getReserveAddressById(uint16(i));
+            assertEq(false, pool.getReserveBorrowable(USDC, reserveToCheck));
         }
         
     }
@@ -41,17 +42,35 @@ contract blacklistBitmapUpgradeUnitTest is BitmapUpgradeBaseTest {
         address user = address(1);
         deposit(user, amount, USDC);
         (,,,,,,,,bool isEnabled) = dataProvider.getUserReserveData(USDC, user);
-        assertEq(false, isEnabled);
+        // since the user does not have any borrow
+        assertEq(true, isEnabled);
     }
-    function test_unblockUSDCCollateralizaiton() public {
+
+    function test_blockUSDCCollateralizaitonAndUseAsCollateral() public {
         uint16 reserveIndex = pool.getReserveData(USDC).id;
         setUpBlacklistForReserve(reserveIndex, type(uint128).max);
-        setUpBlacklistForReserve(reserveIndex, 0);
         uint256 amount = 1e18;
         address user = address(1);
         deposit(user, amount, USDC);
+        // since the user does not have any borrow
         (,,,,,,,,bool isEnabled) = dataProvider.getUserReserveData(USDC, user);
         assertEq(true, isEnabled);
+        turnOffCollateral(user, USDC);
+        (,,,,,,,,isEnabled) = dataProvider.getUserReserveData(USDC, user);
+        assertEq(false, isEnabled);
+    }
+
+    function test_borrowUSDCDefaultDisableCollateral() public {
+        uint16 reserveIndex = pool.getReserveData(USDC).id;
+        setUpBlacklistForReserve(reserveIndex, type(uint128).max);
+        uint256 amount = 1e18;
+        address user = address(1);
+        deposit(user, amount, ETH);
+        borrow(user, amount, USDC);
+        deposit(user, amount, USDC);
+        // since the user have borrowed USDC, so default is disabled as collateral
+        (,,,,,,,,bool isEnabled) = dataProvider.getUserReserveData(USDC, user);
+        assertEq(false, isEnabled);
     }
     function test_blockUSDCFromBorrowing() public {
         uint256 amount = 1e18;
@@ -72,6 +91,21 @@ contract blacklistBitmapUpgradeUnitTest is BitmapUpgradeBaseTest {
         uint16 reserveIndex = pool.getReserveData(USDC).id;
         setUpBlacklistForReserve(reserveIndex, type(uint128).max);
         borrowExpectFail(user, amount / 4, USDC, "92");
+    }
+
+    function test_UseAsCollateralWithExistingBlacklist() public {
+        uint256 amount = 1e18;
+        address user = address(1);
+        deposit(user, amount, ETH);
+        borrow(user, amount / 4, HAY);
+        uint16 USDCreserveIndex = pool.getReserveData(USDC).id;
+        uint16 HAYreserveIndex = pool.getReserveData(HAY).id;
+        // only flip the bit at HAY reserveIndex
+        uint256 bitmap = 0;
+        bitmap ^= 1 << HAYreserveIndex;
+        setUpBlacklistForReserve(USDCreserveIndex, uint128(bitmap));
+        deposit(user, amount, USDC);
+        turnOnCollateralExpectFail(user, USDC, '62');
     }
 
     function test_blockUSDCFromBorrowingOther() public {
