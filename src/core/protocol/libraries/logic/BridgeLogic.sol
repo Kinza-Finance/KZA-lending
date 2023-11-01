@@ -42,7 +42,6 @@ library BridgeLogic {
    * @dev Emits the `ReserveUsedAsCollateralEnabled` if asset is set as collateral
    * @param reservesData The state of all the reserves
    * @param reservesList The addresses of all the active reserves
-   * @param reservesBlacklistBitmap The bitmap for reserve blacklist
    * @param userConfig The user configuration mapping that tracks the supplied/borrowed assets
    * @param asset The address of the underlying asset to mint aTokens of
    * @param amount The amount to mint
@@ -53,7 +52,6 @@ library BridgeLogic {
   function executeMintUnbacked(
     mapping(address => DataTypes.ReserveData) storage reservesData,
     mapping(uint256 => address) storage reservesList,
-    mapping(uint16 => uint128) storage reservesBlacklistBitmap,
     DataTypes.UserConfigurationMap storage userConfig,
     address asset,
     uint256 amount,
@@ -91,7 +89,6 @@ library BridgeLogic {
         ValidationLogic.validateAutomaticUseAsCollateral(
           reservesData,
           reservesList,
-          reservesBlacklistBitmap,
           userConfig,
           reserveCache.reserveConfiguration,
           reserveCache.aTokenAddress
