@@ -417,7 +417,6 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
       _reserves,
       _reservesList,
       _eModeCategories,
-      _reserveBlacklistBitmap,
       _usersConfig[onBehalfOf],
       flashParams
     );
