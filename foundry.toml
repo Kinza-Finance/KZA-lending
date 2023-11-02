@@ -12,13 +12,13 @@ remappings = [
 solc-version = "0.8.10"
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config
 libraries = [
-    "src/core/protocol/libraries/logic/SupplyLogic.sol:SupplyLogic:0x3E2E10A463900A0f282FA901Bf473248712BDD9C",
-    "src/core/protocol/libraries/logic/BorrowLogic.sol:BorrowLogic:0x70d7900591c768e94D310E6a7da7B491822FBEA1",
-    "src/core/protocol/libraries/logic/LiquidationLogic.sol:LiquidationLogic:0xC01EF1ca67153c0b6FdF3e9EE0eD7C1E3e6bc041",
+    "src/core/protocol/libraries/logic/SupplyLogic.sol:SupplyLogic:0x6253996626073F9E25D5b49FeAE792A45a9B9451",
+    "src/core/protocol/libraries/logic/BorrowLogic.sol:BorrowLogic:0xee2585C8f2A1DEBaD9f43eE764E3D0766e2A4273",
+    "src/core/protocol/libraries/logic/LiquidationLogic.sol:LiquidationLogic:0x107a0d2b34fC76F19aD64e9a9d27340A049b4Ac2",
     "src/core/protocol/libraries/logic/EModeLogic.sol:EModeLogic:0xC8CB15Bc73B7f5f95Af33AEce738bC9B62Cb28D9",
-    "src/core/protocol/libraries/logic/BridgeLogic.sol:BridgeLogic:0x2994413C2B20555F7eEeD0B7a9455CecbB8Dd02B",
+    "src/core/protocol/libraries/logic/BridgeLogic.sol:BridgeLogic:0xE3Aad8bd71E9Be91A60770159242325E06Af86B4",
     "src/core/protocol/libraries/logic/ConfiguratorLogic.sol:ConfiguratorLogic:0x306ca8E36c1DcC1E160f94d1Eb5Fd97CEa889871",
-    "src/core/protocol/libraries/logic/FlashLoanLogic.sol:FlashLoanLogic:0x5e086a7eEecbDAb2b3f6fe6c7B1dFB71eb89D329",
+    "src/core/protocol/libraries/logic/FlashLoanLogic.sol:FlashLoanLogic:0x486D682781A960fFb2A1feeDbD3455C6fae608eA",
     "src/core/protocol/libraries/logic/PoolLogic.sol:PoolLogic:0x30777a478886eCFcA0DC8B023e4Fd19b133D616F",
     ]
 [etherscan]
