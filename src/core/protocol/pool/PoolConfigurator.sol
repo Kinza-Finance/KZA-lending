@@ -470,11 +470,11 @@ contract PoolConfigurator is VersionedInitializable, IPoolConfigurator {
 
   function setReserveBlacklistBitmap(
     address asset, 
-    uint128 reserveBlacklistBitmap
+    uint128 blacklistBitmap
     ) external override onlyRiskOrPoolAdmins {
     uint16 reserveIndex = _pool.getReserveData(asset).id;
-    _pool.configureReserveBlacklistBitmap(asset, reserveBlacklistBitmap);
-    emit ReserveBlacklistBitmapChanged(asset, reserveBlacklistBitmap);
+    _pool.configureReserveBlacklistBitmap(asset, blacklistBitmap);
+    emit ReserveBlacklistBitmapChanged(asset, blacklistBitmap);
   }
 
   function _checkNoSuppliers(address asset) internal view {
