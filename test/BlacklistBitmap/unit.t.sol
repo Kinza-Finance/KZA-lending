@@ -118,6 +118,38 @@ contract blacklistBitmapUpgradeUnitTest is BitmapUpgradeBaseTest {
         borrowExpectFail(user, amount / 2, HAY, "92");
     }
 
+    function test_turnOffCollateralAfterBlacklist() public {
+        uint256 amount = 1e18;
+        address user = address(1);
+        deposit(user, amount, USDC);
+        deposit(user, amount, ETH);
+        borrow(user, amount / 4, HAY);
+        // every asset gets blocked
+        uint16 USDCreserveIndex = pool.getReserveData(USDC).id;
+        uint16 HAYreserveIndex = pool.getReserveData(HAY).id;
+        // only flip the bit at HAY reserveIndex
+        uint256 bitmap = 0;
+        bitmap ^= 1 << HAYreserveIndex;
+        setUpBlacklistForReserve(USDCreserveIndex, uint128(bitmap));
+        turnOffCollateral(user, USDC);
+    }
+
+     function test_repayAfterBlacklist() public {
+        uint256 amount = 1e18;
+        address user = address(1);
+        deposit(user, amount, USDC);
+        borrow(user, amount / 4, HAY);
+        // every asset gets blocked
+        uint16 USDCreserveIndex = pool.getReserveData(USDC).id;
+        uint16 HAYreserveIndex = pool.getReserveData(HAY).id;
+        // only flip the bit at HAY reserveIndex
+        uint256 bitmap = 0;
+        bitmap ^= 1 << HAYreserveIndex;
+        setUpBlacklistForReserve(USDCreserveIndex, uint128(bitmap));
+        repay(user, amount / 4, HAY);
+        
+    }
+
     function test_blockUSDCFromBorrowingOtherWithExistingBorrow() public {
         uint256 amount = 1e18;
         address user = address(1);

@@ -99,6 +99,20 @@ contract BitmapUpgradeBaseTest is BaseTest {
         assertEq(IERC20(underlying).balanceOf(user), before_underlying + amount);
     }
 
+    function repay(address user, uint256 amount, address underlying) internal {
+        // try not to pass uint256 max which break the assertion
+        vm.startPrank(user);
+        deal(underlying, user, amount);
+        (,,address vdTokenProxyAddress) = dataProvider.getReserveTokensAddresses(underlying);
+        uint256 before_dToken = IERC20(vdTokenProxyAddress).balanceOf(user);
+        uint256 before_underlying = IERC20(underlying).balanceOf(user);
+        IERC20(underlying).approve(address(pool), amount);
+        // 2 is variable interest rate
+        pool.repay(underlying, amount, 2, user);
+        // 1e18 is 100%, only may have dust debt due to division round down
+        assertApproxEqRel(IERC20(vdTokenProxyAddress).balanceOf(user), before_dToken - amount, 1e3);
+        assertEq(IERC20(underlying).balanceOf(user), before_underlying - amount);
+    }
 
     function borrow(address user, uint256 amount, address underlying) internal {
          vm.startPrank(user);
