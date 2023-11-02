@@ -123,7 +123,6 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
     BridgeLogic.executeMintUnbacked(
       _reserves,
       _reservesList,
-      _reservesBlacklistBitmap,
       _usersConfig[onBehalfOf],
       asset,
       amount,
@@ -152,7 +151,6 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
     SupplyLogic.executeSupply(
       _reserves,
       _reservesList,
-      _reservesBlacklistBitmap,
       _usersConfig[onBehalfOf],
       DataTypes.ExecuteSupplyParams({
         asset: asset,
@@ -186,7 +184,6 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
     SupplyLogic.executeSupply(
       _reserves,
       _reservesList,
-      _reservesBlacklistBitmap,
       _usersConfig[onBehalfOf],
       DataTypes.ExecuteSupplyParams({
         asset: asset,
@@ -232,7 +229,6 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
       _reserves,
       _reservesList,
       _eModeCategories,
-      _reservesBlacklistBitmap,
       _usersConfig[onBehalfOf],
       DataTypes.ExecuteBorrowParams({
         asset: asset,
@@ -374,7 +370,6 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
       _reservesList,
       _usersConfig,
       _eModeCategories,
-      _reservesBlacklistBitmap,
       DataTypes.ExecuteLiquidationCallParams({
         reservesCount: _reservesCount,
         debtToCover: debtToCover,
@@ -422,7 +417,6 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
       _reserves,
       _reservesList,
       _eModeCategories,
-      _reservesBlacklistBitmap,
       _usersConfig[onBehalfOf],
       flashParams
     );
@@ -586,7 +580,6 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
       _reservesList,
       _eModeCategories,
       _usersConfig,
-      _reservesBlacklistBitmap,
       DataTypes.FinalizeTransferParams({
         asset: asset,
         from: from,
@@ -680,23 +673,24 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
   }
 
   function configureReserveBlacklistBitmap(
-    uint16 reserveIndex,
-    uint128 reserveBlackListBitmap
+    address asset,
+    uint128 blacklistBitmap
   ) external virtual override onlyPoolConfigurator {
-    _reservesBlacklistBitmap[reserveIndex] =  reserveBlackListBitmap;
+    _reserves[asset].blacklistBitmap = blacklistBitmap;
   }
 
   function getReserveBorrowable(
-    uint16 reserveIndex,
-    uint16 assetToBorrowIndex
+    address asset,
+    address assetToBorrow
   ) external view virtual override returns(bool) {
-    return _reservesBlacklistBitmap[reserveIndex] & (1 << assetToBorrowIndex) == 0;
+    uint16 assetToBorrowIndex = _reserves[assetToBorrow].id;
+    return  _reserves[asset].blacklistBitmap & (1 << assetToBorrowIndex) == 0;
   }
 
   function getReserveBitmap(
-    uint16 reserveIndex
+    address asset
   ) external view virtual override returns(uint128) {
-    return _reservesBlacklistBitmap[reserveIndex];
+    return  _reserves[asset].blacklistBitmap;
   }
 
   /// @inheritdoc IPool
@@ -754,7 +748,6 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
     SupplyLogic.executeSupply(
       _reserves,
       _reservesList,
-      _reservesBlacklistBitmap,
       _usersConfig[onBehalfOf],
       DataTypes.ExecuteSupplyParams({
         asset: asset,

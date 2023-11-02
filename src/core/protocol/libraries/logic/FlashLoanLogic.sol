@@ -64,7 +64,6 @@ library FlashLoanLogic {
    * @param reservesData The state of all the reserves
    * @param reservesList The addresses of all the active reserves
    * @param eModeCategories The configuration of all the efficiency mode categories
-   * @param reservesBlacklistBitmap The bitmap for reserve blacklist
    * @param userConfig The user configuration mapping that tracks the supplied/borrowed assets
    * @param params The additional parameters needed to execute the flashloan function
    */
@@ -72,7 +71,6 @@ library FlashLoanLogic {
     mapping(address => DataTypes.ReserveData) storage reservesData,
     mapping(uint256 => address) storage reservesList,
     mapping(uint8 => DataTypes.EModeCategory) storage eModeCategories,
-    mapping(uint16 => uint128) storage reservesBlacklistBitmap,
     DataTypes.UserConfigurationMap storage userConfig,
     DataTypes.FlashloanParams memory params
   ) external {
@@ -140,7 +138,6 @@ library FlashLoanLogic {
           reservesData,
           reservesList,
           eModeCategories,
-          reservesBlacklistBitmap,
           userConfig,
           DataTypes.ExecuteBorrowParams({
             asset: vars.currentAsset,

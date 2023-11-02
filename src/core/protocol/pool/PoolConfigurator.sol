@@ -469,12 +469,12 @@ contract PoolConfigurator is VersionedInitializable, IPoolConfigurator {
   }
 
   function setReserveBlacklistBitmap(
-    uint256 reserveIndex, 
-    uint128 reserveBlacklistBitmap
+    address asset, 
+    uint128 blacklistBitmap
     ) external override onlyRiskOrPoolAdmins {
-    require(reserveIndex < ReserveConfiguration.MAX_RESERVES_COUNT, Errors.INVALID_RESERVE_INDEX);
-    _pool.configureReserveBlacklistBitmap(uint16(reserveIndex), reserveBlacklistBitmap);
-    emit ReserveBlacklistBitmapChanged(uint16(reserveIndex), reserveBlacklistBitmap);
+    uint16 reserveIndex = _pool.getReserveData(asset).id;
+    _pool.configureReserveBlacklistBitmap(asset, blacklistBitmap);
+    emit ReserveBlacklistBitmapChanged(asset, blacklistBitmap);
   }
 
   function _checkNoSuppliers(address asset) internal view {

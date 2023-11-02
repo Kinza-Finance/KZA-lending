@@ -260,10 +260,10 @@ interface IPoolConfigurator {
   event BorrowableInIsolationChanged(address asset, bool borrowable);
   /**
    * @dev Emitted when the reserve black list bitmap is updated
-   * @param reserveIndex The reserve index
+   * @param asset The reserve
    * @param bitmapBlacklist 0 represents that the reserve is borrowable for this reserve asset
    */
-  event ReserveBlacklistBitmapChanged(uint16 reserveIndex, uint128 bitmapBlacklist);
+  event ReserveBlacklistBitmapChanged(address asset, uint128 bitmapBlacklist);
   /**
    * @notice Initializes multiple reserves.
    * @param input The array of initialization parameters
@@ -493,5 +493,5 @@ interface IPoolConfigurator {
    * @notice Sets the bitmapBlacklist for an asset
    * @param bitMapBlacklist The new bitmap
    */
-  function setReserveBlacklistBitmap(uint256 reserveIndex, uint128 bitMapBlacklist) external;
+  function setReserveBlacklistBitmap(address reserve, uint128 bitMapBlacklist) external;
 }
