@@ -191,8 +191,8 @@ forge script script/7-deployRead/7.2-borrowableProvider.s.sol --rpc-url $RPC_URL
 BorrowableDataProvider=($(jq -r '.transactions[0].contractAddress' broadcast/7.2-borrowableProvider.s.sol/${chainId}/run-latest.json))
 echo "BorrowableDataProvider=$BorrowableDataProvider" >> ".env"
 
-forge script script/7-deployRead/7.3-liquidationAdaptor.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
-LiquidationAdaptor=($(jq -r '.transactions[0].contractAddress' broadcast/7.3-liquidationAdaptor.s.sol/${chainId}/run-latest.json))
+forge script script/7-deployRead/7.3.1-liquidationAdaptoAccessControl.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+LiquidationAdaptor=($(jq -r '.transactions[0].contractAddress' broadcast/7.3.1-liquidationAdaptor.s.sol/${chainId}/run-latest.json))
 echo "LiquidationAdaptor=$LiquidationAdaptor" >> ".env"
 
 forge script script/7-deployRead/7.5-TVLReader.s.sol --rpc-url $RPC_URL --broadcast --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY -vvvv
