@@ -4,6 +4,7 @@ pragma solidity 0.8.10;
 import "forge-std/Script.sol";
 import "../../src/core/misc/BinanceOracle/opBNBBNBBinanceOracleAggregator.sol";
 import "../../src/core/misc/BinanceOracle/opBNBBTCBinanceOracleAggregator.sol";
+import "../../src/core/misc/BinanceOracle/opBNBETHBinanceOracleAggregator.sol";
 
 contract InitBinanceOracle is Script {
     function run() external {
@@ -13,6 +14,7 @@ contract InitBinanceOracle is Script {
 
         new opBNBBNBBinanceOracleAggregator();
         new opBNBBTCBinanceOracleAggregator();
+        new opBNBETHBinanceOracleAggregator();
 
         vm.stopBroadcast();
     }
