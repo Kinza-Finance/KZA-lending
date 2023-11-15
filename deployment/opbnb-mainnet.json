@@ -4,7 +4,7 @@
     "PoolAddressesProvider": "0x993E9A7E2dEC99b86F982deb0f37ade278949fa4",
     "PoolProxy": "0x3Aadc38eBAbD6919Fbd00C118Ae6808CBfE441CB",
     "ConfiguratorProxy": "0x32379a91a2B553a807789f50cced4cdAb2fd26F6",
-    "PoolDataProvider": "0xaB98aEA0af87c733259DEb7a771a819F496f18c6",
+    "PoolDataProvider": "0xBb5f2d30c0fC9B0f71f7B19DaF19e7Cf3D23eb5E",
     "PoolImpl":"0x004a9eac7CeAF27b4A1a7746D677bFA704d9CBa6",
     "PoolConfiguratorImpl": "0x209F07ce8e62c2709d2A63A6A39f315763d4D475",
     "ACLManager": "0x6e5b5c70E768F3B0c7df0338FE00B6E8d3f59046",
