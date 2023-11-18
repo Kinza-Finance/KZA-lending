@@ -126,6 +126,10 @@ echo "ACLManager=$ACLManager" >> ".env"
 forge script script/3-deployMarket/3.7-Oracle.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 Oracle=($(jq -r '.transactions[0].contractAddress' broadcast/3.7-Oracle.s.sol/${chainId}/run-latest.json))
 echo "Oracle=$Oracle" >> ".env"
+
+forge script script/3-deployMarket/3.7.5-initialBinanceOracle.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+#Oracle=($(jq -r '.transactions[0].contractAddress' broadcast/3.7.5-initialBinanceOracle.s.sol/${chainId}/run-latest.json))
+#echo "Oracle=$Oracle" >> ".env"
 # 3.8 init oracle
 forge script script/3-deployMarket/3.8-InitOracle.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 # 3.9 init pool
@@ -192,8 +196,16 @@ BorrowableDataProvider=($(jq -r '.transactions[0].contractAddress' broadcast/7.2
 echo "BorrowableDataProvider=$BorrowableDataProvider" >> ".env"
 
 forge script script/7-deployRead/7.3-liquidationAdaptor.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
-LiquidationAdaptor=($(jq -r '.transactions[0].contractAddress' broadcast/7.3-liquidationAdaptor.s.sol/${chainId}/run-latest.json))
+LiquidationAdaptor=($(jq -r '.transactions[0].contractAddress' broadcast/7.3.1-liquidationAdaptor.s.sol/${chainId}/run-latest.json))
 echo "LiquidationAdaptor=$LiquidationAdaptor" >> ".env"
+
+forge script script/7-deployRead/7.3.5-liquidationAdaptorWithAC.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+LiquidationAdaptorWithAC=($(jq -r '.transactions[0].contractAddress' broadcast/7.3.5-liquidationAdaptorWithAC.s.sol/${chainId}/run-latest.json))
+echo "LiquidationAdaptorWithAC=$LiquidationAdaptorWithAC" >> ".env"
+
+forge script script/7-deployRead/7.5-TVLReader.s.sol --rpc-url $RPC_URL --broadcast --verify --verifier-url $VERIFIER_URL --etherscan-api-key $ETHERSCAN_API_KEY -vvvv
+TVLReader=($(jq -r '.transactions[0].contractAddress' broadcast/7.5-TVLReader.s.sol/${chainId}/run-latest.json))
+echo "TVLReader=$TVLReader" >> ".env"
 
 forge script script/8-deployGateway/8.0.1-WBNB.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 WBNB_TESTNET_REAL=($(jq -r '.transactions[0].contractAddress' broadcast/8.0.1-WBNB.s.sol/${chainId}/run-latest.json))
@@ -206,6 +218,7 @@ forge script script/8-deployGateway/8.0.3-configureWBNBRiskParam.s.sol --rpc-url
 forge script script/8-deployGateway/8.0.4-approveAToken.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 
 forge script script/8-deployGateway/8.1-gateway.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+forge script script/8-deployGateway/8.2-gatewatDeposit.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 GATEWAY=($(jq -r '.transactions[0].contractAddress' broadcast/8.1-gateway.s.sol/${chainId}/run-latest.json))
 echo "GATEWAY=$GATEWAY" >> ".env"
 

@@ -255,7 +255,8 @@ contract AaveV2CrossTokenLiqAdatorAccessControl is Ownable {
         uint256 seizedCollateralAmount = IERC20(inputs.collateralAsset).balanceOf(address(this));
         // handling of pToken
         // assume noramal ERC20 doesnot have this call of underlying
-        (bool success, ) = inputs.collateralAsset.staticcall(abi.encodeWithSignature("underlying()"));
+        // underlying sload should cost <1000
+        (bool success, ) = inputs.collateralAsset.staticcall{gas: 2000}(abi.encodeWithSignature("underlying()"));
         // if there is undelying assume this is a pToken
         if (success) {
             // withdraw pToken into underlying
