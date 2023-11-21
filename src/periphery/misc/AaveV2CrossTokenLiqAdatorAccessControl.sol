@@ -10,6 +10,26 @@ import '../../core/interfaces/IPoolDataProvider.sol';
 import '../../core/interfaces/IAaveOracle.sol';
 import '../../core/protocol/libraries/types/DataTypes.sol';
 
+interface IAaveV2Pool {
+    function flashLoan(address receiverAddress,
+    address[] calldata assets,
+    uint256[] calldata amounts,
+    uint256[] calldata modes,
+    address onBehalfOf,
+    bytes calldata params,
+    uint16 referralCode
+  ) external; 
+}
+
+interface IV3Pool {
+    function token0() external returns(address);
+    function token1() external returns(address);
+}
+
+interface IPToken {
+    function underlying() external view returns(address);
+    function withdrawTo(address account, uint256 amount) external returns (bool);
+}
 /**
  * @title LiquidationAdaptor contract
  * @author Kinza
@@ -33,7 +53,7 @@ interface IPancakeV3SwapCallback {
         address[] calldata path,
         address to
     ) external payable returns (uint256 amountOut);
-    
+
  }
 
 /// @title Router token swapping functionality
@@ -45,19 +65,24 @@ interface IV3SwapRouter is IPancakeV3SwapCallback {
         uint256 amountIn;
         uint256 amountOutMinimum;
     }
+    struct ExactOutputParams {
+        bytes path;
+        address recipient;
+        uint256 amountOut;
+        uint256 amountInMaximum;
+    }
     function exactInput(ExactInputParams calldata params) external payable returns (uint256 amountOut);
+    function exactOutput(ExactOutputParams calldata params) external payable returns (uint256 amountIn);
+
 }
 
 interface IAdaptorFallBack {
     function getPath(address _tokenIn, address _tokenOut) external returns(bytes memory);
 }
 
-contract LiquidationAdaptor is Ownable {
-    // FALLBACK means the flows "try V3" first, if fails it attempts V2
-    enum ROUTE {FALLBACK, V2FALLBACK, V3FALLBACK, V2CUSTOMED, V3CUSTOMED}
+contract AaveV2CrossTokenLiqAdatorAccessControl is Ownable {
 
     address constant public smartRouter = 0x678Aa4bF4E210cf2166753e054d5b7c31cc7fa86;
-    address public V2Fallback;
     address public V3Fallback;
     // this struct for getting away with "stack too depp"
     struct UserReserve{
@@ -79,25 +104,22 @@ contract LiquidationAdaptor is Ownable {
 
     // to get away from stack too deep
     struct ExecuteOperationInput {
+        address debtToken;
+        uint256 debtAmount;
+        address pool;
         address collateralAsset; 
         address liquidatedUser; 
         address liquidator;
-        ROUTE route;
-        bytes customPath;
     }
 
     uint256 internal constant HEALTH_THRESHOLD = 1 * 10 ** 18;
 
     IPoolAddressesProvider immutable public provider;
 
-    modifier onlyPool() {
-        require(msg.sender == provider.getPool());
-        _;
-    }
     constructor(address _provider) {
         provider = IPoolAddressesProvider(_provider);
     }
-    
+
     function getUserReserveData(address token, address user) public view returns(UserReserve memory r) {
         IPoolDataProvider dataProvider = IPoolDataProvider(provider.getPoolDataProvider());
         (uint256 currentATokenBalance, 
@@ -146,7 +168,7 @@ contract LiquidationAdaptor is Ownable {
                     // base on the DebtAmountRepayable, update the collateral to seize
                     r.CollateralAmountSeizable = r.DebtAmountRepayable * r.DebtPrice / r.CollateralPrice;
                     result[i] = r;
-                    
+
                 }
             }
             return result;
@@ -162,121 +184,158 @@ contract LiquidationAdaptor is Ownable {
         return price;
     }
 
-    // call this to liquidate a user
-    function liquidateWithFlashLoan(address liquidated, address collateral, address debtToken, uint256 debtAmount, ROUTE route, bytes memory customPath) external {
-        IPoolDataProvider dataProvider = IPoolDataProvider(provider.getPoolDataProvider());
+    function liquidateWithCapital(address liquidated, address collateral, address debtToken, uint256 debtAmount) external onlyOwner {
+        IERC20(debtToken).transferFrom(msg.sender, address(this), debtAmount);
         IPool pool = IPool(provider.getPool());
+        if (IERC20(debtToken).allowance(address(pool), address(this)) < debtAmount) {
+            IERC20(debtToken).approve(address(pool), type(uint256).max);
+        }
+        // assume the contract acquire >= debtAmount aldy
+        pool.liquidationCall(
+            collateral,
+            debtToken,
+            liquidated,
+            debtAmount,
+            // receiveAToken
+            false
+            );
+        uint256 seizedCollateralAmount = IERC20(collateral).balanceOf(address(this));
+        // handling of pToken
+        // assume noramal ERC20 doesnot have this call of underlying
+        // underlying sload should cost <1000
+        (bool success, ) = collateral.staticcall{gas: 2000}(abi.encodeWithSignature("underlying()"));
+        // if there is undelying assume this is a pToken
+        if (success) {
+            // withdraw pToken into underlying
+            IPToken(collateral).withdrawTo(address(this), seizedCollateralAmount);
+            // update collateralAsset to be the underliny, the previous call wont be gas-grieved   
+            collateral = IPToken(collateral).underlying();
+        }
+        // send to caller
+        IERC20(collateral).transfer(msg.sender, seizedCollateralAmount);
+    }
+    // call this to liquidate a user
+    function liquidateWithFlashLoan(address flashToken, uint256 flashTokenAmount, IAaveV2Pool pool, address liquidated, address collateral, address debtToken, uint256 debtAmount) external onlyOwner {
+        IPoolDataProvider dataProvider = IPoolDataProvider(provider.getPoolDataProvider());
+        address[] memory flashTokens = new address[](1);
+        uint256[] memory flashAmounts = new uint256[](1);
+        uint256[] memory modes = new uint256[](1);
+        flashTokens[0] = flashToken;
+        flashAmounts[0] = flashTokenAmount;
+        // revert if the fund cannot be returned
+        modes[0] = 0;
         // allow the pool to get back the flashloan + premium
-        IERC20(debtToken).approve(address(pool), type(uint256).max);
+        IERC20(flashToken).approve(address(pool), type(uint256).max);
+
+        // ensure the flashed amount can be swapped to the required debtAmount otherwise would fail
         //construct calldata to be execute in "executeOperation
         // swapData is only necessarily when route is "CUSTOM", otherwise it can be left as emptied
-        bytes memory params = abi.encode(collateral, liquidated, msg.sender, route, customPath);
-        pool.flashLoanSimple(
+        bytes memory params = abi.encode(debtToken, debtAmount, address(pool), collateral, liquidated, msg.sender);
+        pool.flashLoan(
             address(this),
-            debtToken,
-            debtAmount,
+            flashTokens,
+            flashAmounts,
+            modes,
+            address(this),
             params,
             0
         );
     }
 
     function executeOperation(
-    address borrowedAsset,
-    uint256 amount,
-    uint256 premium,
+    address[] calldata borrowedAssets,
+    uint256[] calldata amounts,
+    uint256[] calldata premiums,
     address, //initiator, which would be this address if called from liquidateWithFlashLoan
-    bytes memory params
-  )  external onlyPool returns (bool){
+    bytes calldata params
+  )  external returns (bool){
         // 1. repay for the liquidated user using the flashloan amount
         ExecuteOperationInput memory inputs;
         {
-            (address collateralAsset, address liquidatedUser, address liquidator, ROUTE route, bytes memory customPath) = 
-            abi.decode(params, (address, address, address, ROUTE, bytes));
+            (address debtToken, uint256 debtAmount, address AaveV2Pool, address collateralAsset, address liquidatedUser, address liquidator) = 
+            abi.decode(params, (address, uint256, address, address, address, address));
+            inputs.debtToken = debtToken;
+            inputs.debtAmount = debtAmount;
+            inputs.pool = AaveV2Pool;
             inputs.collateralAsset = collateralAsset;
             inputs.liquidatedUser = liquidatedUser;
             inputs.liquidator = liquidator;
-            inputs.route = route;
-            inputs.customPath = customPath;
         }
-        
+        uint256 amount = amounts[0];
+        address borrowedAsset = borrowedAssets[0];
+        uint256 premium = premiums[0];
+        // now swap the borrowedAsset to the debtToken
+        if (IERC20(borrowedAsset).allowance(smartRouter, address(this)) != type(uint256).max) {
+            IERC20(borrowedAsset).approve(smartRouter, type(uint256).max);
+        }
+        if (borrowedAsset != inputs.debtToken) {
+            _V3SwapExactOutput(borrowedAsset, inputs.debtToken, inputs.debtAmount);
+        }
         IPool pool = IPool(provider.getPool());
+        IERC20(inputs.debtToken).approve(address(pool), type(uint256).max);
+        // assume the contract acquire >= debtAmount aldy
         pool.liquidationCall(
             inputs.collateralAsset,
-            borrowedAsset,
+            inputs.debtToken,
             inputs.liquidatedUser,
-            amount,
+            inputs.debtAmount,
             // receiveAToken
             false
             );
         uint256 seizedCollateralAmount = IERC20(inputs.collateralAsset).balanceOf(address(this));
-        if (inputs.collateralAsset != borrowedAsset) {
-            uint256 seizedCollateralAmount = IERC20(inputs.collateralAsset).balanceOf(address(this));
-            // 2. swap the collateral back to the debtToken
-            // approve the router for pulling the tokeIn
-            IERC20(inputs.collateralAsset).approve(address(smartRouter), type(uint256).max);
-            bytes memory path;
-            if (inputs.route == ROUTE.V2CUSTOMED || inputs.route == ROUTE.V3CUSTOMED) {
-                path = inputs.customPath;
-            } else {
-                if (inputs.route == ROUTE.V2FALLBACK) {
-                    path = IAdaptorFallBack(V2Fallback).getPath(inputs.collateralAsset, borrowedAsset);
-                } else {
-                    // can only be V3FALLBACK or FALLBACK(which prioritize V3)
-                    path = IAdaptorFallBack(V3Fallback).getPath(inputs.collateralAsset, borrowedAsset);
-                }
-            }
-            //V3 swap
-            bool tradeExecuted;
-            if (inputs.route == ROUTE.V3CUSTOMED || inputs.route == ROUTE.V3FALLBACK || inputs.route == ROUTE.FALLBACK) {
-                IV3SwapRouter.ExactInputParams memory params;
-                params.path = path;
-                params.recipient = address(this);
-                params.amountIn = seizedCollateralAmount;
-                params.amountOutMinimum = 0;
-                // if fallback we try execute V3 first but dont revert if it fails
-                if (inputs.route == ROUTE.FALLBACK) {
-                    try IV3SwapRouter(smartRouter).exactInput(params) returns (uint256 result){tradeExecuted = true;} catch {}
-                } else {
-                    IV3SwapRouter(smartRouter).exactInput(params);
-                }
-            }
-            if ((inputs.route == ROUTE.V2CUSTOMED || inputs.route == ROUTE.V2FALLBACK || 
-            inputs.route == ROUTE.FALLBACK) && !tradeExecuted) {
-                address[] memory finalPath;
-                for (uint i; i*20 < path.length; i++) {
-                    finalPath[i] = _toAddress(path, i*20);
-                }
-                IV2SwapRouter(smartRouter).swapExactTokensForTokens(seizedCollateralAmount, 0, finalPath, address(this));
-            }
+        // handling of pToken
+        // assume noramal ERC20 doesnot have this call of underlying
+        // underlying sload should cost <1000
+        (bool success, ) = inputs.collateralAsset.staticcall{gas: 2000}(abi.encodeWithSignature("underlying()"));
+        // if there is undelying assume this is a pToken
+        if (success) {
+            // withdraw pToken into underlying
+            IPToken(inputs.collateralAsset).withdrawTo(address(this), seizedCollateralAmount);
+            // update collateralAsset to be the underliny, the previous call wont be gas-grieved   
+            inputs.collateralAsset = IPToken(inputs.collateralAsset).underlying();
         }
+        // if underlying collateral is not the flashToken
+        if (inputs.collateralAsset != borrowedAsset) {
+            if (IERC20(inputs.collateralAsset).allowance(smartRouter, address(this)) != type(uint256).max) {
+                IERC20(inputs.collateralAsset).approve(smartRouter, type(uint256).max);
+            } 
+            // now swap the collateral token to the flashToken
+            _V3SwapExactInput(inputs.collateralAsset, borrowedAsset, seizedCollateralAmount);
+        }
+        
         // 3. set aside the flashloan amount + premium for repay
         // minus 1 wei more for any (potential) floor down
-        uint256 profit = IERC20(borrowedAsset).balanceOf(address(this)) - amount - premium - 1;
+        //uint256 profit = IERC20(borrowedAsset).balanceOf(address(this)) - amount - premium - 1;
         // 4. send any profit to msg.sender
-        IERC20(borrowedAsset).transfer(inputs.liquidator, profit);
+        //IERC20(borrowedAsset).transfer(inputs.liquidator, profit);
         return true;
     }
 
-    /// OWNABLE
-    function updateV2Fallback(address _newV2Fallback) external onlyOwner {
-        V2Fallback = _newV2Fallback;
-    }
 
     function updateV3Fallback(address _newV3Fallback) external onlyOwner {
         V3Fallback = _newV3Fallback;
     }
 
+    function _V3SwapExactInput(address inToken, address outToken, uint256 inAmount) internal {
+        bytes memory path = IAdaptorFallBack(V3Fallback).getPath(inToken, outToken);
+            //V3 swap
+        IV3SwapRouter.ExactInputParams memory params;
+        params.path = path;
+        params.recipient = address(this);
+        params.amountIn = inAmount;
+        params.amountOutMinimum = 0;
+        IV3SwapRouter(smartRouter).exactInput(params);
+    }
 
-    // INTERNAL
-    // copied from BytesLib https://github.com/GNSPS/solidity-bytes-utils/blob/master/contracts/BytesLib.sol
-    function _toAddress(bytes memory _bytes, uint256 _start) internal pure returns (address) {
-        require(_bytes.length >= _start + 20, "toAddress_outOfBounds");
-        address tempAddress;
-
-        assembly {
-            tempAddress := div(mload(add(add(_bytes, 0x20), _start)), 0x1000000000000000000000000)
-        }
-
-        return tempAddress;
+    function _V3SwapExactOutput(address inToken, address outToken, uint256 outAmount) internal {
+        // output need to reverse the path in swapping
+        bytes memory path = IAdaptorFallBack(V3Fallback).getPath(outToken, inToken);
+            //V3 swap
+        IV3SwapRouter.ExactOutputParams memory params;
+        params.path = path;
+        params.recipient = address(this);
+        params.amountOut = outAmount;
+        params.amountInMaximum = IERC20(inToken).balanceOf(address(this));
+        IV3SwapRouter(smartRouter).exactOutput(params);
     }
 }

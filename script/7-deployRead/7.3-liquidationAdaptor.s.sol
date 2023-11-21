@@ -3,7 +3,7 @@ pragma solidity 0.8.10;
 
 import "forge-std/Script.sol";
 import "../../src/core/interfaces/IPoolConfigurator.sol";
-import "../../src/periphery/misc/LiquidationAdaptor.sol";
+import "../../src/periphery/misc/AaveV2CrossTokenLiqAdatorAccessControl.sol";
 
 contract deployLiquidationDataProvider is Script {
     function run() external {
@@ -11,7 +11,7 @@ contract deployLiquidationDataProvider is Script {
         address provider = vm.envAddress("PoolAddressesProvider");
         vm.startBroadcast(deployerPrivateKey);
 
-        new LiquidationAdaptor(provider);
+        new AaveV2CrossTokenLiqAdatorAccessControl(provider);
         
         vm.stopBroadcast();
     }
