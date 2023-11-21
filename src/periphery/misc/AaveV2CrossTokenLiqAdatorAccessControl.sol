@@ -311,7 +311,10 @@ contract AaveV2CrossTokenLiqAdatorAccessControl is Ownable {
         return true;
     }
 
-
+    function rescueToken(address token) external onlyOwner {
+        uint256 balance =  IERC20(token).balanceOf(address(this));
+        IERC20(token).transfer(owner(), balance);
+    }
     function updateV3Fallback(address _newV3Fallback) external onlyOwner {
         V3Fallback = _newV3Fallback;
     }
