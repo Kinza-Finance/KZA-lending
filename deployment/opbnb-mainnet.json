@@ -32,6 +32,6 @@
     "WalletBalanceProvider": "0x0df5A3C7F28514873ab3B2C11a76D30073D95EB5",
     "BorrowableDataProvider": "0xdE451B696c99B7ce77b944E12abDCB34e3b69802",
     "LiquidationAdaptor": "0xc086e15c3c2557aaAc1F7301e99B9386d090241A",
-    "ResereveSetupHelper": "0x565EF2e769a63e9A61A19E9D4FEc53885FC1a7bF",
+    "ReservesSetupHelper": "0x565EF2e769a63e9A61A19E9D4FEc53885FC1a7bF",
     "Gateway": "0xEc95829B445112b07D7CB37Bd4bf77480F9B9851"
 }
