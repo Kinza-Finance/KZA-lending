@@ -16,7 +16,7 @@ contract InitOracle is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         assets[0] = vm.envAddress("USDT");
-        sources[0] = vm.envAddress("USDT-BinanceAggregator");
+        sources[0] = vm.envAddress("USDT_BinanceAggregator");
 
         AaveOracle(oracle).setAssetSources(assets, sources);
         vm.stopBroadcast();
