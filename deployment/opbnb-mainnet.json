@@ -27,6 +27,8 @@
     "USDT": "0x9e5AAC1Ba1a2e6aEd6b32689DFcF62A509Ca96f3",
     "BNB-BinanceAggregator": "0x4BAcc3809C8a61420E89230cB8B6a34c5171C9D5",
     "BTC-BinanceAggregator": "0x5cEb0Eb4233e0949460Ae03577d6433B0a546673",
+    "ETH-BinanceAggregator": "0x0c2d7E456B0d0AB80DCa148E60d23CF6304fe543",
+    "USDT-BinanceAggregator": "0xE8FCaD9BC9b0d2740e027EBc79ecBd79355Ceb4D",
     "WalletBalanceProvider": "0x0df5A3C7F28514873ab3B2C11a76D30073D95EB5",
     "BorrowableDataProvider": "0xdE451B696c99B7ce77b944E12abDCB34e3b69802",
     "LiquidationAdaptor": "0xc086e15c3c2557aaAc1F7301e99B9386d090241A",
