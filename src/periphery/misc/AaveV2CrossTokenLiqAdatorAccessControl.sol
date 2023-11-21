@@ -184,6 +184,36 @@ contract AaveV2CrossTokenLiqAdatorAccessControl is Ownable {
         return price;
     }
 
+    function liquidateWithCapital(address liquidated, address collateral, address debtToken, uint256 debtAmount) external onlyOwner {
+        IERC20(debtToken).transferFrom(msg.sender, address(this), debtAmount);
+        IPool pool = IPool(provider.getPool());
+        if (IERC20(debtToken).allowance(address(pool), address(this)) < debtAmount) {
+            IERC20(debtToken).approve(address(pool), type(uint256).max);
+        }
+        // assume the contract acquire >= debtAmount aldy
+        pool.liquidationCall(
+            collateral,
+            debtToken,
+            liquidated,
+            debtAmount,
+            // receiveAToken
+            false
+            );
+        uint256 seizedCollateralAmount = IERC20(collateral).balanceOf(address(this));
+        // handling of pToken
+        // assume noramal ERC20 doesnot have this call of underlying
+        // underlying sload should cost <1000
+        (bool success, ) = collateral.staticcall{gas: 2000}(abi.encodeWithSignature("underlying()"));
+        // if there is undelying assume this is a pToken
+        if (success) {
+            // withdraw pToken into underlying
+            IPToken(collateral).withdrawTo(address(this), seizedCollateralAmount);
+            // update collateralAsset to be the underliny, the previous call wont be gas-grieved   
+            collateral = IPToken(collateral).underlying();
+        }
+        // send to caller
+        IERC20(collateral).transfer(msg.sender, seizedCollateralAmount);
+    }
     // call this to liquidate a user
     function liquidateWithFlashLoan(address flashToken, uint256 flashTokenAmount, IAaveV2Pool pool, address liquidated, address collateral, address debtToken, uint256 debtAmount) external onlyOwner {
         IPoolDataProvider dataProvider = IPoolDataProvider(provider.getPoolDataProvider());
@@ -275,9 +305,9 @@ contract AaveV2CrossTokenLiqAdatorAccessControl is Ownable {
         
         // 3. set aside the flashloan amount + premium for repay
         // minus 1 wei more for any (potential) floor down
-        //uint256 profit = IERC20(borrowedAsset).balanceOf(address(this)) - amount - premium - 1;
+        uint256 profit = IERC20(borrowedAsset).balanceOf(address(this)) - amount - premium - 1;
         // 4. send any profit to msg.sender
-        //IERC20(borrowedAsset).transfer(inputs.liquidator, profit);
+        IERC20(borrowedAsset).transfer(inputs.liquidator, profit);
         return true;
     }
 
