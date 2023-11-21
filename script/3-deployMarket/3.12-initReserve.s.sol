@@ -22,7 +22,7 @@ contract InitReserve is Script {
         address incentivesController = IPoolAddressesProvider(provider).getAddress(incentivesControllerId);
 
         string[] memory tokens = new string[](1);
-        tokens[0] = "WBNB";
+        tokens[0] = "USDT";
         // tokens[1] = "USDC";
         // tokens[2] = "USDT";
         // tokens[3] = "WBTC";
