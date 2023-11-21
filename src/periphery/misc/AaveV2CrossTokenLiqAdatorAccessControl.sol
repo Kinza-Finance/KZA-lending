@@ -305,9 +305,9 @@ contract AaveV2CrossTokenLiqAdatorAccessControl is Ownable {
         
         // 3. set aside the flashloan amount + premium for repay
         // minus 1 wei more for any (potential) floor down
-        //uint256 profit = IERC20(borrowedAsset).balanceOf(address(this)) - amount - premium - 1;
+        uint256 profit = IERC20(borrowedAsset).balanceOf(address(this)) - amount - premium - 1;
         // 4. send any profit to msg.sender
-        //IERC20(borrowedAsset).transfer(inputs.liquidator, profit);
+        IERC20(borrowedAsset).transfer(inputs.liquidator, profit);
         return true;
     }
 
