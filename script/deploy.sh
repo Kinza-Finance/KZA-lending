@@ -236,3 +236,5 @@ forge script script/10-deployPairForLiquidation/ExecuteLiquidationWithLedger.s.s
 # 11 deploy custom oracle
 forge script script/11-deployCustomOracle/deployMockWbETH.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 forge script script/11-deployCustomOracle/wbETHOracle.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+
+forge script script/15-deployReserveAtomic/15.1-deployTestnet.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv

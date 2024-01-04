@@ -18,7 +18,7 @@ import {DataTypes} from '../protocol/libraries/types/DataTypes.sol';
  * @notice Deployment helper to onbaord reserve, set risk parameters as well as conduct an initial deposit 
  * @dev The AtomicReservesSetupHelper is an Ownable contract, so only the deployer or future owners can call this contract.
  */
-contract AtomicReservesSetupHelper is Ownable {
+contract AtomicReservesSetupHelperTestnet is Ownable {
         struct RateStrategyInput {
             uint256 optimalUsageRatio;
             uint256 baseVariableBorrowRate;
@@ -50,9 +50,9 @@ contract AtomicReservesSetupHelper is Ownable {
         IPoolAddressesProvider internal constant poolAddressProvider = IPoolAddressesProvider(0x5Add4de8a8577bA3B5fb50Dc89571130a20FaCD8);
 
         // fdUSD
-        address internal constant asset = 0xc5f0f7b66764F6ec8C8Dff7BA683102295E16409;
+        address internal constant asset = 0xcB4bF535E92Eb3618b6b5f35690e2bEF0CD55ECe;
         // chainlink fdUSD feed
-        address internal constant feed = 0x390180e80058A8499930F0c13963AD3E0d86Bfc9;
+        address internal constant feed = 0xdC5e2Ef123F6B0e22bFAE48DAe9c212A1b21E6Bb;
         uint256 internal constant seedValue = 1e18;
 
         function newListing() external onlyOwner {
@@ -167,8 +167,6 @@ contract AtomicReservesSetupHelper is Ownable {
                 // expect fund available
             IERC20(asset).approve(address(pool), seedValue);
             pool.supply(asset, seedValue, owner(), 0);
-            DataTypes.ReserveData memory data = pool.getReserveData(asset);
-            require(IERC20(data.aTokenAddress).totalSupply() == seedValue, "supply asset mismatches");
         }
 
 

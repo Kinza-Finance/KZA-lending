@@ -167,8 +167,6 @@ contract AtomicReservesSetupHelper is Ownable {
                 // expect fund available
             IERC20(asset).approve(address(pool), seedValue);
             pool.supply(asset, seedValue, owner(), 0);
-            DataTypes.ReserveData memory data = pool.getReserveData(asset);
-            require(IERC20(data.aTokenAddress).totalSupply() == seedValue, "supply asset mismatches");
         }
 
 
