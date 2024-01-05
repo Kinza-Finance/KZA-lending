@@ -238,3 +238,4 @@ forge script script/11-deployCustomOracle/deployMockWbETH.s.sol --rpc-url $RPC_U
 forge script script/11-deployCustomOracle/wbETHOracle.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 
 forge script script/15-deployReserveAtomic/15.1-deployTestnet.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+forge script script/15-deployReserveAtomic/15.2-deployMainnet.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
