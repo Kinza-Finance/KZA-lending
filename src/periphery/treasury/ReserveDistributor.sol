@@ -13,7 +13,7 @@ import "../../core/interfaces/IAaveOracle.sol";
 // | . \ | || |\  |/ /_ / ___ \ 
 // |_|\_\___|_| \_/____/_/   \_\
 
-/// @notice KZA - Kinza protocol ReserveFeeDistributor
+/// @notice KZA - Kinza protocol ReserveDistributor
 /// @title ReserveDistributor
 /// @notice claim reserve from the core lending system as the treasury
 contract ReserveDistributor is Ownable {
@@ -21,8 +21,8 @@ contract ReserveDistributor is Ownable {
     struct Recipient {
         uint256 percentage;
         mapping(address => uint256) lastClaimCheckpoint;
-        // if it is non zero than it is prioritized over the struct-wide percentage
-        // if it is 10000+1 then the reserve is blacklisted
+        // if tailor is non zero than it is prioritized over the struct-wide percentage above
+        // if it is 10000+1 then the reserve is blacklisted, would just pass
         mapping(address => uint256) tailorReservePercentage;
     }
     /*//////////////////////////////////////////////////////////////
@@ -46,8 +46,7 @@ contract ReserveDistributor is Ownable {
     // be referenced whenever a receipient is added
     mapping(address => uint256) public accumulateBalances;
 
-    event NewRecipient(uint256 percentage, address recipient);
-    event removeRecipient(address recipient);
+    event updateRecipient(uint256 percentage, address recipient);
     event NewTailorPercentage(address[] assets, uint256[] percentages, address recipient);
     event Claimed(address recipient, uint256 notional);
     event Pause(bool status);
@@ -87,21 +86,25 @@ contract ReserveDistributor is Ownable {
         r.percentage = _percentage;
         // when a user get added/re-added, user get checkpointed against latest balance.
         _syncUserCheckpoint(_recipient);
-        emit NewRecipient(_percentage, _recipient);
+        emit updateRecipient(_percentage, _recipient);
     }
 
-    function removeRecipient(address _recipient) external onlyOwner {
+    // this is to update recipient percentage, would claim all claimable for user, and then update percentage
+    function updateRecipient(uint256 _percentage, address _recipient) external onlyOwner {
+        Recipient storage r = recipients[_recipient];
+        require(r.percentage > 0, "pls call addRecipient");
         // give out what the recipient deserves;
         _mintAllReservesAndSync();
         _claim(_recipient);
-        Recipient storage r = recipients[_recipient];
         currentRecipientTotalPercentage -= r.percentage;
-        // blacklist/tailor percentage config would persist when the user gets readded
+        if (_percentage > 0) {
+            currentRecipientTotalPercentage += _percentage;
+        }
+        require(currentRecipientTotalPercentage <= MAX_PERCENTAGE);
+        // blacklist/tailor percentage config would persist when the user gets updated to 0
         // in the meanTime the user cannot accrue reserves
-        // it's possible that tailorPercentage can be bigger than the new percentage
-        //  after re-adding with a smaller one
-        recipients[_recipient].percentage = 0;
-        emit removeRecipient(_recipient);
+        // it's possible that tailorPercentage can be bigger than the new percentage after updating
+        emit updateRecipient(_percentage, _recipient);
     }
 
     function setRecipientTailorPercentage(address[] memory _assets, uint256[] memory _percentages, address _recipient) external onlyOwner {
@@ -176,6 +179,7 @@ contract ReserveDistributor is Ownable {
                                     ? r.percentage 
                                     : r.tailorReservePercentage[_asset];
             uint256 userPortion = claimable * percentage / MAX_PERCENTAGE;
+            // accrual
             r.lastClaimCheckpoint[_asset] = accumulateBalances[_asset];
             // if the reserve is not blacklisted and claimable > 0
             if (userPortion > 0 && r.tailorReservePercentage[_asset] != BLACKLIST_PERCENTAGE) {
