@@ -86,26 +86,6 @@ contract ReserveDistributor is  AdminControlledEcosystemDistributor {
         }
         pause = true;
     }
-    // avoid unless assolutely needed for reserve assets, coz it could create deficit and leading to
-    // some recipient fails to claim their portion
-    function transfer(
-        IERC20 token,
-        address recipient,
-        uint256 amount
-    ) external onlyOwner {
-        require(recipient != address(0), 'INVALID_0X_RECIPIENT');
-
-        if (address(token) == ETH_MOCK_ADDRESS) {
-        payable(recipient).sendValue(amount);
-        } else {
-            uint256 currentBalance = currentBalances[address(token)];
-            // if this is one of the reserve asset
-            if (currentBalance > 0) {
-                revert("pls transfer reserve asset using claim");
-            }
-            token.transfer(recipient, amount);
-        }
-    }
 
     // claim for all recipients, and the remaining gets sent to the treasury
     // this is used when there is some smaller tailorPercentage leading to surplus left in this contract
@@ -120,7 +100,6 @@ contract ReserveDistributor is  AdminControlledEcosystemDistributor {
             uint256 currentBalance = IERC20(_aToken).balanceOf(address(this));
             IERC20(_aToken).transfer(treasury, currentBalance);
         }
-
     }
 
     function updateTreasury(address _newTreasury) external onlyOwner mintAllReservesAndSync {
@@ -138,8 +117,26 @@ contract ReserveDistributor is  AdminControlledEcosystemDistributor {
         emit Pause(status);
     }
 
-    function addRecipient(uint256 _percentage, address _recipient) external onlyOwnerOrFundAdmin {
-        _mintAllReservesAndSync();
+     // rescue non-reserve assets
+    function transfer(
+        IERC20 token,
+        address recipient,
+        uint256 amount
+    ) external onlyOwnerOrFundAdmin {
+        require(recipient != address(0), 'INVALID_0X_RECIPIENT');
+
+        if (address(token) == ETH_MOCK_ADDRESS) {
+        payable(recipient).sendValue(amount);
+        } else {
+            uint256 currentBalance = currentBalances[address(token)];
+            // if this is one of the reserve asset
+            if (currentBalance > 0) {
+                revert("pls transfer reserve asset using claim");
+            }
+            token.transfer(recipient, amount);
+        }
+    }
+    function addRecipient(uint256 _percentage, address _recipient) external onlyOwnerOrFundAdmin mintAllReservesAndSync {
         _claim(treasury);
         Recipient storage t = recipients[treasury];
         // since treasury is initialized with 100%, so over-allocation would lead to underflow
@@ -159,7 +156,7 @@ contract ReserveDistributor is  AdminControlledEcosystemDistributor {
     }
 
     // this is to update recipient percentage, would claim all claimable for user, and then update percentage
-    function updateRecipient(uint256 _percentage, address _recipient) external onlyOwner mintAllReservesAndSync {
+    function updateRecipient(uint256 _percentage, address _recipient) external onlyOwnerOrFundAdmin mintAllReservesAndSync {
         Recipient storage r = recipients[_recipient];
         require(r.percentage > 0, "pls call addRecipient");
         // give out what the recipient deserves;
@@ -176,7 +173,7 @@ contract ReserveDistributor is  AdminControlledEcosystemDistributor {
         emit UpdatedRecipient(_percentage, _recipient);
     }
 
-    function setRecipientTailorPercentage(address[] memory _assets, uint256[] memory _percentages, address _recipient) external onlyOwner {
+    function setRecipientTailorPercentage(address[] memory _assets, uint256[] memory _percentages, address _recipient) external onlyOwnerOrFundAdmin {
         require(_assets.length == _percentages.length, "input validation fails");
         Recipient storage r = recipients[_recipient];
         for (uint i; i < _assets.length; i++) {
@@ -191,7 +188,7 @@ contract ReserveDistributor is  AdminControlledEcosystemDistributor {
         emit NewTailorPercentage(_assets, _percentages, _recipient);
     }
 
-    function claimFor(address _recipient) external onlyOwnerOrFundAdmin whenNotPaused mintAllReservesAndSync {
+    function claimFor(address _recipient) external onlyOwnerOrFundAdmin mintAllReservesAndSync {
         _claim(_recipient);
     }
 
