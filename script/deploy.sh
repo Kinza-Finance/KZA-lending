@@ -207,6 +207,7 @@ forge script script/7-deployRead/7.5-TVLReader.s.sol --rpc-url $RPC_URL --broadc
 TVLReader=($(jq -r '.transactions[0].contractAddress' broadcast/7.5-TVLReader.s.sol/${chainId}/run-latest.json))
 echo "TVLReader=$TVLReader" >> ".env"
 forge script script/7-deployRead/7.7-thenaAdaptor.s.sol --rpc-url $RPC_URL --broadcast  -vvvv --priority-gas-price 1
+forge script script/7-deployRead/7.5.1-liquidateV3FallbackAddFDUSD.s.sol --rpc-url $RPC_URL --broadcast  -vvvv
 
 forge script script/8-deployGateway/8.0.1-WBNB.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
 WBNB_TESTNET_REAL=($(jq -r '.transactions[0].contractAddress' broadcast/8.0.1-WBNB.s.sol/${chainId}/run-latest.json))

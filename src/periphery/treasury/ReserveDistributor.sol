@@ -5,6 +5,7 @@ import {Address} from './libs/Address.sol';
 import {IERC20} from '@openzeppelin/token/ERC20/IERC20.sol';
 import {AdminControlledEcosystemDistributor} from './AdminControlledEcosystemDistributor.sol';
 import {DataTypes} from '../../core/protocol/libraries/types/DataTypes.sol';
+import "../../core/interfaces/IPoolAddressesProvider.sol";
 import "../../core/interfaces/IPool.sol";
 import "../../core/interfaces/IAaveOracle.sol";
 
@@ -62,15 +63,22 @@ contract ReserveDistributor is  AdminControlledEcosystemDistributor {
     }
 
 
-    function initialize(address _pool, address _oracle, address _fundAdmin, address _owner, address _treasury) external initializer {
-        pool = IPool(_pool);
-        oracle = IAaveOracle(_oracle);
-        _setFundsAdmin(_fundAdmin);
-        _transferOwnership(_owner);
-        treasury = _treasury;
-        _addRecipient(MAX_PERCENTAGE, treasury);
+    function initialize(address _provider) external initializer {
+        IPoolAddressesProvider provider = IPoolAddressesProvider(_provider);
+        pool = IPool(provider.getPool());
+        oracle = IAaveOracle(provider.getPriceOracle());
+        bytes32 treasuryID = "TREASURY";
+        address treasuryAddr = provider.getAddress(treasuryID);
+        _setFundsAdmin(treasuryAddr);
+        _transferOwnership(treasuryAddr);
+    }
 
-     }
+    function setTreasury(address _treasury) external onlyOwnerOrFundAdmin {
+        if (treasury  == address(0)) {
+            treasury = _treasury;
+            _addRecipient(MAX_PERCENTAGE, _treasury);
+        }
+    }
     /*//////////////////////////////////////////////////////////////
                                 OWNABLE
     //////////////////////////////////////////////////////////////*/
@@ -138,8 +146,8 @@ contract ReserveDistributor is  AdminControlledEcosystemDistributor {
     }
     function addRecipient(uint256 _percentage, address _recipient) external onlyOwnerOrFundAdmin mintAllReservesAndSync {
         _claim(treasury);
-        Recipient storage t = recipients[treasury];
         // since treasury is initialized with 100%, so over-allocation would lead to underflow
+        Recipient storage t = recipients[treasury];
         t.percentage -= _percentage;
         _addRecipient(_percentage, _recipient);
         
@@ -147,7 +155,10 @@ contract ReserveDistributor is  AdminControlledEcosystemDistributor {
 
     function _addRecipient(uint256 _percentage, address _recipient) internal {
         Recipient storage r = recipients[_recipient];
-        require(r.percentage == 0, "recipient is aldy added");
+        if(r.percentage != 0) {
+            // during re-initialize of the same treasury, stop here.
+            return;
+        }
         r.percentage = _percentage;
         // when a user get added/re-added, user get checkpointed against latest balance.
         _syncUserCheckpoint(_recipient);
@@ -233,6 +244,10 @@ contract ReserveDistributor is  AdminControlledEcosystemDistributor {
                                 INTERNAL
     //////////////////////////////////////////////////////////////*/
     ///
+
+    function _initTreasury(address treasury) internal {
+        if ()
+    }
     function _claim(address _recipient) internal {
         Recipient storage r = recipients[_recipient];
         if (r.percentage == 0) {
