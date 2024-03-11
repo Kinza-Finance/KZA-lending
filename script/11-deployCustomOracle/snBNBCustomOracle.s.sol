@@ -7,13 +7,15 @@ import "../../src/core/misc/BinanceOracle/SNBNBBinanceOracleCustomAggregator.sol
 contract deployWbETHPriceAdaptor is Script {
     function run() external {
         uint256 deployerPrivateKey;
-        address internalAgg = 0x49D06F90FE754cCD6Db78a27A5a69018aDd941dc;
-        address sigRegistry = 0xfFB52185b56603e0fd71De9de4F6f902f05EEA23;
-        int256 maxFallbackThreshold = 1e8 * 500;
+        address internalAgg = 0xd73D7f28EF7bA655f3095Bf6B0E2029eFC203e7F;
+        address sigRegistry = 0x08CEd32a7f3eeC915Ba84415e9C07a7286977956;
+        address twwapAgg = 0xDF377a331f37292abd6e024EB8cf680f3f47206d;
+        int256 maxFallbackThreshold = 1e8 * 1000;
         deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
 
-        new SNBNBBinanceOracleCustomAggregator(sigRegistry, internalAgg, maxFallbackThreshold);
+        SNBNBBinanceOracleCustomAggregator c = new SNBNBBinanceOracleCustomAggregator(sigRegistry, internalAgg, maxFallbackThreshold);
+        c.setTWAPAggregatorAddress(twwapAgg);
         
         vm.stopBroadcast();
     }
