@@ -22,23 +22,23 @@ import {PoolConfigurator} from "../../../src/core/protocol/pool/PoolConfigurator
 import {USDC, ADDRESSES_PROVIDER, POOLDATA_PROVIDER, ACL_MANAGER, POOL, POOL_CONFIGURATOR, EMISSION_MANAGER, 
         ATOKENIMPL, SDTOKENIMPL, VDTOKENIMPL, TREASURY, POOL_ADMIN, ORACLE, HAY_AGGREGATOR, HAY,
         LIQUIDATION_ADAPTOR, RANDOM,
-        USDC_AGGREGATOR, USDT_AGGREGATOR, USDC, USDT, TIMELOCK} from "test/utils/Addresses.sol";
+        USDC_AGGREGATOR, USDT_AGGREGATOR, USDC, USDT, TIMELOCK, POOLCONFIG_IMPL_V2, POOL_IMPL_V2} from "test/utils/Addresses.sol";
 
 contract BitmapUpgradeBaseTest is BaseTest {
     function setUp() public virtual override(BaseTest) {
         BaseTest.setUp();
         // upgrade pool
-        Pool poolV2 = new Pool(IPoolAddressesProvider(ADDRESSES_PROVIDER));
-        poolV2.initialize(IPoolAddressesProvider(ADDRESSES_PROVIDER));
+        // Pool poolV2 = new Pool(IPoolAddressesProvider(ADDRESSES_PROVIDER));
+        // poolV2.initialize(IPoolAddressesProvider(ADDRESSES_PROVIDER));
         // upgrade
         vm.startPrank(TIMELOCK);
-        provider.setPoolImpl(address(poolV2));
-        assertEq(Pool(address(pool)).POOL_REVISION(), poolV2.POOL_REVISION());
+        provider.setPoolImpl(address(POOL_IMPL_V2));
+        assertEq(Pool(address(pool)).POOL_REVISION(), Pool(POOL_IMPL_V2).POOL_REVISION());
         // upgrade poolConfigurator
-        PoolConfigurator configuratorV2 = new PoolConfigurator();
-        configuratorV2.initialize(IPoolAddressesProvider(ADDRESSES_PROVIDER));
-        provider.setPoolConfiguratorImpl(address(configuratorV2));
-        assertEq(PoolConfigurator(address(configuratorV2)).CONFIGURATOR_REVISION(), configuratorV2.CONFIGURATOR_REVISION());
+        // PoolConfigurator configuratorV2 = new PoolConfigurator();
+        // configuratorV2.initialize(IPoolAddressesProvider(ADDRESSES_PROVIDER));
+        provider.setPoolConfiguratorImpl(address(POOLCONFIG_IMPL_V2));
+        assertEq(PoolConfigurator(address(configurator)).CONFIGURATOR_REVISION(), PoolConfigurator(POOLCONFIG_IMPL_V2).CONFIGURATOR_REVISION());
     }
 
     function setUpBlacklistForReserve(uint256 reserveIndex, uint128 bitmap) internal {
