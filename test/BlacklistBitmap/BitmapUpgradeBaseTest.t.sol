@@ -133,4 +133,13 @@ contract BitmapUpgradeBaseTest is BaseTest {
         (address aToken,,) = dataProvider.getReserveTokensAddresses(underlying);
         IERC20(aToken).transfer(user, amount);
     }
+
+    function liquidate(address user, uint256 debtToCover, address collateral, address borrowed) internal {
+        address liquidator = address(16);
+        deal(borrowed, liquidator, debtToCover);
+        vm.startPrank(liquidator);
+        IERC20(borrowed).approve(address(pool), debtToCover);
+        pool.liquidationCall(collateral, borrowed, user, debtToCover, false);
+        assertGt(IERC20(collateral).balanceOf(liquidator), 0);
+    }
 }

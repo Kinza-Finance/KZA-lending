@@ -175,6 +175,18 @@ contract blacklistBitmapUpgradeUnitTest is BitmapUpgradeBaseTest {
         
     }
 
+    function test_repayAfterBlacklistALL() public {
+        uint256 amount = 1e18;
+        address user = address(1);
+        deposit(user, amount, USDC);
+        borrow(user, amount / 4, HAY);
+        // every asset gets blocked
+        uint16 USDCreserveIndex = pool.getReserveData(USDC).id;
+        setUpBlacklistForReserve(USDCreserveIndex, type(uint128).max);
+        repay(user, amount / 4, HAY);
+        
+    }
+
     function test_blockUSDCFromBorrowingOtherWithExistingBorrow() public {
         uint256 amount = 1e18;
         address user = address(1);
@@ -220,13 +232,13 @@ contract blacklistBitmapUpgradeUnitTest is BitmapUpgradeBaseTest {
         deposit(user, amount, USDC);
         deposit(user, amount, HAY);
         // block USDC
-         uint16 reserveIndex = pool.getReserveData(USDC).id;
+        uint16 reserveIndex = pool.getReserveData(USDC).id;
         uint256 bitmap = type(uint128).max;
         setUpBlacklistForReserve(reserveIndex, uint128(bitmap));
         borrowExpectFail(user, amount / 2 , HAY, "92");
     }
 
-        function test_multipleCollateralblockOneFromEverythingExceptBorrowingHAY() public {
+    function test_multipleCollateralblockOneFromEverythingExceptBorrowingHAY() public {
         uint256 amount = 1e18;
         address user = address(1);
         deposit(user, amount, USDC);
@@ -240,5 +252,51 @@ contract blacklistBitmapUpgradeUnitTest is BitmapUpgradeBaseTest {
         setUpBlacklistForReserve(USDCreserveIndex, uint128(bitmap));
         setUpBlacklistForReserve(HAYreserveIndex, uint128(bitmap));
         borrow(user, amount / 2, HAY);
+    }
+
+    function test_Liquidation_LoopUSDC() public {
+        uint256 amount = 1e18;
+        address user = address(1);
+        deposit(user, amount, USDC);
+        borrow(user, amount * 3 / 4, USDC);
+        vm.warp(block.timestamp +  1000 weeks);
+        // liquidate(user, DebtToCover, collateral, borrowed)
+        liquidate(user, amount / 2, USDC, USDC);
+    }
+
+    function test_Liquidation_ETH() public {
+        uint256 amount = 1e18;
+        address user = address(1);
+        deposit(user, amount, ETH);
+        borrow(user, amount * 2000, USDC);
+        vm.warp(block.timestamp +  1000 weeks);
+        // liquidate(user, DebtToCover, collateral, borrowed)
+        liquidate(user, amount * 1500, ETH, USDC);
+    }
+
+    function test_Liquidation_ETH_After_Blacklist() public {
+        uint256 amount = 1e18;
+        address user = address(1);
+        deposit(user, amount, ETH);
+        borrow(user, amount * 2000, USDC);
+        uint16 reserveIndex = pool.getReserveData(ETH).id;
+        uint256 bitmap = type(uint128).max;
+        setUpBlacklistForReserve(reserveIndex, uint128(bitmap));
+        vm.warp(block.timestamp +  1000 weeks);
+        // liquidate(user, DebtToCover, collateral, borrowed)
+        liquidate(user, amount * 1500, ETH, USDC);
+    }
+
+    function test_Liquidation_ETH_After_BlacklistUSDC() public {
+        uint256 amount = 1e18;
+        address user = address(1);
+        deposit(user, amount, ETH);
+        borrow(user, amount * 2000, USDC);
+        uint16 reserveIndex = pool.getReserveData(USDC).id;
+        uint256 bitmap = type(uint128).max;
+        setUpBlacklistForReserve(reserveIndex, uint128(bitmap));
+        vm.warp(block.timestamp +  1000 weeks);
+        // liquidate(user, DebtToCover, collateral, borrowed)
+        liquidate(user, amount * 1500, ETH, USDC);
     }
 }
