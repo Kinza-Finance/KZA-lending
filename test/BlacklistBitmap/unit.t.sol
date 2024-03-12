@@ -72,6 +72,31 @@ contract blacklistBitmapUpgradeUnitTest is BitmapUpgradeBaseTest {
         (,,,,,,,,bool isEnabled) = dataProvider.getUserReserveData(USDC, user);
         assertEq(false, isEnabled);
     }
+
+    function test_borrowUSDCDefaultDisableCollateralDuringTransfer() public {
+        uint16 reserveIndex = pool.getReserveData(USDC).id;
+        setUpBlacklistForReserve(reserveIndex, type(uint128).max);
+        uint256 amount = 1e18;
+        address user = address(1);
+        deposit(user, amount, ETH);
+        borrow(user, amount, USDC);
+        transferAToken(user, amount, USDC);
+        // since the user have borrowed USDC, so default is disabled as collateral
+        (,,,,,,,,bool isEnabled) = dataProvider.getUserReserveData(USDC, user);
+        assertEq(false, isEnabled);
+    }
+
+    function test_borrowUSDCFromTransfer() public {
+        uint256 amount = 1e18;
+        address user = address(1);
+        transferAToken(user, amount, ETH);
+        borrow(user, amount, USDC);
+        // since the user have borrowed USDC, so default is disabled as collateral
+        (,,,,,,,,bool isEnabled) = dataProvider.getUserReserveData(ETH, user);
+        assertEq(true, isEnabled);
+    }
+
+
     function test_blockUSDCFromBorrowing() public {
         uint256 amount = 1e18;
         address user = address(1);

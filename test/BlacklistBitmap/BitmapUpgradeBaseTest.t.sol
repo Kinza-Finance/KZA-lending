@@ -125,4 +125,12 @@ contract BitmapUpgradeBaseTest is BaseTest {
          // 2 = variable mode, 0 = no referral
          pool.borrow(underlying, amount, 2, 0, user);
     }
+
+    function transferAToken(address user, uint256 amount, address underlying) internal {
+        address sender = address(16);
+        deposit(sender, amount, underlying);
+        vm.startPrank(sender);
+        (address aToken,,) = dataProvider.getReserveTokensAddresses(underlying);
+        IERC20(aToken).transfer(user, amount);
+    }
 }
