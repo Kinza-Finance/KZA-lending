@@ -270,9 +270,10 @@ library SupplyLogic {
           reservesData,
           reservesList,
           userConfig,
-          reserveCache.reserveConfiguration
+          reserveCache.reserveConfiguration,
+          asset
         ),
-        Errors.USER_IN_ISOLATION_MODE_OR_LTV_ZERO
+        Errors.USER_IN_ISOLATION_MODE_OR_LTV_ZERO_OR_BORROWED_BLACKLISTED_ASSET
       );
 
       userConfig.setUsingAsCollateral(reserve.id, true);

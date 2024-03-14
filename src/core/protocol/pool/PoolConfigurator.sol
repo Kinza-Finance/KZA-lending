@@ -66,7 +66,7 @@ contract PoolConfigurator is VersionedInitializable, IPoolConfigurator {
     _;
   }
 
-  uint256 public constant CONFIGURATOR_REVISION = 0x1;
+  uint256 public constant CONFIGURATOR_REVISION = 0x2;
 
   /// @inheritdoc VersionedInitializable
   function getRevision() internal pure virtual override returns (uint256) {
@@ -466,6 +466,14 @@ contract PoolConfigurator is VersionedInitializable, IPoolConfigurator {
       oldFlashloanPremiumToProtocol,
       newFlashloanPremiumToProtocol
     );
+  }
+
+  function setReserveBlacklistBitmap(
+    address asset, 
+    uint128 blacklistBitmap
+    ) external override onlyRiskOrPoolAdmins {
+    _pool.configureReserveBlacklistBitmap(asset, blacklistBitmap);
+    emit ReserveBlacklistBitmapChanged(asset, blacklistBitmap);
   }
 
   function _checkNoSuppliers(address asset) internal view {

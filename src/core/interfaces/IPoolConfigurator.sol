@@ -258,7 +258,12 @@ interface IPoolConfigurator {
    * @param borrowable True if the reserve is borrowable in isolation, false otherwise
    */
   event BorrowableInIsolationChanged(address asset, bool borrowable);
-
+  /**
+   * @dev Emitted when the reserve black list bitmap is updated
+   * @param asset The reserve
+   * @param bitmapBlacklist 0 represents that the reserve is borrowable for this reserve asset
+   */
+  event ReserveBlacklistBitmapChanged(address asset, uint128 bitmapBlacklist);
   /**
    * @notice Initializes multiple reserves.
    * @param input The array of initialization parameters
@@ -483,4 +488,10 @@ interface IPoolConfigurator {
    * @param siloed The new siloed borrowing state
    */
   function setSiloedBorrowing(address asset, bool siloed) external;
+
+  /**
+   * @notice Sets the bitmapBlacklist for an asset
+   * @param bitMapBlacklist The new bitmap
+   */
+  function setReserveBlacklistBitmap(address reserve, uint128 bitMapBlacklist) external;
 }

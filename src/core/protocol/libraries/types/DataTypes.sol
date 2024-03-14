@@ -33,6 +33,8 @@ library DataTypes {
     uint128 unbacked;
     //the outstanding debt borrowed against this asset in isolation mode
     uint128 isolationModeTotalDebt;
+    // the blacklist bitmap
+    uint128 blacklistBitmap;
   }
 
   struct ReserveConfigurationMap {

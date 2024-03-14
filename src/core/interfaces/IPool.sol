@@ -734,4 +734,15 @@ interface IPool {
    *   0 if the action is executed directly by the user, without any middle-man
    */
   function deposit(address asset, uint256 amount, address onBehalfOf, uint16 referralCode) external;
+
+  function configureReserveBlacklistBitmap(address asset, uint128 reserveBlacklistBitmap) external;
+
+  function getReserveBorrowable(
+    address asset,
+    address assetToBorrow
+  ) external view returns(bool);
+
+  function getReserveBitmap(
+    address asset
+  ) external view returns(uint128);
 }
