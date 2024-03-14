@@ -24,6 +24,12 @@ contract blacklistBitmapUpgradeUnitTest is BitmapUpgradeBaseTest {
         borrow(user, amount / 4, USDC);
     }
 
+    function test_borrowRevert() public {
+        uint256 amount = 1e18;
+        address user = address(1);
+        borrowExpectFail(user, amount, USDC, "92");
+    }
+
     function test_blockUSDCViewBorrowable() public {
         uint16 reserveIndex = pool.getReserveData(USDC).id;
         setUpBlacklistForReserve(reserveIndex, type(uint128).max);
