@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.10;
 
 import '../../core/interfaces/IPoolAddressesProvider.sol';
@@ -27,7 +28,9 @@ contract RecoverAssetHelper is Ownable {
         if (debtAmount == type(uint256).max) {
             debtAmount = IERC20(vdToken).balanceOf(victim);
         }
+
         IERC20(debtToken).transferFrom(msg.sender, address(this), debtAmount);
+        IERC20(debtToken).approve(address(pool), debtAmount);
         pool.repay(debtToken, debtAmount, 2, victim);
         // now transfer out the aToken to the sender (who repay the debt)
         (address aToken,,) = dataProvider.getReserveTokensAddresses(assetToken);
