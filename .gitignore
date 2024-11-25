@@ -1,5 +1,9 @@
+log/
+broadcast/
 .DS_Store
 .env
+.env.test
+.env.prod
 #Hardhat files
 cache
 artifacts
@@ -19,7 +23,6 @@ coverage
 .coverage_cache
 .coverage_contracts
 coverage.json
-deployments/
 
 **.last_conf*
 certora_debug_log.txt
