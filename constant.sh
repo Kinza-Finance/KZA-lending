@@ -1,0 +1,193 @@
+BUSD_PROD=0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56
+USDC_PROD=0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d
+USDT_PROD=0x55d398326f99059fF775485246999027B3197955
+WBTC_PROD=0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c
+WETH_PROD=0x2170Ed0880ac9A755fd29B2688956BD959F933F8
+WBNB_PROD=0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c
+
+WBNB_AGGREGATOR_PROD=0x0567f2323251f0aab15c8dfb1967e4e8a7d42aee
+WBTC_AGGREGATOR_PROD=0x264990fbd0a4796a3e3d8e37c4d5f87a3aca5ebf
+WETH_AGGREGATOR_PROD=0x9ef1b8c0e4f7dc8bf5719ea496883dc6401d5b2e
+BUSD_AGGREGATOR_PROD=0xcbb98864ef56e9042e7d2efef76141f15731b82f
+USDT_AGGREGATOR_PROD=0xb97ad0e74fa7d920791e90258a6e2085088b4320
+USDC_AGGREGATOR_PROD=0x51597f405303c4377e36123cbc172b13269ea163
+
+# rate strategy - BUSD
+# 0.8 * 10 ** 27
+BUSD_optimalUsageRatio=800000000000000000000000000
+BUSD_baseVariableBorrowRate=0
+# 4%
+BUSD_variableRateSlope1=40000000000000000000000000
+# 250%
+BUSD_variableRateSlope2=2500000000000000000000000000
+# 0.5%
+BUSD_stableRateSlope1=5000000000000000000000000
+# 250%
+BUSD_stableRateSlope2=2500000000000000000000000000
+# 5% - base stable rate premium
+BUSD_baseStableRateOffset=50000000000000000000000000
+# 8%
+BUSD_stableRateExcessOffset=80000000000000000000000000
+# 20%
+BUSD_optimalStableToTotalDebtRatio=200000000000000000000000000
+
+# rate strategy - USDC
+# 0.8 * 10 ** 27
+USDC_optimalUsageRatio=800000000000000000000000000
+USDC_baseVariableBorrowRate=0
+# 4%
+USDC_variableRateSlope1=40000000000000000000000000
+# 250%
+USDC_variableRateSlope2=2500000000000000000000000000
+# 0.5%
+USDC_stableRateSlope1=5000000000000000000000000
+# 250%
+USDC_stableRateSlope2=2500000000000000000000000000
+# 5% - base stable rate premium
+USDC_baseStableRateOffset=50000000000000000000000000
+# 8%
+USDC_stableRateExcessOffset=80000000000000000000000000
+# 20%
+USDC_optimalStableToTotalDebtRatio=200000000000000000000000000
+
+
+# rate strategy - USDT
+# 0.8 * 10 ** 27
+USDT_optimalUsageRatio=800000000000000000000000000
+USDT_baseVariableBorrowRate=0
+# 4%
+USDT_variableRateSlope1=40000000000000000000000000
+# 250%
+USDT_variableRateSlope2=2500000000000000000000000000
+# 2%
+USDT_stableRateSlope1=20000000000000000000000000
+# 250%
+USDT_stableRateSlope2=2500000000000000000000000000
+# 5% - base stable rate premium
+USDT_baseStableRateOffset=50000000000000000000000000
+# 8%
+USDT_stableRateExcessOffset=80000000000000000000000000
+# 20%
+USDT_optimalStableToTotalDebtRatio=200000000000000000000000000
+
+# rate strategy - WBTC
+# 0.45 * 10 ** 27
+WBTC_optimalUsageRatio=450000000000000000000000000
+WBTC_baseVariableBorrowRate=0
+# 4%
+WBTC_variableRateSlope1=40000000000000000000000000
+# 300%
+WBTC_variableRateSlope2=3000000000000000000000000000
+# 7%
+WBTC_stableRateSlope1=70000000000000000000000000
+# 300%
+WBTC_stableRateSlope2=3000000000000000000000000000
+# 9% - base stable rate premium
+WBTC_baseStableRateOffset=90000000000000000000000000
+# 5%
+WBTC_stableRateExcessOffset=50000000000000000000000000
+# 20%
+WBTC_optimalStableToTotalDebtRatio=200000000000000000000000000
+
+
+# rate strategy - WETH
+# 0.75 * 10 ** 27
+WETH_optimalUsageRatio=750000000000000000000000000
+# 0%
+WETH_baseVariableBorrowRate=0
+# 4%
+WETH_variableRateSlope1=40000000000000000000000000
+# 200%
+WETH_variableRateSlope2=2000000000000000000000000000
+# 4%
+WETH_stableRateSlope1=40000000000000000000000000
+# 200%
+WETH_stableRateSlope2=2000000000000000000000000000
+# 7% - base stable rate premium
+WETH_baseStableRateOffset=70000000000000000000000000
+# 5%
+WETH_stableRateExcessOffset=50000000000000000000000000
+# 20%
+WETH_optimalStableToTotalDebtRatio=200000000000000000000000000
+
+# rate strategy - WBNB
+# 0.6 * 10 ** 27
+WBNB_optimalUsageRatio=600000000000000000000000000
+# 1%
+WBNB_baseVariableBorrowRate=0
+# 15%
+WBNB_variableRateSlope1=150000000000000000000000000
+# 400%
+WBNB_variableRateSlope2=4000000000000000000000000000
+# 4%
+WBNB_stableRateSlope1=40000000000000000000000000
+# 400%
+WBNB_stableRateSlope2=4000000000000000000000000000
+# 7% - base stable rate premium
+WBNB_baseStableRateOffset=70000000000000000000000000
+# 5%
+WBNB_stableRateExcessOffset=50000000000000000000000000
+# 20%
+WBNB_optimalStableToTotalDebtRatio=200000000000000000000000000
+
+
+#risk parameter
+BUSD_baseLTV=7500
+BUSD_liquidationThreshold=8000
+BUSD_liquidationBonus=10800
+BUSD_reserveFactor=1500
+BUSD_borrowCap=30000000
+BUSD_supplyCap=40000000
+BUSD_stableBorrowingEnabled=false
+BUSD_borrowingEnabled=true
+BUSD_flashLoanEnabled=true
+
+USDC_baseLTV=7500
+USDC_liquidationThreshold=8000
+USDC_liquidationBonus=10800
+USDC_reserveFactor=1500
+USDC_borrowCap=40000000
+USDC_supplyCap=50000000
+USDC_stableBorrowingEnabled=false
+USDC_borrowingEnabled=true
+USDC_flashLoanEnabled=true
+
+USDT_baseLTV=7500
+USDT_liquidationThreshold=8000
+USDT_liquidationBonus=10800
+USDT_reserveFactor=1500
+USDT_borrowCap=16000000
+USDT_supplyCap=20000000
+USDT_stableBorrowingEnabled=false
+USDT_borrowingEnabled=true
+USDT_flashLoanEnabled=true
+
+WETH_baseLTV=7000
+WETH_liquidationThreshold=7500
+WETH_liquidationBonus=10800
+WETH_reserveFactor=1500
+WETH_borrowCap=24000
+WETH_supplyCap=30000
+WETH_stableBorrowingEnabled=false
+WETH_borrowingEnabled=true
+WETH_flashLoanEnabled=true
+
+WBTC_baseLTV=7000
+WBTC_liquidationThreshold=7500
+WBTC_liquidationBonus=10800
+WBTC_reserveFactor=1500
+WBTC_borrowCap=1600
+WBTC_supplyCap=2000
+WBTC_stableBorrowingEnabled=false
+WBTC_borrowingEnabled=true
+WBTC_flashLoanEnabled=true
+
+WBNB_baseLTV=7000
+WBNB_liquidationThreshold=7500
+WBNB_liquidationBonus=10800
+WBNB_reserveFactor=1500
+WBNB_borrowCap=160000
+WBNB_supplyCap=200000
+WBNB_stableBorrowingEnabled=false
+WBNB_borrowingEnabled=true
+WBNB_flashLoanEnabled=true
