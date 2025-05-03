@@ -11,7 +11,7 @@ declare var hre: HardhatRuntimeEnvironment;
 
 export const convertToCurrencyDecimals = async (tokenAddress: tEthereumAddress, amount: string) => {
   const token = await getContract('IERC20Detailed', tokenAddress);
-  let decimals = (await token.decimals()).toString();
+  const decimals = (await token.decimals()).toString();
 
   return ethers.utils.parseUnits(amount, decimals);
 };
@@ -26,8 +26,8 @@ export const buildPermitParams = (
   nonce: number,
   deadline: string,
   value: tStringTokenSmallUnits
-) => ({
-  types: {
+) => {
+  const types = {
     EIP712Domain: [
       { name: 'name', type: 'string' },
       { name: 'version', type: 'string' },
@@ -41,22 +41,24 @@ export const buildPermitParams = (
       { name: 'nonce', type: 'uint256' },
       { name: 'deadline', type: 'uint256' },
     ],
-  },
-  primaryType: 'Permit' as const,
-  domain: {
+  };
+  const primaryType = 'Permit' as const;
+  const domain = {
     name: tokenName,
     version: revision,
     chainId: chainId,
     verifyingContract: token,
-  },
-  message: {
+  };
+  const message = {
     owner,
     spender,
     value,
     nonce,
     deadline,
-  },
-});
+  };
+
+  return { types, primaryType, domain, message };
+};
 
 export const getSignatureFromTypedData = (
   privateKey: string,
@@ -77,8 +79,8 @@ export const buildDelegationWithSigParams = (
   nonce: number,
   deadline: string,
   value: tStringTokenSmallUnits
-) => ({
-  types: {
+) => {
+  const types = {
     EIP712Domain: [
       { name: 'name', type: 'string' },
       { name: 'version', type: 'string' },
@@ -91,24 +93,25 @@ export const buildDelegationWithSigParams = (
       { name: 'nonce', type: 'uint256' },
       { name: 'deadline', type: 'uint256' },
     ],
-  },
-  primaryType: 'DelegationWithSig' as const,
-  domain: {
+  };
+  const primaryType = 'DelegationWithSig' as const;
+  const domain = {
     name: tokenName,
     version: revision,
     chainId: chainId,
     verifyingContract: token,
-  },
-  message: {
+  };
+  const message = {
     delegatee,
     value,
     nonce,
     deadline,
-  },
-});
+  };
+
+  return { types, primaryType, domain, message };
+};
 
 export const getProxyImplementation = async (proxyAdminAddress: string, proxyAddress: string) => {
-  // Impersonate proxy admin
   await impersonateAccountsHardhat([proxyAdminAddress]);
   const proxyAdminSigner = await hre.ethers.getSigner(proxyAdminAddress);
 
@@ -124,13 +127,8 @@ export const getProxyImplementation = async (proxyAdminAddress: string, proxyAdd
 
 export const getProxyAdmin = async (proxyAddress: string) => {
   const EIP1967_ADMIN_SLOT = '0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103';
-  const adminStorageSlot = await hre.ethers.provider.getStorageAt(
-    proxyAddress,
-    EIP1967_ADMIN_SLOT,
-    'latest'
-  );
-  const adminAddress = ethers.utils.defaultAbiCoder
-    .decode(['address'], adminStorageSlot)
-    .toString();
+  const adminStorageSlot = await hre.ethers.provider.getStorageAt(proxyAddress, EIP1967_ADMIN_SLOT, 'latest');
+  const adminAddress = ethers.utils.defaultAbiCoder.decode(['address'], adminStorageSlot).toString();
   return ethers.utils.getAddress(adminAddress);
 };
+
